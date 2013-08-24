@@ -7,15 +7,17 @@ YUI.add('ss-smugmug-tools', function(Y) {
 		},
 		{
 			/**
-			 * Nickname is the SmugMug site nickname to look up, the ID is returned
-			 * asynchronously.
+			 * Nickname is the SmugMug site nickname to look up, the descriptor for the
+			 * root node is returned asynchronously to the handlers in 'on'.
+			 * 
+			 * The data is that returned by rpc.thumbnail.folders or rpc.node.getchildnodes.
 			 * 
 			 * Provide success() and failure() functions in 'on' to receive the result.
 			 * 
 			 * @param nickname
 			 * @param on
 			 */
-			getRootNodeID: function(nickname, on) {
+			getRootNode: function(nickname, on) {
 				Y.io('http://' + nickname + '.smugmug.com/services/api/json/1.4.0/', {
 					data: {
 						disableAlbum:1,
@@ -29,8 +31,8 @@ YUI.add('ss-smugmug-tools', function(Y) {
 						success: function(transactionid, response, arguments) {
 							var data = Y.JSON.parse(response.responseText);
 							
-							if (data && data.folderNodeId) {
-								on.success(data.folderNodeId);
+							if (data && data.Folder) {
+								on.success(data.Folder);
 							} else {
 								on.failure();
 							}
@@ -40,13 +42,61 @@ YUI.add('ss-smugmug-tools', function(Y) {
 						}
 					}
 				});	
+			},
+			
+			/**
+			 * Take a list of nodes produced by ss-smugmug-node-enumerator, augment them with parent and children elements so
+			 * it may be traversed as a tree, and return a reference to the root node (or null if something goes wrong).
+			 * 
+			 * @param nodes
+			 */
+			treeifyNodes: function(nodes) {
+				var 
+					lowestDepthSeen = null,
+					rootNode = null;
+				
+				for (var nodeID in nodes) {
+					var 
+						node = nodes[nodeID],
+						parent = nodes[node.nodeData.ParentID];
+					
+					if (lowestDepthSeen === null || node.Depth < lowestDepthSeen) {
+						lowestDepthSeen = node.Depth;
+						rootNode = node;
+					}
+					
+					if (parent) {
+						node.parent = parent;
+						
+						if (parent.children === undefined) {
+							parent.children = {};
+						}
+						
+						parent.children[nodeID] = node;
+					}
+				}
+				
+				return rootNode;
+			},
+			
+			/**
+			 * Extract the initial page data provided to Y.SM.Page.init() from the page source. 
+			 */
+			extractPageInitData: function(source) {
+				var matches = source.match(/^\s*Y\.SM\.Page\.init\((.+)\);$/m);
+				
+				if (matches) {
+					return Y.JSON.parse(matches[1]);
+				}
+				
+				return false;
 			}			
 		}
 	);
 	
 	Y.namespace('SherlockPhotography').SmugmugTools = SmugmugTools;
 }, '0.0.1', {
-	requires: ['base', 'io']
+	requires: ['base', 'io', 'json']
 });
 
 YUI.add('ss-request-delay-queue', function(Y) {
@@ -244,8 +294,15 @@ YUI.add('ss-smugmug-node-enumerator', function(Y, NAME) {
 		    	});
 		    },
 		    	
+		    /**
+		     * rootNode is a node descriptor returned from e.g. rpc.node.getchildnodes or rpc.thumbnail.folders.
+		     * 
+		     * @param rootNode
+		     */
 			fetchNodes: function(rootNode) {
-				this._workQueue.enqueue(this._recursivelyFetchNodes, this, [rootNode, this.get('maxDepth')]);
+				this._nodes[rootNode.NodeID] = {nodeData: rootNode};
+				
+				this._workQueue.enqueue(this._recursivelyFetchNodes, this, [rootNode.NodeID, this.get('maxDepth')]);
 			}
 		}, {	
 			ATTRS: {
@@ -270,17 +327,6 @@ YUI.add('ss-smugmug-node-enumerator', function(Y, NAME) {
 	requires: ['io', 'base', 'json-parse', 'ss-request-delay-queue']
 });
 
-/* Extract the initial page data provided to  Y.SM.Page.init() */
-function extractPageData(source) {
-	var matches = source.match(/^\s*Y\.SM\.Page\.init\((.+)\);$/m);
-	
-	if (matches) {
-		return Y.JSON.parse(matches[1]);
-	}
-	
-	return false;
-}
-
 YUI().use(['node', 'json', 'io', 'ss-smugmug-tools', 'ss-smugmug-node-enumerator'], function(Y) {
 	Y.on('domready', function () {
 		var 
@@ -298,14 +344,14 @@ YUI().use(['node', 'json', 'io', 'ss-smugmug-tools', 'ss-smugmug-node-enumerator
 				console.log(e);
 			},
 			completed: function(e) {
-				console.log(e);
+				console.log(Y.SherlockPhotography.SmugmugTools.treeifyNodes(e.nodes));
 			}
 		});
 		
 		//We must begin by finding out the ID of the root node of the domain:
-		Y.SherlockPhotography.SmugmugTools.getRootNodeID(smugmugNickname, {
-			success: function(rootNodeID) {
-				nodeEnumerator.fetchNodes(rootNodeID);
+		Y.SherlockPhotography.SmugmugTools.getRootNode(smugmugNickname, {
+			success: function(rootNode) {
+				nodeEnumerator.fetchNodes(rootNode);
 			},
 			failure: function() {
 				alert("Couldn't find out the ID of the root node of your SmugMug site, are you logged on?");
