@@ -61,7 +61,7 @@ YUI.add('ss-smugmug-node-enumerator', function(Y, NAME) {
 				
 				this._nodes[rootNode.NodeID] = {nodeData: rootNode};
 				
-				if (maxDepth >= 1) {
+				if (maxDepth >= 1 && rootNode.HasChildren) {
 					this._queue.enqueueRequest({
 						url: 'http://' + this.get('domain') + '/services/api/json/1.4.0/',
 						data: {
