@@ -5,6 +5,8 @@ YUI.add('ss-event-log-widget', function(Y, NAME) {
 		Y.Base,
 		[],
 		{
+			_progressBar: null,
+			
 			_logTypeToClassname: function(type) {
 				var classname;
 				
@@ -21,24 +23,65 @@ YUI.add('ss-event-log-widget', function(Y, NAME) {
 				return 'log-' + classname;
 			},
 			
-			init: function(cfg) {
-				this.after('textChange', function(e) {
-					this.get('element').set('text', e.newVal);
+			_uiSetProgress: function() {
+				var progress = this.get('progress');
+				
+				if (progress) {
+					if (!this._progressBar) {
+						this._progressBar = new Y.SherlockPhotography.ProgressBar(progress);
+						this._progressBar.render(this.get('element')); 
+					} else {
+						this._progressBar.set('total', progress.total);
+						this._progressBar.set('completed', progress.completed);
+					}
+				}
+			},
+			
+			_uiSetMessage: function() {
+				this.get('element').one('> .message').set('text', this.get('message'));
+			},
+			
+			render: function() {
+				element = Y.Node.create('<li class="' + this._logTypeToClassname(this.get('type')) + '"><span class="message"></span></li>');
+
+				this.set('element', element);
+
+				this._uiSetMessage();
+				this._uiSetProgress();
+				
+				return element;
+			},
+						
+			initializer: function(cfg) {
+				var self = this;
+				
+				this.after({
+					progressChange: function(e) {
+						self._uiSetProgress();
+					},
+					messageChange: function(e) {
+						self._uiSetMessage();
+					},					
+					elementChange: function(e) {
+						if (e.prevVal) {
+							e.prevVal.replace(e.newVal);
+						}
+					}
 				});
 				
-				var element = Y.Node.create('<li class="' + this._logTypeToClassname(cfg.type) + '"></li>');
-				
-				this.set('element', element);
-				this.set('text', cfg.message);
+				this.render();
 			}
 		},
 		{
 			ATTRS: {
 				element : {
-					value: null,
-					writeOnce: 'initOnly'
+					value: null
 				},
-				text: {}
+				type: {},
+				message: {},
+				progress: {
+					value: null
+				}
 			}
 		}
 	);
@@ -76,5 +119,5 @@ YUI.add('ss-event-log-widget', function(Y, NAME) {
 	Y.namespace("SherlockPhotography").EventLogEntry = EventLogEntry;
 	Y.namespace("SherlockPhotography").EventLogWidget = EventLogWidget;
 }, '0.0.1', {
-	requires : ['base', 'widget']
+	requires : ['base', 'widget', 'escape']
 });

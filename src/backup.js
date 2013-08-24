@@ -1,4 +1,4 @@
-YUI().use(['node', 'json', 'io', 'ss-smugmug-tools', 'ss-smugmug-node-enumerator', 'ss-event-log-widget', 'ss-api-smartqueue'], function(Y) {
+YUI().use(['node', 'json', 'io', 'ss-smugmug-tools', 'ss-smugmug-node-enumerator', 'ss-event-log-widget', 'ss-api-smartqueue', 'ss-progress-bar'], function(Y) {
 	var 
 		smugmugNickname = 'n-sherlock',
 		smugmugDomain = smugmugNickname + '.smugmug.com';
@@ -55,15 +55,12 @@ YUI().use(['node', 'json', 'io', 'ss-smugmug-tools', 'ss-smugmug-node-enumerator
 		
 		var 
 			logInitialProgress = eventLog.appendLog('info', "Connecting to your Smugmug site..."),
+			
 			logEnumProgress = null;
 		
 		nodeEnumerator.on({
 			progress: function(progress) {
-				var progressBar = logEnumProgress.get('element').one('.quick-progressbar');
-
-				if (progress.total > 0) {
-					progressBar.one('span').setStyle('width', Math.round((parseInt(progressBar.getComputedStyle('width'), 10) * progress.completed) / progress.total) + 'px');
-				}
+				logEnumProgress.set('progress', progress);
 			},
 			
 			requestFail: function(e) {
@@ -75,18 +72,18 @@ YUI().use(['node', 'json', 'io', 'ss-smugmug-tools', 'ss-smugmug-node-enumerator
 			
 				backup.nodeTree = Y.SherlockPhotography.SmugmugTools.treeifyNodes(backup.nodes);
 				
-				fetchPageDesigns(backup.nodes);
+				//fetchPageDesigns(backup.nodes);
 			}
 		});
 		
 		//We must begin by finding out the ID of the root node of the domain:
 		Y.SherlockPhotography.SmugmugTools.getRootNode(smugmugNickname, {
 			success: function(rootNode) {
-				logInitialProgress.set('text', logInitialProgress.get('text') + ' connected!');
+				logInitialProgress.set('message', logInitialProgress.get('message') + ' connected!');
 				
 				logEnumProgress = eventLog.appendLog('info', "Making a list of your pages...");
-				
-				logEnumProgress.get('element').append('<span class="quick-progressbar"><span></span></span>');
+								
+				logEnumProgress.set('progress', {completed:0, total:1});
 				
 				nodeEnumerator.fetchNodes(rootNode);
 			},
