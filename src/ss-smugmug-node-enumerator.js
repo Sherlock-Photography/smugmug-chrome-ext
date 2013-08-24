@@ -16,10 +16,32 @@ YUI.add('ss-smugmug-node-enumerator', function(Y, NAME) {
 			
 			_recursivelyFetchNodes: function(rootNode, maxDepth, retryCount) {
 				if (maxDepth <= 0) {
-					this._workQueue.itemCompleted(false);
+					this._workQueue.itemCompleted(true, false);
 					
 					return;
 				}
+				
+				var self = this;
+				
+				/* 
+				 * Attempt to queue up a retry of the fetch of this node. If the maximum number of retries has already
+				 * been reached, false is returned instead and the item is marked failed on the queue.
+				 */
+				var attemptRetry = function() {
+					if (!retryCount) 
+						retryCount = 1; 
+					else
+						retryCount++;
+					
+					if (retryCount <= self.get('maxRetries')) {
+						//Try to fetch this node again later
+						self._workQueue.retry(self._recursivelyFetchNodes, self, [rootNode, maxDepth, retryCount]);					
+
+						return true;
+					}
+					
+					return false;
+				};
 				
 				Y.io('http://' + this.get('domain') + '/services/api/json/1.4.0/', {
 					data: {
@@ -29,7 +51,17 @@ YUI.add('ss-smugmug-node-enumerator', function(Y, NAME) {
 					},
 					on: {
 						success: function(transactionid, response, arguments) {
-							var data = JSON.parse(response.responseText);
+							var data;
+							
+							try {
+								data = JSON.parse(response.responseText);
+							} catch (e) {
+								if (!attemptRetry()) {
+									//All our retries failed, this node is failed
+									this.fire('nodeFail', {outstanding: true, method: "rpc.node.getchildnodes", NodeID: rootNode, status: response.status, statusText: 'Failed to parse JSON'});
+								}
+								return;
+							}
 							
 							for (var index in data.Nodes) {
 								var node = data.Nodes[index];
@@ -41,7 +73,7 @@ YUI.add('ss-smugmug-node-enumerator', function(Y, NAME) {
 								
 									if (node.HasChildren) {
 										if (maxDepth <= 1) {
-											this.fire('failed', {method: "rpc.node.getchildnodes", NodeID: node.NodeID, status: 0, statusText: "Recursion limit reached"});											
+											this.fire('nodeFail', {outstanding: false, method: "rpc.node.getchildnodes", NodeID: node.NodeID, status: 0, statusText: "Recursion limit reached"});											
 										} else {
 											this._workQueue.enqueue(this._recursivelyFetchNodes, this, [node.NodeID, maxDepth - 1]);
 										}
@@ -49,24 +81,12 @@ YUI.add('ss-smugmug-node-enumerator', function(Y, NAME) {
 								}
 							}
 							
-							this._workQueue.itemCompleted(true);
-							this._reportProgress();
+							this.fire('nodeSuccess');
 						},
 						failure: function(transactionid, response, arguments) {
-							if (!retryCount) 
-								retryCount = 1; 
-							else
-								retryCount++;
-							
-							if (retryCount > this.get('maxRetries')) {
+							if (!attemptRetry()) {
 								//All our retries failed, this node is failed
-								this._workQueue.itemCompleted(false);
-								this.fire('failed', {method: "rpc.node.getchildnodes", NodeID: rootNode, status: response.status, statusText: response.statusText});
-								
-								this._reportProgress();
-							} else {
-								//Try to fetch this node again later
-								this._workQueue.retry(this._recursivelyFetchNodes, this, [rootNode, maxDepth, retryCount]);
+								this.fire('nodeFail', {outstanding: true, method: "rpc.node.getchildnodes", NodeID: rootNode, status: response.status, statusText: response.statusText});
 							}
 						}
 					},
@@ -79,12 +99,33 @@ YUI.add('ss-smugmug-node-enumerator', function(Y, NAME) {
 		    	this._nodes = {};
 		    	
 		    	var self = this;
-		    	
-		    	this._workQueue.on('completed', function() {
-		    		self._reportProgress();
-		    		
-		    		self.fire('completed', {nodes: self._nodes});
+
+		    	//Maintain work queue outstanding counts:
+		    	this.on({
+		    		nodeSuccess: function() { 
+		    			self._workQueue.itemCompleted(true, true); 
+		    		},
+		    		nodeFail: function(e) {
+		    			/* 
+		    			 * Here we take care that items that failed before they were even queued up don't end up decreasing the
+		    			 * count of outstanding requests in the queue:
+		    			 */
+		    			self._workQueue.itemCompleted(e.outstanding, false); 
+		    		}
 		    	});
+		    	
+		    	//Update listeners after each failure or success:
+		    	this.after({
+		    		nodeSuccess: self._reportProgress,
+		    		nodeFail: self._reportProgress
+		    	});
+		    	
+		    	//Ensure listeners get a 100% completed progress report before we tell them it's complete:
+		    	this.before('completed', self._reportProgress);
+
+		    	this._workQueue.on('completed', function() {
+		    		self.fire('completed', {nodes: self._nodes});
+		    	});		    	
 		    },
 		    	
 		    /**

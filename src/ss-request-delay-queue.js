@@ -28,7 +28,7 @@ YUI.add('ss-request-delay-queue', function(Y) {
 					timeout: this.get('delayBetweenNodes')
 				}).run();
 			},
-			
+						
 			/**
 			 * Add a queued item back onto the queue (i.e. doesn't increase the number of
 			 * outstanding requests, the item is still outstanding)
@@ -46,8 +46,17 @@ YUI.add('ss-request-delay-queue', function(Y) {
 				}).run();
 			},			
 			
-			itemCompleted: function(success) {
-				this.set('numOutstandingRequests', this.get('numOutstandingRequests') - 1);
+			/**
+			 * Notify the queue about the success or failure of execution of one of its items (so
+			 * it may maintain a count of outstanding/successful/failed items).
+			 * 
+			 * @param outstanding True if this item was previously outstanding
+			 * @param success True if the execution was successful
+			 */
+			itemCompleted: function(outstanding, success) {
+				if (outstanding) {
+					this.set('numOutstandingRequests', this.get('numOutstandingRequests') - 1);
+				}
 				
 				if (success) {
 					this.set('numSuccessfulRequests', this.get('numSuccessfulRequests') + 1);

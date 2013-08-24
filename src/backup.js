@@ -6,7 +6,6 @@ YUI().use(['node', 'json', 'io', 'ss-smugmug-tools', 'ss-smugmug-node-enumerator
 			nodeEnumerator = new Y.SherlockPhotography.SmugmugNodeEnumerator({domain: smugmugDomain}),
 			eventLog = new Y.SherlockPhotography.EventLogWidget();
 		
-		
 		eventLog.render('#eventLog');
 		
 		var 
@@ -15,13 +14,17 @@ YUI().use(['node', 'json', 'io', 'ss-smugmug-tools', 'ss-smugmug-node-enumerator
 		
 		nodeEnumerator.on({
 			progress: function(progress) {
-				logEnumProgress.get('element').one('span').set('text', ' (' + progress.completed + '/' + progress.total + ')');
+				var progressBar = logEnumProgress.get('element').one('.quick-progressbar');
+
+				if (progress.total > 0) {
+					progressBar.one('span').setStyle('width', Math.round((parseInt(progressBar.getComputedStyle('width'), 10) * progress.completed) / progress.total) + 'px');
+				}
 			},
 			failed: function(e) {
 				eventLog.appendLog('error', "Failed to fetch children of node '" + e.NodeID + "': " + e.statusText);
 			},
 			completed: function(e) {
-				eventLog.appendLog('info', 'Finished listing pages');
+				eventLog.appendLog('info', 'Finished listing your pages.');
 				
 				console.log(Y.SherlockPhotography.SmugmugTools.treeifyNodes(e.nodes));
 			}
@@ -34,7 +37,7 @@ YUI().use(['node', 'json', 'io', 'ss-smugmug-tools', 'ss-smugmug-node-enumerator
 				
 				logEnumProgress = eventLog.appendLog('info', "Making a list of your pages...");
 				
-				logEnumProgress.get('element').append('<span></span>');
+				logEnumProgress.get('element').append('<span class="quick-progressbar"><span></span></span>');
 				
 				nodeEnumerator.fetchNodes(rootNode);
 			},

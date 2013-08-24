@@ -1,9 +1,8 @@
 .yui3-ss-event-log-widget ul {
-	overflow-y:auto;
+	overflow-y: auto;
 }
 .yui3-ss-event-log-widget li {
-	list-style-type:none;
-	padding:0.5em;
-	background-color:#f0f0f0;
-	margin-bottom:1px;
+	padding: 0.5em;
+	background-color: #f0f0f0;
+	margin-bottom: 1px;
 }
