@@ -63,7 +63,7 @@ YUI().use(['node', 'json', 'io', 'ss-smugmug-tools', 'ss-smugmug-node-enumerator
 					progressBar.one('span').setStyle('width', Math.round((parseInt(progressBar.getComputedStyle('width'), 10) * progress.completed) / progress.total) + 'px');
 				}
 			},
-			failed: function(e) {
+			requestFailed: function(e) {
 				eventLog.appendLog('error', "Failed to fetch children of node '" + e.NodeID + "': " + e.statusText);
 			},
 			completed: function(e) {

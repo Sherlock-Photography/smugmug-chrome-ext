@@ -6,6 +6,11 @@ YUI.add('ss-api-smartqueue', function(Y, NAME) {
 		{
 			_queue: null,
 
+			/* Default implementation that you may override */
+			_doProcessResponse: function(request, response) {
+				return this.get('processResponse')(request, response);
+			},
+			
 			_enqueueCallback: function(request, retryCount) {
 				this._queue.add({
 					fn: this._executeRequest,
@@ -66,7 +71,7 @@ YUI.add('ss-api-smartqueue', function(Y, NAME) {
 								responseData = response.responseText;
 							}
 							
-							var result = this.get('processResponse')(request, responseData);
+							var result = this._doProcessResponse(request, responseData);
 							
 							if (!result || result == 'retry' && !attemptRetry()) {
 								this.fire('requestFail', {request: request});
@@ -91,11 +96,11 @@ YUI.add('ss-api-smartqueue', function(Y, NAME) {
 
 		    	//Maintain request counts and notify listeners of progress:
 		    	this.on({
-		    		nodeSuccess: function() {
+		    		requestSuccess: function() {
 						self.set('numSuccessfulRequests', self.get('numSuccessfulRequests') + 1);
 						self._reportProgress();
 		    		},
-		    		nodeFail: function(e) {
+		    		requestFail: function(e) {
 						self.set('numFailedRequests', self.get('numFailedRequests') + 1);
 						self._reportProgress();
 		    		}
@@ -161,5 +166,5 @@ YUI.add('ss-api-smartqueue', function(Y, NAME) {
 	
 	Y.namespace('SherlockPhotography').APISmartQueue = APISmartQueue;
 }, '0.0.1', {
-	requires: ['io', 'base', 'json-parse']
+	requires: ['io', 'base', 'json-parse', 'async-queue']
 });

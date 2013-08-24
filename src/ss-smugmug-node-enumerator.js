@@ -9,123 +9,46 @@ YUI.add('ss-smugmug-node-enumerator', function(Y, NAME) {
 		{
 			//Prototype members
 			_nodes: null,
-			
-			_reportProgress: function() {
-				this.fire('progress', {completed: this._workQueue.get('numCompletedRequests'), total: this._workQueue.get('numTotalRequests')});
-			},
-			
-			_recursivelyFetchNodes: function(rootNode, maxDepth, retryCount) {
-				if (maxDepth <= 0) {
-					this.fire('nodeFail', {outstanding: true, NodeID: rootNode, status: 0, statusText: "Recursion limit reached"});											
+			_queue: null,
+
+	    	_processResponse: function(request, response) {
+	    		var nodes = response.Nodes;
+	    		
+				for (var index in nodes) {
+					var node = nodes[index];
 					
-					return;
+					var seenAlready = this._nodes[node.NodeID] !== undefined;
+
+					if (node.NodeID && !seenAlready) {
+						this.fetchNodes(node, request.maxDepth - 1);
+					}
 				}
 				
-				var self = this;
-				
-				/* 
-				 * Attempt to queue up a retry of the fetch of this node. If the maximum number of retries has already
-				 * been reached, false is returned instead.
-				 */
-				var attemptRetry = function() {
-					if (!retryCount) 
-						retryCount = 1; 
-					else
-						retryCount++;
-					
-					if (retryCount <= self.get('maxRetries')) {
-						//Try to fetch this node again later
-						self._workQueue.retry(self._recursivelyFetchNodes, self, [rootNode, maxDepth, retryCount]);					
-
-						return true;
-					}
-					
-					return false;
-				};
-				
-				Y.io('http://' + this.get('domain') + '/services/api/json/1.4.0/', {
-					data: {
-						NodeID: rootNode,
-						PageSize: 1000,
-						method: 'rpc.node.getchildnodes'
-					},
-					on: {
-						success: function(transactionid, response, arguments) {
-							var data;
-							
-							try {
-								data = JSON.parse(response.responseText);
-							} catch (e) {
-								if (!attemptRetry()) {
-									//All our retries failed, this node is failed
-									this.fire('nodeFail', {outstanding: true, method: "rpc.node.getchildnodes", NodeID: rootNode, status: response.status, statusText: 'Failed to parse JSON'});
-								}
-								return;
-							}
-							
-							for (var index in data.Nodes) {
-								var node = data.Nodes[index];
-								
-								var seenAlready = this._nodes[node.NodeID] !== undefined;
-
-								if (node.NodeID && !seenAlready) {
-									this._nodes[node.NodeID] = {nodeData: node}; // Store the basic node information from rpc.node.getchildnodes
-								
-									if (node.HasChildren) {
-										if (maxDepth <= 1) {
-											this.fire('nodeFail', {outstanding: false, NodeID: node.NodeID, status: 0, statusText: "Recursion limit reached"});											
-										} else {
-											this._workQueue.enqueue(this._recursivelyFetchNodes, this, [node.NodeID, maxDepth - 1]);
-										}
-									}
-								}
-							}
-							
-							this.fire('nodeSuccess');
-						},
-						failure: function(transactionid, response, arguments) {
-							if (!attemptRetry()) {
-								//All our retries failed, this node is failed
-								this.fire('nodeFail', {outstanding: true, method: "rpc.node.getchildnodes", NodeID: rootNode, status: response.status, statusText: response.statusText});
-							}
-						}
-					},
-					context: this
-				});
-			},
+				return true;
+	    	},
 			
 		    initializer : function(cfg) {
-		    	this._workQueue = new Y.SherlockPhotography.RequestDelayQueue();
+		    	var self = this;
+		    	
 		    	this._nodes = {};
 		    	
-		    	var self = this;
-
-		    	//Maintain work queue outstanding counts:
-		    	this.on({
-		    		nodeSuccess: function() { 
-		    			self._workQueue.itemCompleted(true, true); 
-		    		},
-		    		nodeFail: function(e) {
-		    			/* 
-		    			 * Here we take care that items that failed before they were even queued up don't end up decreasing the
-		    			 * count of outstanding requests in the queue:
-		    			 */
-		    			self._workQueue.itemCompleted(e.outstanding, false); 
+		    	this._queue = new Y.SherlockPhotography.APISmartQueue({
+		    		processResponse: function(request, response) {
+		    			return self._processResponse(request, response);
 		    		}
 		    	});
 		    	
-		    	//Update listeners after each failure or success:
-		    	this.after({
-		    		nodeSuccess: self._reportProgress,
-		    		nodeFail: self._reportProgress
+		    	this._queue.on({
+		    		completed: function() { 
+		    			self.fire('completed', {nodes: self._nodes});
+		    		},
+		    		requestFailed: function(e) { 
+		    			self.fire('requestFailed', e);
+		    		},
+		    		progress: function(e) { 
+		    			self.fire('progress', e);
+		    		},
 		    	});
-		    	
-		    	//Ensure listeners get a 100% completed progress report before we tell them it's complete:
-		    	this.before('completed', self._reportProgress);
-
-		    	this._workQueue.on('completed', function() {
-		    		self.fire('completed', {nodes: self._nodes});
-		    	});		    	
 		    },
 		    	
 		    /**
@@ -133,10 +56,24 @@ YUI.add('ss-smugmug-node-enumerator', function(Y, NAME) {
 		     * 
 		     * @param rootNode
 		     */
-			fetchNodes: function(rootNode) {
+			fetchNodes: function(rootNode, maxDepth) {
+				if (maxDepth === undefined) {
+					maxDepth = this.get('maxDepth');
+				}
+				
 				this._nodes[rootNode.NodeID] = {nodeData: rootNode};
 				
-				this._workQueue.enqueue(this._recursivelyFetchNodes, this, [rootNode.NodeID, this.get('maxDepth')]);
+				if (maxDepth >= 1) {
+					this._queue.enqueueRequest({
+						url: 'http://' + this.get('domain') + '/services/api/json/1.4.0/',
+						data: {
+							NodeID: rootNode.NodeID,
+							PageSize: 1000,
+							method: 'rpc.node.getchildnodes'
+						},
+						maxDepth: maxDepth
+					});
+				}
 			}
 		}, {	
 			ATTRS: {
@@ -148,11 +85,6 @@ YUI.add('ss-smugmug-node-enumerator', function(Y, NAME) {
 				//Maximum depth to fetch (1 means just the root)
 				maxDepth: {
 					value: 1
-				},
-				
-				//How many times will we try to fetch the same resource upon error?
-				maxRetries: {
-					value: 3
 				}
 			}
 		}
@@ -160,5 +92,5 @@ YUI.add('ss-smugmug-node-enumerator', function(Y, NAME) {
 	
 	Y.namespace('SherlockPhotography').SmugmugNodeEnumerator = SmugmugNodeEnumerator;
 }, '0.0.1', {
-	requires: ['io', 'base', 'json-parse', 'ss-request-delay-queue']
+	requires: ['io', 'base', 'json-parse', 'ss-api-smartqueue']
 });
