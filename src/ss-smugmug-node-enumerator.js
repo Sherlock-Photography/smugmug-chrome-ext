@@ -16,7 +16,7 @@ YUI.add('ss-smugmug-node-enumerator', function(Y, NAME) {
 			
 			_recursivelyFetchNodes: function(rootNode, maxDepth, retryCount) {
 				if (maxDepth <= 0) {
-					this._workQueue.itemCompleted(true, false);
+					this.fire('nodeFail', {outstanding: true, NodeID: rootNode, status: 0, statusText: "Recursion limit reached"});											
 					
 					return;
 				}
@@ -25,7 +25,7 @@ YUI.add('ss-smugmug-node-enumerator', function(Y, NAME) {
 				
 				/* 
 				 * Attempt to queue up a retry of the fetch of this node. If the maximum number of retries has already
-				 * been reached, false is returned instead and the item is marked failed on the queue.
+				 * been reached, false is returned instead.
 				 */
 				var attemptRetry = function() {
 					if (!retryCount) 
@@ -73,7 +73,7 @@ YUI.add('ss-smugmug-node-enumerator', function(Y, NAME) {
 								
 									if (node.HasChildren) {
 										if (maxDepth <= 1) {
-											this.fire('nodeFail', {outstanding: false, method: "rpc.node.getchildnodes", NodeID: node.NodeID, status: 0, statusText: "Recursion limit reached"});											
+											this.fire('nodeFail', {outstanding: false, NodeID: node.NodeID, status: 0, statusText: "Recursion limit reached"});											
 										} else {
 											this._workQueue.enqueue(this._recursivelyFetchNodes, this, [node.NodeID, maxDepth - 1]);
 										}
@@ -141,11 +141,13 @@ YUI.add('ss-smugmug-node-enumerator', function(Y, NAME) {
 		}, {	
 			ATTRS: {
 				//SmugMug domain name we're fetching
-				domain : {},
+				domain : {
+					writeOnce: 'initOnly'
+				},
 				
 				//Maximum depth to fetch (1 means just the root)
 				maxDepth: {
-					value: 2
+					value: 1
 				},
 				
 				//How many times will we try to fetch the same resource upon error?

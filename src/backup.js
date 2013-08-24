@@ -1,4 +1,47 @@
-YUI().use(['node', 'json', 'io', 'ss-smugmug-tools', 'ss-smugmug-node-enumerator', 'ss-event-log-widget'], function(Y) {
+YUI().use(['node', 'json', 'io', 'ss-smugmug-tools', 'ss-smugmug-node-enumerator', 'ss-event-log-widget', 'ss-api-smartqueue'], function(Y) {
+
+	function fetchPageDesigns(nodes) {
+		//First we have to find the IDs of the page designs for every page... 
+		var queue = new Y.SherlockPhotography.APISmartQueue({
+			processResponse: function(request, response) {
+				var parsed = Y.SherlockPhotography.SmugmugTools.extractPageInitData(response); 
+				
+				if (!parsed)
+					return false;
+				
+				console.log(request.node.nodeData.NodeID + '=' + request.node.nodeData.Name + '=' + parsed.pageDesignId + '=' + parsed.sitePageDesignId);
+				
+				return true;
+			},
+			responseType: 'html'
+		});
+		
+		for (var nodeID in nodes) {
+			var node = nodes[nodeID];
+			
+			if (node.nodeData.Url) {
+				queue.enqueueRequest({
+					url: node.nodeData.Url,
+					data: {},
+					node: node 
+				});
+			}
+		}
+		
+		queue.on({
+			complete: function() {
+				alert('Done!');
+			},
+			progress: function(progress) {
+				var progressBar = Y.Node.one('.quick-progressbar');
+
+				if (progress.total > 0) {
+					progressBar.one('span').setStyle('width', Math.round((parseInt(progressBar.getComputedStyle('width'), 10) * progress.completed) / progress.total) + 'px');
+				}				
+			}
+		});
+	}
+	
 	Y.on('domready', function () {
 		var 
 			smugmugNickname = 'n-sherlock',
@@ -27,6 +70,8 @@ YUI().use(['node', 'json', 'io', 'ss-smugmug-tools', 'ss-smugmug-node-enumerator
 				eventLog.appendLog('info', 'Finished listing your pages.');
 				
 				console.log(Y.SherlockPhotography.SmugmugTools.treeifyNodes(e.nodes));
+				
+				fetchPageDesigns(e.nodes);
 			}
 		});
 		

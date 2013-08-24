@@ -80,13 +80,19 @@ YUI.add('ss-smugmug-tools', function(Y) {
 			},
 			
 			/**
-			 * Extract the initial page data provided to Y.SM.Page.init() from the page source. 
+			 * Extract the initial page data provided to Y.SM.Page.init() from the page source and return it,
+			 * or false on failure. 
 			 */
 			extractPageInitData: function(source) {
-				var matches = source.match(/^\s*Y\.SM\.Page\.init\((.+)\);$/m);
-				
-				if (matches) {
-					return Y.JSON.parse(matches[1]);
+				try {
+					var matches = source.match(/^\s*Y\.SM\.Page\.init\((.+)\);$/m);
+					
+					if (matches) {
+						return Y.JSON.parse(matches[1]);
+						
+					}
+				} catch (e) {
+					// On (JSON parsing) failure, we return false
 				}
 				
 				return false;
