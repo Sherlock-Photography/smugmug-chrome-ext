@@ -1,11 +1,14 @@
 YUI().use(['node', 'json', 'io', 'ss-smugmug-tools', 'ss-smugmug-node-enumerator', 'ss-event-log-widget', 'ss-api-smartqueue', 'ss-progress-bar'], function(Y) {
 	var 
 		smugmugNickname = 'n-sherlock',
-		smugmugDomain = smugmugNickname + '.smugmug.com';
-		backup = {};
+		smugmugDomain = smugmugNickname + '.smugmug.com',
+		backup = {},
+		eventLog = null;
 
 	function fetchPageDesigns(nodes) {
-		//First we have to find the IDs of the page designs for every page... 
+		//First we have to find the IDs of the page designs for every page...
+		var logProgress = eventLog.appendLog('info', "Checking your page designs...");
+		
 		var queue = new Y.SherlockPhotography.APISmartQueue({
 			processResponse: function(request, response) {
 				var parsed = Y.SherlockPhotography.SmugmugTools.extractPageInitData(response); 
@@ -13,7 +16,10 @@ YUI().use(['node', 'json', 'io', 'ss-smugmug-tools', 'ss-smugmug-node-enumerator
 				if (!parsed)
 					return false;
 				
-				console.log(request.node.nodeData.NodeID + '=' + request.node.nodeData.Name + '=' + parsed.pageDesignId + '=' + parsed.sitePageDesignId);
+				if (nodes[request.node.nodeData.NodeID]) {
+					nodes[request.node.nodeData.NodeID].pageDesignId = parsed.pageDesignId;
+					nodes[request.node.nodeData.NodeID].sitePageDesignId = parsed.sitePageDesignId;
+				}
 				
 				return true;
 			},
@@ -37,25 +43,21 @@ YUI().use(['node', 'json', 'io', 'ss-smugmug-tools', 'ss-smugmug-node-enumerator
 				alert('Done!');
 			},
 			progress: function(progress) {
-				var progressBar = Y.Node.one('.quick-progressbar');
-
-				if (progress.total > 0) {
-					progressBar.one('span').setStyle('width', Math.round((parseInt(progressBar.getComputedStyle('width'), 10) * progress.completed) / progress.total) + 'px');
-				}				
+				logProgress.set('progress', progress);
 			}
 		});
 	}
 	
 	Y.on('domready', function () {
 		var
-			nodeEnumerator = new Y.SherlockPhotography.SmugmugNodeEnumerator({domain: smugmugDomain}),
-			eventLog = new Y.SherlockPhotography.EventLogWidget();
+			nodeEnumerator = new Y.SherlockPhotography.SmugmugNodeEnumerator({domain: smugmugDomain});
+		
+		eventLog = new Y.SherlockPhotography.EventLogWidget();
 		
 		eventLog.render('#eventLog');
 		
 		var 
 			logInitialProgress = eventLog.appendLog('info', "Connecting to your Smugmug site..."),
-			
 			logEnumProgress = null;
 		
 		nodeEnumerator.on({
@@ -69,10 +71,9 @@ YUI().use(['node', 'json', 'io', 'ss-smugmug-tools', 'ss-smugmug-node-enumerator
 			
 			complete: function(e) {
 				backup.nodes = e.nodes;
-			
 				backup.nodeTree = Y.SherlockPhotography.SmugmugTools.treeifyNodes(backup.nodes);
 				
-				//fetchPageDesigns(backup.nodes);
+				fetchPageDesigns(backup.nodes);
 			}
 		});
 		
@@ -81,7 +82,7 @@ YUI().use(['node', 'json', 'io', 'ss-smugmug-tools', 'ss-smugmug-node-enumerator
 			success: function(rootNode) {
 				logInitialProgress.set('message', logInitialProgress.get('message') + ' connected!');
 				
-				logEnumProgress = eventLog.appendLog('info', "Making a list of your pages...");
+				logEnumProgress = eventLog.appendLog('info', "Finding your pages...");
 								
 				logEnumProgress.set('progress', {completed:0, total:1});
 				
