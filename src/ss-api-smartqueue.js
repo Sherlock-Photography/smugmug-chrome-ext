@@ -29,7 +29,7 @@ YUI.add('ss-api-smartqueue', function(Y, NAME) {
 				this.fire('progress', progress);
 				
 				if (progress.completed >= progress.total) {
-					this.fire('completed');
+					this.fire('complete');
 				}
 			},
 						

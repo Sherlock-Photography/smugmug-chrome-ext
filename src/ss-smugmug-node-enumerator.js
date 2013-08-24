@@ -1,7 +1,4 @@
 YUI.add('ss-smugmug-node-enumerator', function(Y, NAME) {
-	/**
-	 * Events: progress, completed
-	 */
 	var SmugmugNodeEnumerator = Y.Base.create(
 		NAME,
 		Y.Base,
@@ -35,15 +32,16 @@ YUI.add('ss-smugmug-node-enumerator', function(Y, NAME) {
 		    	this._queue = new Y.SherlockPhotography.APISmartQueue({
 		    		processResponse: function(request, response) {
 		    			return self._processResponse(request, response);
-		    		}
+		    		},
+		    		responseType: 'json'
 		    	});
 		    	
 		    	this._queue.on({
-		    		completed: function() { 
-		    			self.fire('completed', {nodes: self._nodes});
+		    		complete: function() { 
+		    			self.fire('complete', {nodes: self._nodes});
 		    		},
-		    		requestFailed: function(e) { 
-		    			self.fire('requestFailed', e);
+		    		requestFail: function(e) { 
+		    			self.fire('requestFail', e);
 		    		},
 		    		progress: function(e) { 
 		    			self.fire('progress', e);
