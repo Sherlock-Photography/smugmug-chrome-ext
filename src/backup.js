@@ -25,6 +25,58 @@ YUI().use(['node', 'json', 'io', 'ss-smugmug-tools', 'ss-smugmug-node-enumerator
 		eventLog = new Y.SherlockPhotography.EventLogWidget(),
 		foundPageDesignIDs = null;
 	
+	function fetchWidgets(widgets) {
+		var logProgress = eventLog.appendLog('info', "Fetching found page designs...");
+		
+		var 
+			pageDesigns = {};
+		
+		var queue = new Y.SherlockPhotography.APISmartQueue({
+			processResponse: function(request, pageDesign) {
+				//Don't store the API status along with the page design:
+				delete pageDesign.method;
+				delete pageDesign.stat;
+				
+				pageDesigns[pageDesign.PageDesign.PageDesignID] = pageDesign;
+								
+				return true;
+			},
+			responseType: 'json'
+		});
+		
+		for (var index in widgets) {
+			var widget = widgets[index];
+			
+			queue.enqueueRequest({
+				url: 'http://' + smugmugDomain + '/services/api/json/1.4.0/',
+				data: {
+					Type: widget.Type,
+					TypeID: widget.TypeID,
+					method:'rpc.widgetrender.get'	
+				} 
+			});
+		}
+		
+		queue.on({
+			complete: function() {
+				backup.pageDesigns = pageDesigns;
+				
+				console.log(backup);
+			},
+			progress: function(progress) {
+				logProgress.set('progress', progress);
+			}
+		});			
+	}
+	
+	/**
+	 * Look through backup's page designs to find the IDs of all the widgets being used, collect
+	 * that information together into backup.widgets.
+	 */
+	function collectWidgets() {
+		
+	}
+	
 	/**
 	 * Given an array of page design IDs, fetch those designs!
 	 */
@@ -62,11 +114,13 @@ YUI().use(['node', 'json', 'io', 'ss-smugmug-tools', 'ss-smugmug-node-enumerator
 				backup.pageDesigns = pageDesigns;
 				
 				console.log(backup);
+				
+				fetchWidgets(collectWidgets());
 			},
 			progress: function(progress) {
 				logProgress.set('progress', progress);
 			}
-		});		
+		});	
 	}
 	
 	/**

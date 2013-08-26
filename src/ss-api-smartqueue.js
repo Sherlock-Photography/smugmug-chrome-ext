@@ -51,47 +51,80 @@ YUI.add('ss-api-smartqueue', function(Y, NAME) {
 					return false;
 				};
 				
-				Y.io(request.url, {
-					data: request.data || {},
-					on: {
-						success: function(transactionid, response, arguments) {
-							var responseData;
-							
-							if (this.get('responseType') == 'json') {
-								try {
-									responseData = JSON.parse(response.responseText);
-								} catch (e) {
-									if (!attemptRetry()) {
-										//All our retries failed, this request failed
-										this.fire('requestFail', {request: request, status: 0, statusText: 'Failed to parse JSON in response'});
+				var handleSuccessData = function(responseData) {
+					var result = this._doProcessResponse(request, responseData);
+					
+					if (!result || result == 'retry' && !attemptRetry()) {
+						this.fire('requestFail', {request: request, status: 0, statusText: "_doProcessResponse failed too many times"});
+						
+						return false;
+					} else {
+						this.fire('requestSuccess', {request: request, response: responseData});
+						
+						return true;
+					}
+				};
+
+				var 
+					responseText = null,
+					cacheKey = null;
+				
+				if (this.get('persistentCache')) {
+					cacheKey = Y.Crypto.MD5(request.url + '?' + Y.JSON.stringify(request.data));
+					
+					responseText = window.localStorage[cacheKey];
+				}
+				
+				if (responseText) {
+					if (this.get('responseType') == 'json') {
+						handleSuccessData.call(this, Y.JSON.parse(responseText));
+					} else {
+						handleSuccessData.call(this, responseText);
+					}
+				} else {
+					Y.io(request.url, {
+						data: request.data || {},
+						on: {
+							success: function(transactionid, response, arguments) {
+								var responseData;
+								
+								if (this.get('responseType') == 'json') {
+									try {
+										responseData = JSON.parse(response.responseText);
+									} catch (e) {
+										if (!attemptRetry()) {
+											//All our retries failed, this request failed
+											this.fire('requestFail', {request: request, status: 0, statusText: 'Failed to parse JSON in response'});
+										}
+										return;
 									}
-									return;
+								} else {
+									responseData = response.responseText;
 								}
-							} else {
-								responseData = response.responseText;
-							}
-							
-							var result = this._doProcessResponse(request, responseData);
-							
-							if (!result || result == 'retry' && !attemptRetry()) {
-								this.fire('requestFail', {request: request});
-							} else {
-								this.fire('requestSuccess', {request: request, response: responseData});
+								
+								if (handleSuccessData.call(this, responseData) && this.get('persistentCache')) {
+									//Only cache if the data was ingested successfully
+									try {
+										window.localStorage[cacheKey] = response.responseText;
+									} catch (e) {
+										//Ignore quota exceeded errors
+									}
+								}
+							},
+							failure: function(transactionid, response, arguments) {
+								if (!attemptRetry()) {
+									this.fire('requestFail', {request: request, status: response.status, statusText: response.statusText});
+								}
 							}
 						},
-						failure: function(transactionid, response, arguments) {
-							if (!attemptRetry()) {
-								this.fire('requestFail', {request: request, response: "[" + response.status + "] " + response.statusText});
-							}
-						}
-					},
-					context: this
-				});
+						context: this
+					});
+				}
 			},
 			
 		    initializer : function(cfg) {
 		    	this._queue = new Y.AsyncQueue();
-		    	
+		    			    	
 		    	var self = this;
 
 		    	//Maintain request counts and notify listeners of progress:
@@ -124,6 +157,11 @@ YUI.add('ss-api-smartqueue', function(Y, NAME) {
 				 */
 				responseType: {
 					value: 'json'
+				},
+				
+				//Only suitable for debugging, as this causes successful responses received to be cached indefinitely
+				persistentCache: {
+					value: true
 				},
 				
 				//How many times will we retry requests upon errors?
@@ -166,5 +204,5 @@ YUI.add('ss-api-smartqueue', function(Y, NAME) {
 	
 	Y.namespace('SherlockPhotography').APISmartQueue = APISmartQueue;
 }, '0.0.1', {
-	requires: ['io', 'base', 'json-parse', 'async-queue']
+	requires: ['io', 'base', 'json-parse', 'json-stringify', 'async-queue', 'gallery-crypto', 'gallery-crypto-md5']
 });
