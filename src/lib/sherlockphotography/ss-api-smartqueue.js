@@ -204,5 +204,5 @@ YUI.add('ss-api-smartqueue', function(Y, NAME) {
 	
 	Y.namespace('SherlockPhotography').APISmartQueue = APISmartQueue;
 }, '0.0.1', {
-	requires: ['io', 'base', 'json-parse', 'json-stringify', 'async-queue', 'gallery-crypto', 'gallery-crypto-md5']
+	requires: ['io', 'base', 'json-parse', 'json-stringify', 'async-queue', 'gallery-crypto-md5']
 });
