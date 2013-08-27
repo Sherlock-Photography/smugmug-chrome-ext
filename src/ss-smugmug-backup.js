@@ -6,14 +6,20 @@ YUI.add('ss-smugmug-site-backup', function(Y, NAME) {
 		{
 			_backup: {},
 			
+			_stageBackupComplete: function() {
+				this.get('eventLog').appendLog('info', "Backup is complete!");
+				
+				console.log(this._backup);
+			},
+			
 			/**
-			 * Given an array of page design IDs, fetch those designs!
+			 * Fetch the page designs for all IDs listed in _backup.pageDesigns
 			 */
-			_fetchPageDesigns: function(pageDesignIDs) {
+			_stageFetchPageDesigns: function() {
 				var 
 					logProgress = this.get('eventLog').appendLog('info', "Fetching found page designs..."),
 					that = this,
-					pageDesigns = {};
+					pageDesigns = this._backup.pageDesigns;
 				
 				var queue = new Y.SherlockPhotography.APISmartQueue({
 					processResponse: function(request, pageDesign) {
@@ -28,11 +34,11 @@ YUI.add('ss-smugmug-site-backup', function(Y, NAME) {
 					responseType: 'json'
 				});
 				
-				for (var index in pageDesignIDs) {
+				for (var pageDesignID in pageDesigns) {
 					queue.enqueueRequest({
 						url: 'http://' + this.get('smugmugDomain') + '/services/api/json/1.4.0/',
 						data: {
-							PageDesignID: pageDesignIDs[index],
+							PageDesignID: pageDesignID,
 							method:'rpc.pagedesign.get'	
 						} 
 					});
@@ -40,9 +46,7 @@ YUI.add('ss-smugmug-site-backup', function(Y, NAME) {
 				
 				queue.on({
 					complete: function() {
-						that._backup.pageDesigns = pageDesigns;
-						
-						console.log(that._backup);
+						that._backupStageCompleted(true);
 					},
 					progress: function(progress) {
 						logProgress.set('progress', progress);
@@ -51,28 +55,29 @@ YUI.add('ss-smugmug-site-backup', function(Y, NAME) {
 			},
 			
 			/**
-			 * Given an array of site-page design IDs, enumerate their page designs and store them into the backup at backup.siteDesigns.
+			 * Enumerate the site page designs for all site design IDs listed in _backup.siteDesigns.
 			 */
-			_enumerateSitePageDesigns: function(siteDesignIDs) {
+			_stageEnumerateSitePageDesigns: function() {
 				var 
 					logProgress = this.get('eventLog').appendLog('info', "Listing site page designs (All Folders, etc)..."),
 					that = this, 
-					siteDesigns = {};
+					siteDesigns = this._backup.siteDesigns;
 				
 				var queue = new Y.SherlockPhotography.APISmartQueue({
 					processResponse: function(request, response) {
 						for (var index in response.SitePageDesigns) {
-							var sitePageDesign = response.SitePageDesigns[index];
+							var 
+								sitePageDesign = response.SitePageDesigns[index],
+								siteDesign = siteDesigns[sitePageDesign.SiteDesignID];
 							
-							if (siteDesigns[sitePageDesign.SiteDesignID] === undefined) {
-								siteDesigns[sitePageDesign.SiteDesignID] = {
-									sitePageDesigns: {}
-								};
-							}
+							siteDesign.sitePageDesigns = siteDesign.sitePageDesigns || {};
+							siteDesign.sitePageDesigns[sitePageDesign.PageDesignID] = sitePageDesign;
 							
-							siteDesigns[sitePageDesign.SiteDesignID].sitePageDesigns[sitePageDesign.PageDesignID] = sitePageDesign;
-							
-							that._backup.pageDesigns[sitePageDesign.PageDesignID] = true;
+							/* 
+							 * We might not have seen this page design in use during our earlier scan of active
+							 * pages, so schedule it for later fetch:
+							 */
+							that._backup.pageDesigns[sitePageDesign.PageDesignID] = {};
 						}
 						
 						return true;
@@ -80,11 +85,11 @@ YUI.add('ss-smugmug-site-backup', function(Y, NAME) {
 					responseType: 'json'
 				});
 				
-				for (var index in siteDesignIDs) {
+				for (var siteDesignID in siteDesigns) {
 					queue.enqueueRequest({
 						url: 'http://' + this.get('smugmugDomain') + '/services/api/json/1.4.0/',
 						data: {
-							SiteDesignID: siteDesignIDs[index],
+							SiteDesignID: siteDesignID,
 							method:'rpc.sitepagedesigns.getforsitedesign'	
 						} 
 					});
@@ -92,9 +97,7 @@ YUI.add('ss-smugmug-site-backup', function(Y, NAME) {
 				
 				queue.on({
 					complete: function() {
-						that._backup.siteDesigns = siteDesigns;
-						
-						that._fetchPageDesigns(Object.keys(that._backup.pageDesigns));
+						that._backupStageCompleted(true);
 					},
 					progress: function(progress) {
 						logProgress.set('progress', progress);
@@ -112,7 +115,7 @@ YUI.add('ss-smugmug-site-backup', function(Y, NAME) {
 					if (node.initData) {
 						for (var key in result) {
 							if (node.initData[key]) {
-								result[key][node.initData[key]] = true;
+								result[key][node.initData[key]] = {};
 							}
 						}
 					}
@@ -122,12 +125,17 @@ YUI.add('ss-smugmug-site-backup', function(Y, NAME) {
 			},	
 			
 			/**
-			 * Fetch every single node from the given array of nodes to find out what their page design IDs are.
+			 * Fetch every single node from _backup.nodes to fetch their init data, store that data in 
+			 * _backup.nodes[].initData.
+			 * 
+			 * ID numbers of discovered site designs are added to _backup.siteDesigns 
+			 * ID numbers of discovered page designs are in _backup.pageDesigns
 			 */
-			_enumerateDesignsForPages: function(nodes) {
+			_stageEnumerateDesignsForNodes: function() {
 				var 
 					logProgress = this.get('eventLog').appendLog('info', "Checking for customised pages..."),
-					that = this;
+					that = this,
+					nodes = this._backup.nodes;
 				
 				var queue = new Y.SherlockPhotography.APISmartQueue({
 					processResponse: function(request, response) {
@@ -166,18 +174,17 @@ YUI.add('ss-smugmug-site-backup', function(Y, NAME) {
 				
 						//Store in the backup as key=>true so we can fetch these later:
 						that._backup.pageDesigns = uniqued.pageDesignId;
+						that._backup.siteDesigns = uniqued.siteDesignId;
 						
 						var 
-							foundSiteDesignIDs = Object.keys(uniqued.siteDesignId);
-		
-						var 
-							numSiteDesigns = foundSiteDesignIDs.length,
-							numPageDesigns = Object.keys(uniqued.pageDesignId).length;
+							numSiteDesigns = Object.keys(that._backup.siteDesigns).length,
+							numPageDesigns = Object.keys(that._backup.pageDesigns).length;
 						
 						that.get('eventLog').appendLog('info', 'Found ' + numSiteDesigns  + ' ' + (numSiteDesigns == 1 ? 'design' : 'designs') + ' and ' + numPageDesigns + ' custom ' + (numPageDesigns == 1 ? 'page' : 'pages') + ' in use.');
-										
-						that._enumerateSitePageDesigns(foundSiteDesignIDs);
+									
+						that._backupStageCompleted(true);
 					},
+					
 					progress: function(progress) {
 						logProgress.set('progress', progress);
 					}
@@ -185,12 +192,12 @@ YUI.add('ss-smugmug-site-backup', function(Y, NAME) {
 			},
 			
 			/**
-			 * Walk the SmugMug node tree beginning from the given root, find all the nodes and store
+			 * Walk the SmugMug node tree beginning from the _backup.nodeTree root, find all the nodes and store
 			 * in _backup.nodes, _backup.nodeTree.
 			 * 
 			 * @param rootNode
 			 */
-			_enumeratePages: function(rootNode) {
+			_stageEnumerateNodes: function() {
 				var
 					nodeEnumerator = new Y.SherlockPhotography.SmugmugNodeEnumerator({
 						domain: this.get('smugmugDomain'), 
@@ -212,33 +219,67 @@ YUI.add('ss-smugmug-site-backup', function(Y, NAME) {
 						that._backup.nodes = e.nodes;
 						that._backup.nodeTree = Y.SherlockPhotography.SmugmugTools.treeifyNodes(that._backup.nodes);
 						
-						that._enumerateDesignsForPages(that._backup.nodes);
+						that._backupStageCompleted(true);
 					}
 				});	
 				
 				logProgress.set('progress', {completed:0, total:1});	
 				
-				nodeEnumerator.fetchNodes(rootNode);		
+				nodeEnumerator.fetchNodes(this._backup.nodeTree.nodeData);		
 			},
 			
-			createBackup: function() {
+			/** 
+			 * We must begin by finding out the ID of the root node of the domain.
+			 */
+			_stageFindRootNode:function() {
 				var 
-					logInitialProgress = this.get('eventLog').appendLog('info', "Connecting to your Smugmug site...");
-
-				//We must begin by finding out the ID of the root node of the domain:
+					logProgress = this.get('eventLog').appendLog('info', "Connecting to your Smugmug site...");
+				
 				Y.SherlockPhotography.SmugmugTools.getRootNode(this.get('smugmugNickname'), {
 					on: {
 						success: function(rootNode) {
-							logInitialProgress.set('message', logInitialProgress.get('message') + ' connected!');
+							logProgress.set('message', logProgress.get('message') + ' connected!');
 							
-							this._enumeratePages(rootNode);
+							this._backup.nodeTree = {nodeData: rootNode};
+							this._backupStageCompleted(true);
 						},
 						failure: function() {
 							alert("Couldn't find out the ID of the root node of your SmugMug site, are you logged on?");
 						},
 					},
 					context: this
-				});				
+				});
+			},
+			
+			/**
+			 * The backup proceeds in a series of stages that are executed in sequence to slowly build up this._backup.
+			 * 
+			 * Call this function once one stage is completed so that the next stage can begin.
+			 * 
+			 * @param success
+			 */
+			_backupStageCompleted: function(success) {
+				this._backupStage++;
+				
+				var stage = this._backupStages[this._backupStage];
+				
+				stage.call(this);
+			},
+			
+			createBackup: function() {
+				this._backup = {};
+				this._backupStage = -1;
+				
+				this._backupStages = [
+                	this._stageFindRootNode,
+                	this._stageEnumerateNodes,
+					this._stageEnumerateDesignsForNodes,
+					this._stageEnumerateSitePageDesigns,
+					this._stageFetchPageDesigns,
+					this._stageBackupComplete
+              	];
+				
+				this._backupStageCompleted(true);
 			},
 	
 			saveBackupToDisk: function() {
