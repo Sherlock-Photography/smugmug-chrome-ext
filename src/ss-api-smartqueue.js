@@ -171,7 +171,7 @@ YUI.add('ss-api-smartqueue', function(Y, NAME) {
 				
 				//Delay in milliseconds between node fetches (be kind to SmugMug!)
 				delayBetweenNodes: {
-					value: 1000
+					value: 100
 				},
 				
 				numFailedRequests: {

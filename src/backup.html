@@ -21,6 +21,8 @@ async-queue, base, escape, io, json, node, widget
 
 <link rel="stylesheet" type="text/css" href="backup.css">
 
+<script type="text/javascript" src="FileSaver.js"></script>
+
 <script type="text/javascript" src="yui1.js"></script>
 <script type="text/javascript" src="yui2.js"></script>
 <script type="text/javascript" src="yui3.js"></script>
@@ -36,6 +38,7 @@ async-queue, base, escape, io, json, node, widget
 <script type="text/javascript" src="ss-smugmug-tools.js"></script>
 <script type="text/javascript" src="ss-event-log-widget.js"></script>
 <script type="text/javascript" src="ss-progress-bar.js"></script>
+<script type="text/javascript" src="ss-smugmug-backup.js"></script>
 <script type="text/javascript" src="backup.js"></script>
 
 </head>
@@ -44,6 +47,13 @@ async-queue, base, escape, io, json, node, widget
 <h1>Create a backup of your SmugMug website</h1>
 
 <div id="eventLog">
+</div>
+
+<div id="control-buttons">
+	<input type="button" id="btn-backup-create" value="Start backup" />
+	<input type="button" id="btn-backup-save" value="Save backup to disk" />
+	
+	<input type="button" value="Load backup" />
 </div>
 
 </body>

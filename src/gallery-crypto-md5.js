@@ -127,4 +127,6 @@ YUI.add('gallery-crypto-md5', function(Y) {
 	    }
 	    return _C.utf8ToHex(_C.byteArrayToString([a, b, c, d]));
 	};
+}, '0.0.1', {
+	requires: ['gallery-crypto']
 });

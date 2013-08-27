@@ -8,7 +8,9 @@ YUI.add('ss-smugmug-tools', function(Y) {
 		{
 			/**
 			 * Nickname is the SmugMug site nickname to look up, the descriptor for the
-			 * root node is returned asynchronously to the handlers in 'on'.
+			 * root node is returned asynchronously to the handlers in params.on.
+			 * 
+			 * Provide params.context to set the context object for those handlers.
 			 * 
 			 * The data is that returned by rpc.thumbnail.folders or rpc.node.getchildnodes.
 			 * 
@@ -17,7 +19,7 @@ YUI.add('ss-smugmug-tools', function(Y) {
 			 * @param nickname
 			 * @param on
 			 */
-			getRootNode: function(nickname, on) {
+			getRootNode: function(nickname, params) {
 				Y.io('http://' + nickname + '.smugmug.com/services/api/json/1.4.0/', {
 					data: {
 						disableAlbum:1,
@@ -32,13 +34,13 @@ YUI.add('ss-smugmug-tools', function(Y) {
 							var data = Y.JSON.parse(response.responseText);
 							
 							if (data && data.Folder) {
-								on.success(data.Folder);
+								params.on.success.call(params.context || null, data.Folder);
 							} else {
-								on.failure();
+								params.on.failure.call(params.context || null);
 							}
 						},
 						failure: function(transactionid, response, arguments) {
-							on.failure();
+							params.on.failure.call(params.context || null);
 						}
 					}
 				});	
@@ -77,6 +79,18 @@ YUI.add('ss-smugmug-tools', function(Y) {
 				}
 				
 				return rootNode;
+			},
+			
+			/**
+			 * Strip out child/parent elements inserted by treeifyNodes
+			 */
+			untreeifyNodes: function(nodes) {
+				for (var nodeID in nodes) {
+					var node = nodes[nodeID];
+					
+					delete node.parent;
+					delete node.children;
+				}
 			},
 			
 			/**
