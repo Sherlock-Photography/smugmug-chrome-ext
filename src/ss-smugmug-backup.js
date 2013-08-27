@@ -17,7 +17,7 @@ YUI.add('ss-smugmug-site-backup', function(Y, NAME) {
 			 */
 			_stageFetchPageDesigns: function() {
 				var 
-					logProgress = this.get('eventLog').appendLog('info', "Fetching found page designs..."),
+					logProgress = this.get('eventLog').appendLog('info', "Fetching all discovered page designs..."),
 					that = this,
 					pageDesigns = this._backup.pageDesigns;
 				
@@ -59,7 +59,7 @@ YUI.add('ss-smugmug-site-backup', function(Y, NAME) {
 			 */
 			_stageEnumerateSitePageDesigns: function() {
 				var 
-					logProgress = this.get('eventLog').appendLog('info', "Listing site page designs (All Folders, etc)..."),
+					logProgress = this.get('eventLog').appendLog('info', "Listing designs for default pages (homepage, all folders, etc)..."),
 					that = this, 
 					siteDesigns = this._backup.siteDesigns;
 				
@@ -133,7 +133,7 @@ YUI.add('ss-smugmug-site-backup', function(Y, NAME) {
 			 */
 			_stageEnumerateDesignsForNodes: function() {
 				var 
-					logProgress = this.get('eventLog').appendLog('info', "Checking for customised pages..."),
+					logProgress = this.get('eventLog').appendLog('info', "Checking for page customisations..."),
 					that = this,
 					nodes = this._backup.nodes;
 				
@@ -180,7 +180,7 @@ YUI.add('ss-smugmug-site-backup', function(Y, NAME) {
 							numSiteDesigns = Object.keys(that._backup.siteDesigns).length,
 							numPageDesigns = Object.keys(that._backup.pageDesigns).length;
 						
-						that.get('eventLog').appendLog('info', 'Found ' + numSiteDesigns  + ' ' + (numSiteDesigns == 1 ? 'design' : 'designs') + ' and ' + numPageDesigns + ' custom ' + (numPageDesigns == 1 ? 'page' : 'pages') + ' in use.');
+						that.get('eventLog').appendLog('info', 'Found ' + numSiteDesigns  + ' ' + (numSiteDesigns == 1 ? 'site design' : 'site designs') + ' and ' + numPageDesigns + ' custom ' + (numPageDesigns == 1 ? 'page' : 'pages') + ' in use.');
 									
 						that._backupStageCompleted(true);
 					},
@@ -251,6 +251,18 @@ YUI.add('ss-smugmug-site-backup', function(Y, NAME) {
 				});
 			},
 			
+			_stageCreateBackupMetadata:function() {
+				var metadata = {
+					nickname: this.get('smugmugNickname'),
+					date: new Date(),
+					smugmug: "rocks!"
+				};
+				
+				this._backup.backup = metadata;
+				
+				this._backupStageCompleted(true);				
+			},
+			
 			/**
 			 * The backup proceeds in a series of stages that are executed in sequence to slowly build up this._backup.
 			 * 
@@ -271,6 +283,7 @@ YUI.add('ss-smugmug-site-backup', function(Y, NAME) {
 				this._backupStage = -1;
 				
 				this._backupStages = [
+                  	this._stageCreateBackupMetadata,
                 	this._stageFindRootNode,
                 	this._stageEnumerateNodes,
 					this._stageEnumerateDesignsForNodes,
@@ -292,8 +305,8 @@ YUI.add('ss-smugmug-site-backup', function(Y, NAME) {
 				delete cloned.nodeTree;
 				cloned.nodes = Y.SherlockPhotography.SmugmugTools.untreeifyNodes(cloned.nodes);
 				
-				var blob = new Blob([Y.JSON.stringify(cloned)], {type: "text/plain;charset=utf-8"});
-				saveAs(blob, "smugmug backup.json");
+				var blob = new Blob([Y.JSON.stringify(cloned, null, 2)], {type: "text/plain;charset=utf-8"});
+				saveAs(blob, 'smugmug backup ' + this.get('smugmugNickname') + ' ' + Y.Date.format(cloned.backup.date, {format:"%Y-%m-%d %H%M%S"}) + ".json");
 			}
 		},
 		{
@@ -317,5 +330,5 @@ YUI.add('ss-smugmug-site-backup', function(Y, NAME) {
 
 	Y.namespace("SherlockPhotography").SmugmugSiteBackup = SmugmugSiteBackup;
 }, '0.0.1', {
-	requires: ['node', 'json', 'io', 'ss-smugmug-tools', 'ss-smugmug-node-enumerator', 'ss-event-log-widget', 'ss-api-smartqueue', 'ss-progress-bar']
+	requires: ['json', 'io', 'ss-smugmug-tools', 'ss-smugmug-node-enumerator', 'ss-event-log-widget', 'ss-api-smartqueue', 'datatype-date-format']
 });
