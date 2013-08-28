@@ -20,15 +20,17 @@ h1 {
 	border-radius: 10px;
 }
 
+#backup-explorer {
+	white-space:nowrap;
+}
 .ss-smugmug-backup-pane {
 	display:inline-block;
 	vertical-align:top;
+	overflow-y:auto;
 }
 .ss-smugmug-backup-structure-pane {
 	width:20em;
-	overflow-y:auto;
 }
-
 .ss-smugmug-backup-node-pane {
 	margin-left:1em;
 }
