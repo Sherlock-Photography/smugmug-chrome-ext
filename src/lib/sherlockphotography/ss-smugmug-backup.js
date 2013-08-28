@@ -305,7 +305,7 @@ YUI.add('ss-smugmug-site-backup', function(Y, NAME) {
 				var cloned = Y.clone(this._backup);
 
 				delete cloned.nodeTree;
-				cloned.nodes = Y.SherlockPhotography.SmugmugTools.untreeifyNodes(cloned.nodes);
+				Y.SherlockPhotography.SmugmugTools.untreeifyNodes(cloned.nodes);
 				
 				var blob = new Blob([Y.JSON.stringify(cloned, null, 2)], {type: "text/plain;charset=utf-8"});
 				saveAs(blob, 'smugmug backup ' + this.get('smugmugNickname') + ' ' + Y.Date.format(cloned.backup.date, {format:"%Y-%m-%d %H%M%S"}) + ".json");
