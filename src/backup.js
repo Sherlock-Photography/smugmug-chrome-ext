@@ -11,9 +11,15 @@ YUI().use(['node', 'json', 'io', 'ss-smugmug-tools', 'ss-event-log-widget',
 		backupView = new Y.SherlockPhotography.SmugmugBackupView({
 		});
 	
+	Y.io.header('User-Agent', 'Unofficial SmugMug extension for Chrome v0.1 / n.sherlock@gmail.com');
+	
 	Y.on('domready', function () {
 		eventLog.render('#eventLog');
 		backupView.render('#backup-structure-pane');
+		
+		backup.on('update', function() {
+			backupView.set('backup', backup.get('backup'));
+		});
 		
 		Y.one('#btn-backup-create').on('click', function(e) {
 			e.preventDefault();

@@ -9,3 +9,10 @@ h1 {
 	height:12em;
 	border:1px solid #888;	
 }
+
+#control-buttons {
+	padding: 0.5em;
+	margin: 0.5em 0;
+	background-color: #eee;
+	border-radius: 10px;
+}

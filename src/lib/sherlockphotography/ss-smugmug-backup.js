@@ -9,6 +9,8 @@ YUI.add('ss-smugmug-site-backup', function(Y, NAME) {
 			_stageBackupComplete: function() {
 				this.get('eventLog').appendLog('info', "Backup is complete!");
 				
+				this.fire('update');
+				
 				console.log(this._backup);
 			},
 			
@@ -323,6 +325,12 @@ YUI.add('ss-smugmug-site-backup', function(Y, NAME) {
 				
 				eventLog: {
 					value: null
+				},
+				
+				backup: {
+					getter: function() {
+						return this._backup;
+					}
 				}
 			}
 		}
