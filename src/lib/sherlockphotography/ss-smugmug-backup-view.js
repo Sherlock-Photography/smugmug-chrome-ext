@@ -42,6 +42,11 @@ YUI.add('ss-smugmug-backup-view', function(Y, NAME) {
 				tree = this._treeView,
 				root = tree.rootNode;
 
+			//TODO clear the tree
+			
+			if (!backup)
+				return;
+			
 			root.append({
 				label: "About this backup",
 				data: {
@@ -55,25 +60,50 @@ YUI.add('ss-smugmug-backup-view', function(Y, NAME) {
 			foldersRoot.label = 'Pages';
 		},
 		
+		_renderBackupInfo: function(backup, pane) {
+			pane.append("<dl><dt>I'm a list!</dt><dd>Of fields and other good stuff!</dd></dl>");
+		},
+		
+		_onTreeNodeSelect: function(node) {
+			var pane = this.get('nodePane');
+			
+			if (node.data) {
+				switch (node.data.type) {
+					case NODE_TYPE_BACKUP_INFO:
+						this._renderBackupInfo(node.data, pane);
+						break;
+					case NODE_TYPE_SMUG_NODE:
+						break;
+				}
+			}
+		},
+		
 		initializer : function(cfg) {
+		},
+
+		renderUI : function() {
+			var container = Y.one(this.get('container'));
+			
+			this.set('structurePane', Y.Node.create("<div class='ss-smugmug-backup-pane ss-smugmug-backup-structure-pane'></div>"));
+			this.set('nodePane', Y.Node.create("<div class='ss-smugmug-backup-pane ss-smugmug-backup-node-pane'></div>"));
+			
+			container.append(this.get('structurePane'));
+			container.append(this.get('nodePane'));
+			
 			var SortedTreeView = Y.Base.create('sortedTreeView', Y.TreeView, [Y.TreeView.Sortable], {
 				sortComparator: function (node) {
 					return node.label;
 				}
 			});
-			
-			this._treeView = new SortedTreeView({
-				container : this.get('container')
-			});
-			
-			var that = this;
-			
-			this.after('backupChange', function(e) {
-				that._rebuildTree();
-			});
-		},
 
-		renderUI : function() {
+			this._treeView = new SortedTreeView({
+				container : this.get('structurePane')
+			});
+			
+			this._treeView.on('select', this._onTreeNodeSelect, this);
+			
+			this.after('backupChange', this._rebuildTree, this);
+
 			this._treeView.render();
 		},
 	}, {
@@ -82,6 +112,14 @@ YUI.add('ss-smugmug-backup-view', function(Y, NAME) {
 				writeOnce: 'initOnly'
 			},
 			
+			structurePane : {
+				value: null
+			},
+
+			nodePane : {
+				value: null
+			},
+
 			backup: {
 				value: null
 			}

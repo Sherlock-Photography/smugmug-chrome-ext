@@ -1,3 +1,6 @@
+html {
+	overflow-y:hidden;
+}
 body {
 	padding:1em;
 }
@@ -15,4 +18,12 @@ h1 {
 	margin: 0.5em 0;
 	background-color: #eee;
 	border-radius: 10px;
+}
+
+.ss-smugmug-backup-pane {
+	display:inline-block;
+}
+.ss-smugmug-backup-structure-pane {
+	width:20em;
+	overflow-y:auto;
 }
