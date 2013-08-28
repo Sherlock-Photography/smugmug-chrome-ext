@@ -20,7 +20,7 @@ YUI().use(['node', 'json', 'io', 'event-resize', 'ss-event-log-widget',
 		var windowHeight = Y.one("body").get("winHeight");
 		
 		Y.all('.ss-smugmug-backup-pane').each(function(pane) {
-			pane.setStyle('height', (windowHeight - pane.getXY()[1] - 16) +'px');
+			pane.setStyle('height', (windowHeight - pane.getXY()[1] - 16) + 'px');
 		});
 	}
 	

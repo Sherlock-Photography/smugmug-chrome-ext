@@ -9,7 +9,7 @@ h1 {
 	margin-bottom:0.5em;
 }
 .yui3-ss-event-log-widget ul {
-	height:12em;
+	height:6em;
 	border:1px solid #888;	
 }
 
@@ -22,8 +22,37 @@ h1 {
 
 .ss-smugmug-backup-pane {
 	display:inline-block;
+	vertical-align:top;
 }
 .ss-smugmug-backup-structure-pane {
 	width:20em;
 	overflow-y:auto;
+}
+
+.ss-smugmug-backup-node-pane {
+	margin-left:1em;
+}
+
+.ss-field-list > dt {
+    float:left;
+    clear:left;
+    width:10em;
+    margin:0.5em 0;
+}
+.ss-field-list > dd {
+    float:left;
+    margin:0.5em 0;
+}
+
+.ss-collapsable-section > dt, .ss-collapsable-section > dd {
+    overflow:hidden;
+    width:auto;
+}
+.ss-collapsable-section > dt {
+    font-size:120%;
+    background-color:#eee;
+    padding:0.5em;
+}
+.ss-collapsable-section > dd {
+    margin-bottom:1.5em;
 }

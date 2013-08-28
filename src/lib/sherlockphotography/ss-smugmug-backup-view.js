@@ -4,6 +4,11 @@ YUI.add('ss-smugmug-backup-view', function(Y, NAME) {
 		NODE_TYPE_BACKUP_INFO = 1,
 		NODE_TYPE_SMUG_NODE = 2;
 	
+	var 
+		SMUGMUG_NODE_TYPE_ROOT = 1,
+		SMUGMUG_NODE_TYPE_FOLDER = 2,
+		SMUGMUG_NODE_TYPE_PAGE = 64;
+	
 	var SmugmugBackupView = Y.Base.create(NAME, Y.Widget, [], {
 		_treeView : null,
 
@@ -57,22 +62,187 @@ YUI.add('ss-smugmug-backup-view', function(Y, NAME) {
 
 			var foldersRoot = this._recurseBuildFolders(backup.nodeTree, root);
 			
-			foldersRoot.label = 'Pages';
+			foldersRoot.label = 'Galleries/pages';
+		},
+		
+		/**
+		 * Options is either an array of field items (if you don't need to configure anything else), or an object:
+		 * 
+		 * className - Class to apply to <dl> (optional)
+		 * items - Array of items, which are objects:
+		 * 		title - String, required 
+		 * 		value - String, optional
+		 * 		supportCopy - Boolean. True if the UI should afford copying the value
+		 * 		type - Describes the type of the value. One of line, lines, url, yesno. Default is line if not provided
+		 *		className - Optional
+		 */
+		_renderFieldList: function(options) {
+			if (Array.isArray(options)) {
+				options = {items: options};
+			}
+			
+			var dl = Y.Node.create("<dl></dl>");
+			
+			if (options.className) {
+				dl.addClass(options.className);
+			}
+			
+			for (var index in options.items) {
+				var 
+					item = options.items[index],
+					dt = Y.Node.create("<dt>" + item.title + "</dt>"),
+					dd = Y.Node.create("<dd></dd>"); 
+
+				if (item.className) {
+					dt.addClass(item.className);
+					dd.addClass(item.className);
+				}
+				
+				dl.append(dt);
+				
+				var valueRendered = false;
+				
+				switch (item.type) {
+					case 'url':
+						valueRendered = '<a target="_blank" href="' + Y.Escape.html(item.value) + '">' + Y.Escape.html(item.value) + '</a>';
+						break;
+					case 'yesno':
+						if (item.value == 0) {
+							valueRendered = '<span class="no">no</span>';
+						} else {
+							valueRendered = '<span class="yes">yes</span>';
+						}
+						break;
+					case 'lines':
+						if (item.supportCopy) {
+							valueRendered = '<textarea>' + Y.Escape.html(item.value) + '</textarea>';
+						} else {
+							valueRendered = Y.Escape.html(item.value);
+						}
+						break;
+					default:
+						if (item.value instanceof Y.Node) {
+							dd.append(item.value);
+						} else {
+							if (item.supportCopy) {
+								valueRendered = '<input type="text" value="' + Y.Escape.html(item.value) + '">';
+							} else {
+								valueRendered = Y.Escape.html(item.value);
+							}
+						}
+				}
+				
+				if (valueRendered !== false) {
+					dd.setHTML(valueRendered);
+				}
+								
+				dl.append(dd);
+			}
+			
+			return dl;
 		},
 		
 		_renderBackupInfo: function(backup, pane) {
-			pane.append("<dl><dt>I'm a list!</dt><dd>Of fields and other good stuff!</dd></dl>");
+			var items = [];
+			
+			items.push(
+				{title:"SmugMug nickname", value:backup.nickname},
+				{title:"Backup creation date", value:backup.date}
+			);
+			
+			pane.append(this._renderFieldList({items:items, className:"ss-field-list"}));
+		},
+
+		_renderWidgetBlocks: function(style) {
+			var result = [];
+			
+			for (var mapIndex in style.PageDesign.WidgetMap) {
+				var widget = style.PageDesign.WidgetMap[mapIndex];
+				
+				var fields = [];
+
+				result.push({
+			 		title: "Content block: " + widget.Category + " / " + widget.DisplayName, 
+			 		items: this._renderFieldList({items:fields, className: "ss-field-list"})
+				});
+			}
+			
+			return result;
 		},
 		
-		_onTreeNodeSelect: function(node) {
+		_renderSmugNode: function(node, pane) {
+			var 
+				nodeData = node.nodeData,
+				backup = this.get('backup'),
+				nodeType,
+				aboutThisText;
+			
+			switch (nodeData.Type) {
+				case SMUGMUG_NODE_TYPE_ROOT:
+					nodeType = "Site root";
+					aboutThisText = "About the site root";
+					break;
+				case SMUGMUG_NODE_TYPE_FOLDER:
+					nodeType = "Folder";
+					aboutThisText = "About this folder";
+					break;
+				case SMUGMUG_NODE_TYPE_PAGE:
+					nodeType = "Page";
+					aboutThisText = "About this page";
+					break;
+				default:
+					nodeType = "Node (" +nodeData.Type + ")";
+					aboutThisText = "About this node (" + nodeData.Type + ")";
+			}
+
+			var topLevelBlocks = [];
+			
+			var aboutThisNode = [];
+
+			if (nodeData.Type != SMUGMUG_NODE_TYPE_ROOT) {
+				aboutThisNode.push(
+					{title: nodeType + " name", supportCopy:true, value:nodeData.Name}
+				);
+			}
+			
+			aboutThisNode.push(
+				{title:"URL", value:nodeData.Url, type:'url'},
+				{title:"Description", value:nodeData.Description, supportCopy:true, type:'lines'},
+				{title:"Last modified", value:nodeData.DateModifiedDisplay, type:'line'}
+			);
+			
+			topLevelBlocks.push(
+				{title:aboutThisText, value:this._renderFieldList({items:aboutThisNode, className:"ss-field-list"})}
+			);
+			
+			var pageDesignID = node.initData.pageDesignId || node.initData.sitePageDesignId; 
+			
+			if (pageDesignID && backup.pageDesigns[pageDesignID]) {
+				var widgetBlocks = this._renderWidgetBlocks(backup.pageDesigns[pageDesignID]);
+				
+				for (index in widgetBlocks) {
+					topLevelBlocks.push(widgetBlocks[index]);
+				}
+			}
+			
+			pane.append(this._renderFieldList({items:topLevelBlocks, className: "ss-collapsable-section"}));
+		},
+				
+		
+		_onTreeNodeSelect: function(e) {
 			var pane = this.get('nodePane');
+			
+			pane.get('childNodes').remove();
+
+			var node = e.node;
 			
 			if (node.data) {
 				switch (node.data.type) {
 					case NODE_TYPE_BACKUP_INFO:
-						this._renderBackupInfo(node.data, pane);
+						this._renderBackupInfo(node.data.data, pane);
 						break;
 					case NODE_TYPE_SMUG_NODE:
+						this._renderSmugNode(node.data.data, pane);
 						break;
 				}
 			}
