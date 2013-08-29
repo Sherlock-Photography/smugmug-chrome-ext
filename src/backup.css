@@ -71,3 +71,12 @@ h1 {
 .ss-collapsable-section > dd {
     margin-bottom:1.5em;
 }
+
+.CodeMirror {
+	height:auto;
+	font-size:14px;
+}
+.CodeMirror-scroll {
+	max-height:14em;
+	width:70em;
+}

@@ -9,6 +9,22 @@ YUI.add('ss-smugmug-backup-view', function(Y, NAME) {
 		SMUGMUG_NODE_TYPE_FOLDER = 2,
 		SMUGMUG_NODE_TYPE_PAGE = 64;
 	
+	var
+		WIDGET_CONFIG_DEFINITION = {
+			"HTML" : { //HTML & CSS / HTML block
+				fields: {
+				     WrapCSS: {show: false},
+				     WrapHTML: {show: false},
+				     HTML: {type: "code:html"},
+				     CSS: {type: "code:css"}
+				}
+			}	
+		};
+	
+	function isNumber(n) {
+		return !isNaN(parseFloat(n)) && isFinite(n);	
+	}
+	
 	var SmugmugBackupView = Y.Base.create(NAME, Y.Widget, [], {
 		_treeView : null,
 
@@ -63,6 +79,21 @@ YUI.add('ss-smugmug-backup-view', function(Y, NAME) {
 			var foldersRoot = this._recurseBuildFolders(tree, backup.nodeTree, root);
 			
 			foldersRoot.label = 'Galleries/pages';
+		},
+		
+		_renderCodeMirror: function(target, code, mode) {
+			var cm = CodeMirror(target.getDOMNode(), {
+				value: code,
+				mode: mode,
+				readOnly: true,
+				theme: 'ambiance'
+			});
+			
+			Y.soon(function() {
+				cm.refresh();
+			});
+			
+			return cm;
 		},
 		
 		/**
@@ -120,6 +151,11 @@ YUI.add('ss-smugmug-backup-view', function(Y, NAME) {
 							valueRendered = Y.Escape.html(item.value);
 						}
 						break;
+					case 'code:html':
+					case 'code:css':
+							this._renderCodeMirror(dd, item.value, item.type == 'code:html' ? 'text/html' : 'text/css');
+							valueRendered = false;
+						break;
 					default:
 						if (item.value instanceof Y.Node) {
 							dd.append(item.value);
@@ -152,7 +188,7 @@ YUI.add('ss-smugmug-backup-view', function(Y, NAME) {
 			
 			pane.append(this._renderFieldList({items:items, className:"ss-field-list"}));
 		},
-
+		
 		_renderWidgetBlocks: function(style) {
 			var result = [];
 			
@@ -162,14 +198,38 @@ YUI.add('ss-smugmug-backup-view', function(Y, NAME) {
 				var fields = [];
 
 				if (widget.Config) {
+					var configDef = WIDGET_CONFIG_DEFINITION[widget.Name] || {fields: {}}; 
+					
 					for (var fieldName in widget.Config) {
-						var fieldValue = widget.Config[fieldName];
+						var 
+							fieldValue = widget.Config[fieldName],
+							fieldInfo = configDef.fields[fieldName] || {},
+							fieldType = "";
 						
-						if (fieldValue === true || fieldValue === false) {
-							fields.push({title: fieldName, value: fieldValue, type: "yesno"});
-						} else if (!(fieldValue instanceof Array) && fieldValue !== "") {
-							fields.push({title: fieldName, value: fieldValue});
+						if (fieldInfo.show !== undefined && !fieldInfo.show)
+							continue;
+						
+						if (fieldInfo.type) {
+							fieldType = fieldInfo.type;
+						} else {
+							if (fieldValue === "") {
+								continue;
+							} else if (fieldValue === true || fieldValue === false) {
+								fieldType = "yesno";
+							} else if (isNumber(fieldValue)) {
+								fieldType = "line";								
+							} else if (fieldValue instanceof String && fieldValue != "") {
+								if (fieldValue.indexOf("\n") > -1)
+									fieldType = "lines";
+								else
+									fieldType = "line";
+							} else {
+								// Don't bother displaying arrays or other weird values
+								continue;
+							}
 						}
+						
+						fields.push({title: fieldName, value: fieldValue, type: fieldType});
 					}
 				}
 				
@@ -310,5 +370,5 @@ YUI.add('ss-smugmug-backup-view', function(Y, NAME) {
 
 	Y.namespace("SherlockPhotography").SmugmugBackupView = SmugmugBackupView;
 }, '0.0.1', {
-	requires : [ 'base', 'widget', 'gallery-sm-treeview', 'gallery-sm-treeview-sortable', 'escape' ]
+	requires : [ 'base', 'widget', 'gallery-sm-treeview', 'gallery-sm-treeview-sortable', 'escape', 'timers' ]
 });
