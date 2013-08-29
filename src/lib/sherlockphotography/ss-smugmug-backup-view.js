@@ -18,20 +18,20 @@ YUI.add('ss-smugmug-backup-view', function(Y, NAME) {
 		 * @param smugNode
 		 * @param treeNode
 		 */
-		_recurseBuildFolders: function(smugNode, parentTreeNode) {
+		_recurseBuildFolders: function(tree, smugNode, parentTreeNode) {
 			var treeNode = parentTreeNode.append({
-				label: smugNode.nodeData.Name,
+				label: smugNode.nodeData.Name + (smugNode.initData.pageDesignId ? "<span class='customised'>Customised</span>" : ""),
 				state: {open: true},
 				data: {
 					type: NODE_TYPE_SMUG_NODE,
 					data: smugNode,
 				}
 			});
-			
+						
 			for (var index in smugNode.children) {
 				var smugChild = smugNode.children[index];
 				
-				this._recurseBuildFolders(smugChild, treeNode);
+				this._recurseBuildFolders(tree, smugChild, treeNode);
 				
 				treeNode.sort({sortComparator:function(node) {
 					return node.label;
@@ -47,7 +47,7 @@ YUI.add('ss-smugmug-backup-view', function(Y, NAME) {
 				tree = this._treeView,
 				root = tree.rootNode;
 
-			//TODO clear the tree
+			//TODO clear the tree, keeping in mind that sm-treeview.clear() seems to break node events
 			
 			if (!backup)
 				return;
@@ -60,21 +60,21 @@ YUI.add('ss-smugmug-backup-view', function(Y, NAME) {
 				}
 			});
 
-			var foldersRoot = this._recurseBuildFolders(backup.nodeTree, root);
+			var foldersRoot = this._recurseBuildFolders(tree, backup.nodeTree, root);
 			
 			foldersRoot.label = 'Galleries/pages';
 		},
 		
 		/**
-		 * Options is either an array of field items (if you don't need to configure anything else), or an object:
+		 * Options is either an array of field items or an object:
 		 * 
 		 * className - Class to apply to <dl> (optional)
 		 * items - Array of items, which are objects:
 		 * 		title - String, required 
-		 * 		value - String, optional
+		 * 		value - String or Y.Node
 		 * 		supportCopy - Boolean. True if the UI should afford copying the value
 		 * 		type - Describes the type of the value. One of line, lines, url, yesno. Default is line if not provided
-		 *		className - Optional
+		 *		className - Optional, added to <dt> and <dd>
 		 */
 		_renderFieldList: function(options) {
 			if (Array.isArray(options)) {
@@ -161,9 +161,21 @@ YUI.add('ss-smugmug-backup-view', function(Y, NAME) {
 				
 				var fields = [];
 
+				if (widget.Config) {
+					for (var fieldName in widget.Config) {
+						var fieldValue = widget.Config[fieldName];
+						
+						if (fieldValue === true || fieldValue === false) {
+							fields.push({title: fieldName, value: fieldValue, type: "yesno"});
+						} else if (!(fieldValue instanceof Array) && fieldValue !== "") {
+							fields.push({title: fieldName, value: fieldValue});
+						}
+					}
+				}
+				
 				result.push({
 			 		title: "Content block: " + widget.Category + " / " + widget.DisplayName, 
-			 		items: this._renderFieldList({items:fields, className: "ss-field-list"})
+			 		value: this._renderFieldList({items:fields, className: "ss-field-list"})
 				});
 			}
 			
@@ -179,8 +191,8 @@ YUI.add('ss-smugmug-backup-view', function(Y, NAME) {
 			
 			switch (nodeData.Type) {
 				case SMUGMUG_NODE_TYPE_ROOT:
-					nodeType = "Site root";
-					aboutThisText = "About the site root";
+					nodeType = "Homepage";
+					aboutThisText = "About the homepage";
 					break;
 				case SMUGMUG_NODE_TYPE_FOLDER:
 					nodeType = "Folder";
