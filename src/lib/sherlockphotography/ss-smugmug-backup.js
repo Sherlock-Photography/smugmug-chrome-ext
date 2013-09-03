@@ -13,6 +13,91 @@ YUI.add('ss-smugmug-site-backup', function(Y, NAME) {
 				
 				console.log(this._backup);
 			},
+						
+			/**
+			 * Fetch detailed information for the skins (user themes) of the site designs discovered in earlier phases.
+			 */
+			_stageFetchSkins: function() {
+				var 
+					logProgress = this.get('eventLog').appendLog('info', "Fetching site themes..."),
+					that = this;
+				
+				this._backup.siteSkins = {};
+				
+				var
+					siteSkins = this._backup.siteSkins;
+				
+				var queue = new Y.SherlockPhotography.APISmartQueue({
+					processResponse: function(request, response) {
+						for (var index in response.UserSkins) {
+							var skin = response.UserSkins[index];
+							
+							if (skin.IsOwner) {
+								siteSkins[skin.SkinID] = skin;
+							}
+						}
+							
+						return true;
+					},
+					responseType: 'json'
+				});
+				
+				queue.enqueueRequest({
+					url: 'http://' + this.get('smugmugDomain') + '/services/api/json/1.4.0/',
+					data: {
+						NickName: this.get('smugmugNickname'),
+						method:'rpc.userskin.get'	
+					} 
+				});
+				
+				queue.on({
+					complete: function() {
+						that._backupStageCompleted(true);
+					},
+					progress: function(progress) {
+						logProgress.set('progress', progress);
+					}
+				});					
+			},			
+			
+			/**
+			 * Fetch detailed information for the site designs discovered in earlier phases, which have
+			 * their IDs as keys in backup.siteDesigns.
+			 */
+			_stageFetchSiteDesigns: function() {
+				var 
+					logProgress = this.get('eventLog').appendLog('info', "Fetching details of site designs..."),
+					that = this,
+					siteDesigns = this._backup.siteDesigns;
+				
+				var queue = new Y.SherlockPhotography.APISmartQueue({
+					processResponse: function(request, response) {
+						siteDesigns[response.SiteDesign.SiteDesignID] = Y.merge(response.SiteDesign, siteDesigns[response.SiteDesign.SiteDesignID]);
+										
+						return true;
+					},
+					responseType: 'json'
+				});
+				
+				for (var siteDesignID in siteDesigns) {
+					queue.enqueueRequest({
+						url: 'http://' + this.get('smugmugDomain') + '/services/api/json/1.4.0/',
+						data: {
+							SiteDesignID: siteDesignID,
+							method:'rpc.sitedesign.get'	
+						} 
+					});
+				}
+				
+				queue.on({
+					complete: function() {
+						that._backupStageCompleted(true);
+					},
+					progress: function(progress) {
+						logProgress.set('progress', progress);
+					}
+				});					
+			},
 			
 			/**
 			 * Fetch the page designs for all IDs listed in _backup.pageDesigns
@@ -30,7 +115,7 @@ YUI.add('ss-smugmug-site-backup', function(Y, NAME) {
 						delete pageDesign.stat;
 						
 						pageDesigns[pageDesign.PageDesign.PageDesignID] = pageDesign;
-										
+
 						return true;
 					},
 					responseType: 'json'
@@ -291,6 +376,8 @@ YUI.add('ss-smugmug-site-backup', function(Y, NAME) {
 					this._stageEnumerateDesignsForNodes,
 					this._stageEnumerateSitePageDesigns,
 					this._stageFetchPageDesigns,
+					this._stageFetchSiteDesigns,
+					this._stageFetchSkins,
 					this._stageBackupComplete
               	];
 				
