@@ -18,7 +18,17 @@ YUI.add('ss-smugmug-backup-view', function(Y, NAME) {
 				     HTML: {type: "code:html"},
 				     CSS: {type: "code:css"}
 				}
-			}	
+			},
+			"Text" : { //HTML & CSS / Text block
+				fields: {
+				     HTML: {type: "code:html"}
+				}
+			},
+			"CSS" : { //HTML & CSS / CSS
+				fields: {
+				     CSS: {type: "code:css"}
+				}
+			}			
 		};
 	
 	function isNumber(n) {
@@ -85,8 +95,7 @@ YUI.add('ss-smugmug-backup-view', function(Y, NAME) {
 			var cm = CodeMirror(target.getDOMNode(), {
 				value: code,
 				mode: mode,
-				readOnly: true,
-				theme: 'ambiance'
+				readOnly: true
 			});
 			
 			Y.soon(function() {
@@ -218,7 +227,7 @@ YUI.add('ss-smugmug-backup-view', function(Y, NAME) {
 								fieldType = "yesno";
 							} else if (isNumber(fieldValue)) {
 								fieldType = "line";								
-							} else if (fieldValue instanceof String && fieldValue != "") {
+							} else if ((typeof fieldValue == 'string' || fieldValue instanceof String) && fieldValue != "") {
 								if (fieldValue.indexOf("\n") > -1)
 									fieldType = "lines";
 								else

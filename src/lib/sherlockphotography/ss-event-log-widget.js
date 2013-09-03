@@ -102,6 +102,10 @@ YUI.add('ss-event-log-widget', function(Y, NAME) {
 			},
 		
 			appendLog: function(type, message) {
+				if (this._list.get('children').size() >= this.get('maximumHistory')) {
+					this._list.one('*').remove();
+				}
+				
 				var entry = new EventLogEntry({type:type, message:message});
 				
 				this._list.append(entry.get('element'));
@@ -111,7 +115,9 @@ YUI.add('ss-event-log-widget', function(Y, NAME) {
 		},
 		{
 			ATTRS : {
-				
+				maximumHistory: {
+					value: 1 
+				}
 			}
 		}
 	);

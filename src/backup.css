@@ -9,7 +9,7 @@ h1 {
 	margin-bottom:0.5em;
 }
 .yui3-ss-event-log-widget ul {
-	height:6em;
+	max-height:6em;
 	border:1px solid #888;	
 }
 

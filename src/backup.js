@@ -57,6 +57,8 @@ YUI().use(['node', 'json', 'io', 'event-resize', 'ss-event-log-widget',
 				
 				backup.saveBackupToDisk();		
 			});
+			
+			eventLog.appendLog('info', 'Click the "Start Backup" button below to begin the backup process.');
 		},
 		windowresize: adjustPaneSize
 	});
