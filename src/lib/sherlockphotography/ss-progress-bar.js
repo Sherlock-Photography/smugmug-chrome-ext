@@ -6,20 +6,27 @@ YUI.add('ss-progress-bar', function(Y, NAME) {
 		{			
 			syncUI: function() {
 				var 
-					boundingBox = this.get("boundingBox"),
-					contentBox = this.get("contentBox");
+					contentBox = this.get("contentBox"),
+					progressBar = contentBox.one('.progress-bar'),
+					percent = this.get('completed') / this.get('total') * 100;
 				
 				if (this.get('total') > 0) {
-					contentBox.setStyle('width', Math.round((parseInt(boundingBox.getComputedStyle('width'), 10) * this.get('completed')) / this.get('total')) + 'px');
-				}				
+					progressBar.setAttribute('aria-valuenow', this.get('completed'));
+					progressBar.setAttribute('aria-valuemax', this.get('total'));
+					progressBar.setStyle('width', percent + '%');
+				}
 			},
-		
-			appendLog: function(type, message) {
-				var entry = new EventLogEntry({type:type, message:message});
+
+			renderUI: function() {
+				var 
+					contentBox = this.get("contentBox");
 				
-				this._list.append(entry.get('element'));
+				contentBox.addClass("progress");
+				contentBox.append('<div class="progress-bar" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="1" style="width: 0%;"></div>');
 				
-				return entry;
+				if (this.get('total')) {
+					this.syncUI();
+				}
 			},
 			
 			initializer: function(cfg) {
