@@ -42,8 +42,14 @@ YUI().use(['node', 'json', 'io', 'event-resize', 'ss-event-log-widget',
 			
 			adjustPaneSize();
 			
-			backup.on('update', function() {
-				backupView.set('backup', backup.get('backup'));
+			backup.on({
+				update: function() {
+					Y.one('#btn-backup-save').removeAttribute('disabled');
+					backupView.set('backup', backup.get('backup'));
+				},
+				complete: function() {
+					this.get('eventLog').appendLog('info', "Backup is complete! Don't forget to click on the save button!");
+				}
 			});
 			
 			Y.one('#btn-backup-create').on('click', function(e) {

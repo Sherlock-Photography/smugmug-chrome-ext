@@ -96,7 +96,7 @@ YUI.add('ss-event-log-widget', function(Y, NAME) {
 			renderUI: function() {
 				var contentBox = this.get("contentBox");
 				
-				this._list = Y.Node.create('<ul></ul>');
+				this._list = Y.Node.create('<ul class="list-unstyled"></ul>');
 				
 				contentBox.append(this._list);
 			},

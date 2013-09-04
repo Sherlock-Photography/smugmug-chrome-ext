@@ -76,10 +76,17 @@ YUI.add('ss-api-smartqueue', function(Y, NAME) {
 				}
 				
 				if (responseText) {
-					if (this.get('responseType') == 'json') {
-						handleSuccessData.call(this, Y.JSON.parse(responseText));
+					//Simulate failures
+					if (this.get('simulateFail') && Math.random() < 0.75) {
+						if (!attemptRetry()) {
+							this.fire('requestFail', {request: request, status: 500, statusText: "Fake error message"});
+						}
 					} else {
-						handleSuccessData.call(this, responseText);
+						if (this.get('responseType') == 'json') {
+							handleSuccessData.call(this, Y.JSON.parse(responseText));
+						} else {
+							handleSuccessData.call(this, responseText);
+						}
 					}
 				} else {
 					Y.io(request.url, {
@@ -164,6 +171,11 @@ YUI.add('ss-api-smartqueue', function(Y, NAME) {
 					value: true
 				},
 				
+				//If persistent caching is used, this option simulates failed AJAX requests to test error-handling
+				simulateFail: {
+					value: true
+				},
+				
 				//How many times will we retry requests upon errors?
 				maxRetries: {
 					value: 3
@@ -171,7 +183,7 @@ YUI.add('ss-api-smartqueue', function(Y, NAME) {
 				
 				//Delay in milliseconds between node fetches (be kind to SmugMug!)
 				delayBetweenNodes: {
-					value: 100
+					value: 800
 				},
 				
 				numFailedRequests: {

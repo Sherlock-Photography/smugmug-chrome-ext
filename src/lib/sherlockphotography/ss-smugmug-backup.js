@@ -7,11 +7,8 @@ YUI.add('ss-smugmug-site-backup', function(Y, NAME) {
 			_backup: {},
 			
 			_stageBackupComplete: function() {
-				this.get('eventLog').appendLog('info', "Backup is complete!");
-				
+				this.fire('complete');
 				this.fire('update');
-				
-				console.log(this._backup);
 			},
 						
 			/**

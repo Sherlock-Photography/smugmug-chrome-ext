@@ -3,18 +3,24 @@
 <head>
 <title>SmugMug site tools</title>
 <script type="text/javascript" src="popup.js"></script>
+
+<link href="lib/bootstrap/css/bootstrap.min.css" rel="stylesheet" media="screen">
+
 <style>
 body {
 	min-width: 350px;
 	overflow-x: hidden;
 }
+.list-group {
+	margin-bottom:0;
+}
 </style>
 </head>
 <body>
 
-<ul class="main-menu">
-	<li><a href="#" id="create-backup">Create a backup of this SmugMug site</a></li>
-	<li><a href="#" id="paypal-buynow">Add/edit PayPal buy-now buttons for this gallery</a></li>
+<ul class="nav nav-pills nav-stacked">
+	<li><a href="#" id="create-backup" tabindex="2">Create a backup of this SmugMug site</a></li>
+	<li><a href="#" id="paypal-buynow" tabindex="3">Add/edit PayPal buy-now buttons for this gallery</a></li>
 </ul>
 
 </body>

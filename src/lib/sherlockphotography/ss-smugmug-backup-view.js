@@ -152,7 +152,7 @@ YUI.add('ss-smugmug-backup-view', function(Y, NAME) {
 		 */
 		_recurseBuildFoldersTree: function(smugNode, parentTreeNode) {
 			var treeNode = parentTreeNode.append({
-				label: smugNode.nodeData.Name + (smugNode.initData.pageDesignId ? "<span class='customised'>Customised</span>" : ""),
+				label: smugNode.nodeData.Name + (smugNode.initData.pageDesignId ? " <span class='label label-primary'>Customised</span>" : ""),
 				state: {open: true},
 				data: {
 					type: NODE_TYPE_SMUG_NODE,
