@@ -80,3 +80,16 @@ h1 {
 	max-height:14em;
 	width:70em;
 }
+
+.colour-swatch {
+	width: 28px;
+	height: 28px;
+	display: inline-block;
+	vertical-align: middle;
+	border: 1px solid black;
+	border-radius: 4px;
+}
+
+#file-backup-open {
+	visibility:hidden;
+}

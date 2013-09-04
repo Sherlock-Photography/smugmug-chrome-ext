@@ -288,7 +288,7 @@ YUI.add('ss-smugmug-site-backup', function(Y, NAME) {
 				var
 					nodeEnumerator = new Y.SherlockPhotography.SmugmugNodeEnumerator({
 						domain: this.get('smugmugDomain'), 
-						maxDepth: 1 /* TODO */
+						maxDepth: 10 /* TODO */
 					}),
 					logProgress = this.get('eventLog').appendLog('info', "Finding your pages..."),
 					that = this;
@@ -396,6 +396,34 @@ YUI.add('ss-smugmug-site-backup', function(Y, NAME) {
 				
 				var blob = new Blob([Y.JSON.stringify(cloned, null, 2)], {type: "text/plain;charset=utf-8"});
 				saveAs(blob, 'smugmug backup ' + this.get('smugmugNickname') + ' ' + Y.Date.format(cloned.backup.date, {format:"%Y-%m-%d %H%M%S"}) + ".json");
+			},
+			
+			/**
+			 * File is an HTML5 File API file.
+			 * 
+			 * @param file
+			 */
+			loadBackupFromFile: function(file) {
+				var 
+					reader = new FileReader(),
+					that = this;
+				
+				reader.onload = function(e) {
+					try {
+						var parsed = JSON.parse(e.target.result);
+						
+						that._backup = parsed;
+						
+						that._backup.nodeTree = Y.SherlockPhotography.SmugmugTools.treeifyNodes(that._backup.nodes);
+						
+						that.get('eventLog').appendLog('info', "Backup loaded!");
+						that.fire('update');
+					} catch (e) {
+						alert("The backup file could not be read. Did you select the right file?");
+					}
+				};
+				
+				reader.readAsText(file);				
 			}
 		},
 		{

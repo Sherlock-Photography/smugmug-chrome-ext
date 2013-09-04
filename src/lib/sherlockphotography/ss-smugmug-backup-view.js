@@ -9,10 +9,53 @@ YUI.add('ss-smugmug-backup-view', function(Y, NAME) {
 	var 
 		SMUGMUG_NODE_TYPE_ROOT = 1,
 		SMUGMUG_NODE_TYPE_FOLDER = 2,
+		SMUGMUG_NODE_TYPE_GALLERY = 4,
 		SMUGMUG_NODE_TYPE_PAGE = 64;
 	
 	var
+		LOOKUP_GALLERY_STYLE = {
+			3: "SmugMug",
+			17: "Thumbnails",
+			18: "Collage Landscape",
+			19: "Collage Portrait",
+			16: "Journal",
+			8: "Slideshow"			
+		},
+		
+		NODE_DEFINITIONS = {
+			Url: {title:"URL", type:'url'},
+			Description: {title:"Description", supportCopy:true, type:'lines'},
+			Keywords: {title:"Keywords", supportCopy:true, type:'lines'},
+			DateAddedDisplay: {title:"Creation date", type:'line'},
+			DateModifiedDisplay: {title:"Last modified", type:'line'},
+			PrivacyLevel: {title: "Privacy", type:'line', lookup: {1: "Inherit", 2: "Unlisted", 3: "Private"}},
+			SmugSearchable: {title: "SmugMug searchable", lookup: {0: "No", 1: "Site-setting"}},
+			WorldSearchable: {title: "SmugMug searchable", lookup: {0: "No", 1: "Site-setting"}},
+			SortMethod: {title: "Sort by"},
+			SortDirection: {title: "Sort direction"},
+		},
+	
+		NODE_TILES_DEFINITIONS = {
+			PaginationType: {title: "Pagination style", lookup: {3: "scroll", 4: "click"}},
+			SortMethod: {title: "Sort by", type: "line", lookup: {3: "name", 5: "date added", 6: "date modified", 7: "organiser position"}},
+			SortDirection: {title: "Sort direction", type: "line", lookup: {1: "ascending", 2: "descending"}},
+			NodeSource: {title: "Select from"},
+			ImageCrop: {title: "Image aspect ratio"},
+			TileLayout: {title: "Layout"},
+			TileSpacing: {title: "Spacing between photos", type: "pixels"},
+			TileInfo: {title: "Info style" },
+			VaryHeight: {title: "Vary photo height"},
+			ImageSize: {title: "Photo size", lookup: {S: "Small", M: "Medium", L: "Large", XL: "X Large", X2: "X2 Large", X3: "X3 Large"}}
+		},
+		
 		WIDGET_CONFIG_DEFINITION = {
+			"Breadcrumb" : {
+				fields: {
+					ShowCurrentPage: {title: "Show current page"},
+					ShowFullBreadcrumb: {title: "Display full breadcrumb"},
+					EmphasizeCurrentPage: {title: "Emphasize current page"}
+				}
+			},
 			"HTML" : { //HTML & CSS / HTML block
 				fields: {
 				     WrapCSS: {show: false},
@@ -30,10 +73,23 @@ YUI.add('ss-smugmug-backup-view', function(Y, NAME) {
 				fields: {
 				     CSS: {type: "code:css"}
 				}
-			}			
+			},
+			"Galleries" : { //Navigation / Galleries
+				fields: NODE_TILES_DEFINITIONS
+			},
+			"Folders" : { //Navigation / Folders
+				fields: NODE_TILES_DEFINITIONS
+			},
+			"Pages" : { //Navigation / Pages
+				fields: NODE_TILES_DEFINITIONS
+			},
+			"Folders, Galleries & Pages" : {
+				fields: NODE_TILES_DEFINITIONS
+			}
 		},
 		
 		SITE_SKIN_FIELD_DEFINITIONS = {
+			SkinID: {show: false},
 			NickName: {show: false},
 			SkinName: {title: "Skin name"},
 			CustomCSS: {title: "Theme CSS", type: "code:css"},
@@ -41,18 +97,24 @@ YUI.add('ss-smugmug-backup-view', function(Y, NAME) {
 			IsOwner: {show: false},
 			Category: {show: false},
 			PrimaryHex: {title: "Primary colour", type: "colour"},
-			AccentHex:{title: "Accent colour", type: "colour"}
+			AccentHex: {title: "Accent colour", type: "colour"},
+			TextHex: {title: "Text colour", type: "colour"},
+			LeftBackgroundHex: {title: "Text colour", type: "colour"},
 		},
 		
 		SITE_DESIGN_FIELD_DEFINITIONS = {
-			SiteDesignID: {show: false},
-			ClonedFrom: {show: false},
 			HeaderDisplay: {title: "Show SmugMug header", type: 'yesno'},
 			FooterDisplay: {title: "Show SmugMug footer", type: 'yesno'},
+			GalleryStyle: {title: "Gallery style", lookup: LOOKUP_GALLERY_STYLE},
+			UniqueHomepage: {title: "Independent homepage"},
+			PoweredByAlignment: {title: "Photo sharing by SmugMug"},
+			SiteDesignID: {show: false},
+			ClonedFrom: {show: false},
 			IsOwner: {show: false},
 			Category: {show: false},
 			Status: {show: false},
-			HighlightImageID: {show: false}
+			HighlightImageID: {show: false},
+			FaviconImageID: {title: "Favicon", type: "imageid"}
 		};
 	
 	function isNumber(n) {
@@ -160,7 +222,8 @@ YUI.add('ss-smugmug-backup-view', function(Y, NAME) {
 			var cm = CodeMirror(target.getDOMNode(), {
 				value: code,
 				mode: mode,
-				readOnly: true
+				readOnly: true,
+				lineWrapping: true
 			});
 			
 			Y.soon(function() {
@@ -199,6 +262,12 @@ YUI.add('ss-smugmug-backup-view', function(Y, NAME) {
 				
 				if (item.show !== undefined && !item.show) {
 					continue;
+				}
+				
+				if (item.lookup) {
+					if (item.lookup[item.value]) {
+						item.value = item.lookup[item.value];
+					}
 				}
 				
 				if (!item.type) {
@@ -258,10 +327,21 @@ YUI.add('ss-smugmug-backup-view', function(Y, NAME) {
 							this._renderCodeMirror(dd, item.value, item.type == 'code:html' ? 'text/html' : 'text/css');
 							valueRendered = false;
 						break;
+					case 'colour':
+							if (item.value) {
+								valueRendered = '<div class="colour-value"><span class="colour-swatch" style="background-color: #' + Y.Escape.html(item.value) + '"></span> #' + Y.Escape.html(item.value) + '</div>';
+							} else {
+								valueRendered = '(default)';
+							}
+						break;
 					default:
 						if (item.value instanceof Y.Node) {
 							dd.append(item.value);
 						} else {
+							if (item.type == 'pixels') {
+								item.value = item.value + 'px';
+							}
+							
 							if (item.supportCopy) {
 								valueRendered = '<input type="text" value="' + Y.Escape.html(item.value) + '">';
 							} else {
@@ -311,12 +391,10 @@ YUI.add('ss-smugmug-backup-view', function(Y, NAME) {
 		},		
 		
 		_renderBackupInfo: function(backup, pane) {
-			var items = [];
-			
-			items.push(
-				{title:"SmugMug nickname", value:backup.nickname},
-				{title:"Backup creation date", value:backup.date}
-			);
+			var items = [
+				{title:"SmugMug nickname", value:backup.nickname, type: "line"},
+				{title:"Backup creation date", value:backup.date, type: "line"}
+			];
 			
 			pane.append(this._renderFieldList({items:items, className:"ss-field-list"}));
 		},
@@ -365,6 +443,10 @@ YUI.add('ss-smugmug-backup-view', function(Y, NAME) {
 					nodeType = "Folder";
 					aboutThisText = "About this folder";
 					break;
+				case SMUGMUG_NODE_TYPE_GALLERY:
+					nodeType = "Gallery";
+					aboutThisText = "About this gallery";
+					break;
 				case SMUGMUG_NODE_TYPE_PAGE:
 					nodeType = "Page";
 					aboutThisText = "About this page";
@@ -384,11 +466,15 @@ YUI.add('ss-smugmug-backup-view', function(Y, NAME) {
 				);
 			}
 			
-			aboutThisNode.push(
-				{title:"URL", value:nodeData.Url, type:'url'},
-				{title:"Description", value:nodeData.Description, supportCopy:true, type:'lines'},
-				{title:"Last modified", value:nodeData.DateModifiedDisplay, type:'line'}
-			);
+			if (nodeData.HLImageID) {
+				aboutThisNode.push({title: "Feature image", value: nodeData.HLImageID + "," + nodeData.HLImageKey, type: "smugimage"});
+			}
+			
+			for (var fieldName in NODE_DEFINITIONS) {
+				var def = NODE_DEFINITIONS[fieldName];
+				
+				aboutThisNode.push(Y.merge(def, {value:nodeData[fieldName]}));
+			}
 			
 			topLevelBlocks.push(
 				{title:aboutThisText, value:this._renderFieldList({items:aboutThisNode, className:"ss-field-list"})}

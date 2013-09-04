@@ -58,6 +58,17 @@ YUI().use(['node', 'json', 'io', 'event-resize', 'ss-event-log-widget',
 				backup.saveBackupToDisk();		
 			});
 			
+
+			Y.one("#btn-backup-open").on('click', function(e) {
+				Y.one("#file-backup-open").getDOMNode().click();
+			});
+			
+			Y.one("#file-backup-open").on('change', function(e) {
+				if (this.getDOMNode().files.length > 0) {
+					backup.loadBackupFromFile(this.getDOMNode().files[0]);
+				}
+			});
+			
 			eventLog.appendLog('info', 'Click the "Start Backup" button below to begin the backup process.');
 		},
 		windowresize: adjustPaneSize
