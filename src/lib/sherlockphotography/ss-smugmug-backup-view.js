@@ -267,8 +267,8 @@ YUI.add('ss-smugmug-backup-view', function(Y, NAME) {
 			for (var index in options.items) {
 				var 
 					item = options.items[index],
-					dt = Y.Node.create("<dt class='field-title'>" + item.title + "</dt>"),
-					dd = Y.Node.create("<dd class='field-value'></dd>"); 
+					dt = Y.Node.create("<dt class='section-header'><h2>" + Y.Escape.html(item.title) + "</h2></dt>"),
+					dd = Y.Node.create("<dd class='section-contents'></dd>"); 
 
 				if (item.className) {
 					dt.addClass(item.className);
