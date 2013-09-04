@@ -2,7 +2,9 @@ YUI.add('ss-smugmug-backup-view', function(Y, NAME) {
 	var 
 		NODE_TYPE_NONE = 0,
 		NODE_TYPE_BACKUP_INFO = 1,
-		NODE_TYPE_SMUG_NODE = 2;
+		NODE_TYPE_SMUG_NODE = 2,
+		NODE_TYPE_SITE_DESIGN = 3,
+		NODE_TYPE_SITE_SKIN = 4;
 	
 	var 
 		SMUGMUG_NODE_TYPE_ROOT = 1,
@@ -29,6 +31,28 @@ YUI.add('ss-smugmug-backup-view', function(Y, NAME) {
 				     CSS: {type: "code:css"}
 				}
 			}			
+		},
+		
+		SITE_SKIN_FIELD_DEFINITIONS = {
+			NickName: {show: false},
+			SkinName: {title: "Skin name"},
+			CustomCSS: {title: "Theme CSS", type: "code:css"},
+			Status: {show: false},
+			IsOwner: {show: false},
+			Category: {show: false},
+			PrimaryHex: {title: "Primary colour", type: "colour"},
+			AccentHex:{title: "Accent colour", type: "colour"}
+		},
+		
+		SITE_DESIGN_FIELD_DEFINITIONS = {
+			SiteDesignID: {show: false},
+			ClonedFrom: {show: false},
+			HeaderDisplay: {title: "Show SmugMug header", type: 'yesno'},
+			FooterDisplay: {title: "Show SmugMug footer", type: 'yesno'},
+			IsOwner: {show: false},
+			Category: {show: false},
+			Status: {show: false},
+			HighlightImageID: {show: false}
 		};
 	
 	function isNumber(n) {
@@ -44,7 +68,7 @@ YUI.add('ss-smugmug-backup-view', function(Y, NAME) {
 		 * @param smugNode
 		 * @param treeNode
 		 */
-		_recurseBuildFolders: function(tree, smugNode, parentTreeNode) {
+		_recurseBuildFoldersTree: function(smugNode, parentTreeNode) {
 			var treeNode = parentTreeNode.append({
 				label: smugNode.nodeData.Name + (smugNode.initData.pageDesignId ? "<span class='customised'>Customised</span>" : ""),
 				state: {open: true},
@@ -57,7 +81,7 @@ YUI.add('ss-smugmug-backup-view', function(Y, NAME) {
 			for (var index in smugNode.children) {
 				var smugChild = smugNode.children[index];
 				
-				this._recurseBuildFolders(tree, smugChild, treeNode);
+				this._recurseBuildFoldersTree(smugChild, treeNode);
 				
 				treeNode.sort({sortComparator:function(node) {
 					return node.label;
@@ -66,6 +90,44 @@ YUI.add('ss-smugmug-backup-view', function(Y, NAME) {
 			
 			return treeNode;
 		},
+
+		_buildSkinsTree: function(skins, parentTreeNode) {
+			var skinsRoot = parentTreeNode.append({
+				label: "Site themes",
+				state: {open: true}
+			});
+			
+			for (var skinID in skins) {
+				var skin = skins[skinID];
+				
+				skinsRoot.append({
+					label: skin.SkinName,
+					data: {
+						type: NODE_TYPE_SITE_SKIN,
+						data: skin
+					}
+				});
+			}
+		},		
+				
+		_buildSiteDesignsTree: function(siteDesigns, parentTreeNode) {
+			var designsRoot = parentTreeNode.append({
+				label: "Site designs",
+				state: {open: true}
+			});
+			
+			for (var siteDesignId in siteDesigns) {
+				var siteDesign = siteDesigns[siteDesignId];
+				
+				designsRoot.append({
+					label: siteDesign.Name,
+					data: {
+						type: NODE_TYPE_SITE_DESIGN,
+						data: siteDesign
+					}
+				});
+			}
+		},		
 		
 		_rebuildTree: function() {
 			var 
@@ -86,9 +148,12 @@ YUI.add('ss-smugmug-backup-view', function(Y, NAME) {
 				}
 			});
 
-			var foldersRoot = this._recurseBuildFolders(tree, backup.nodeTree, root);
+			var foldersRoot = this._recurseBuildFoldersTree(backup.nodeTree, root);
 			
 			foldersRoot.label = 'Galleries/pages';
+			
+			this._buildSiteDesignsTree(backup.siteDesigns, root);
+			this._buildSkinsTree(backup.siteSkins, root);
 		},
 		
 		_renderCodeMirror: function(target, code, mode) {
@@ -113,8 +178,9 @@ YUI.add('ss-smugmug-backup-view', function(Y, NAME) {
 		 * 		title - String, required 
 		 * 		value - String or Y.Node
 		 * 		supportCopy - Boolean. True if the UI should afford copying the value
-		 * 		type - Describes the type of the value. One of line, lines, url, yesno. Default is line if not provided
+		 * 		type - Optional, describes the type of the value. One of line, lines, url, yesno. If not provided, type is autodetected
 		 *		className - Optional, added to <dt> and <dd>
+		 *		show - If present, and set to false, field is hidden.
 		 */
 		_renderFieldList: function(options) {
 			if (Array.isArray(options)) {
@@ -129,7 +195,34 @@ YUI.add('ss-smugmug-backup-view', function(Y, NAME) {
 			
 			for (var index in options.items) {
 				var 
-					item = options.items[index],
+					item = options.items[index];
+				
+				if (item.show !== undefined && !item.show) {
+					continue;
+				}
+				
+				if (!item.type) {
+					if (item.value === "") {
+						//No type, no value, don't bother showing this field
+						continue;
+					} else if (item.value === true || item.value === false) {
+						item.type = "yesno";
+					} else if (isNumber(item.value)) {
+						item.type = "line";								
+					} else if ((typeof item.value == 'string' || item.value instanceof String) && item.value != "") {
+						if (item.value.indexOf("\n") > -1)
+							item.type = "lines";
+						else
+							item.type = "line";
+					} else if (item.value instanceof Y.Node) {
+						item.type = 'yui-node';
+					} else {
+						// Don't bother displaying arrays or other weird values
+						continue;
+					}
+				}
+				
+				var
 					dt = Y.Node.create("<dt>" + item.title + "</dt>"),
 					dd = Y.Node.create("<dd></dd>"); 
 
@@ -186,6 +279,36 @@ YUI.add('ss-smugmug-backup-view', function(Y, NAME) {
 			
 			return dl;
 		},
+
+		_renderSiteSkin: function(skin, pane) {
+			var 
+				fields = [],
+				fieldDefs = SITE_SKIN_FIELD_DEFINITIONS;
+			
+			for (var fieldName in skin) {
+				var 
+					fieldInfo = fieldDefs[fieldName] || {};
+					
+				fields.push(Y.merge({title: fieldName, value: skin[fieldName]}, fieldInfo));
+			}
+			
+			pane.append(this._renderFieldList({items:fields, className:"ss-field-list"}));
+		},
+		
+		_renderSiteDesign: function(design, pane) {
+			var 
+				fields = [],
+				fieldDefs = SITE_DESIGN_FIELD_DEFINITIONS;
+			
+			for (var fieldName in design) {
+				var 
+					fieldInfo = fieldDefs[fieldName] || {};
+					
+				fields.push(Y.merge({title: fieldName, value: design[fieldName]}, fieldInfo));
+			}
+			
+			pane.append(this._renderFieldList({items:fields, className:"ss-field-list"}));
+		},		
 		
 		_renderBackupInfo: function(backup, pane) {
 			var items = [];
@@ -211,34 +334,9 @@ YUI.add('ss-smugmug-backup-view', function(Y, NAME) {
 					
 					for (var fieldName in widget.Config) {
 						var 
-							fieldValue = widget.Config[fieldName],
-							fieldInfo = configDef.fields[fieldName] || {},
-							fieldType = "";
-						
-						if (fieldInfo.show !== undefined && !fieldInfo.show)
-							continue;
-						
-						if (fieldInfo.type) {
-							fieldType = fieldInfo.type;
-						} else {
-							if (fieldValue === "") {
-								continue;
-							} else if (fieldValue === true || fieldValue === false) {
-								fieldType = "yesno";
-							} else if (isNumber(fieldValue)) {
-								fieldType = "line";								
-							} else if ((typeof fieldValue == 'string' || fieldValue instanceof String) && fieldValue != "") {
-								if (fieldValue.indexOf("\n") > -1)
-									fieldType = "lines";
-								else
-									fieldType = "line";
-							} else {
-								// Don't bother displaying arrays or other weird values
-								continue;
-							}
-						}
-						
-						fields.push({title: fieldName, value: fieldValue, type: fieldType});
+							fieldInfo = configDef.fields[fieldName] || {};
+							
+						fields.push(Y.merge({title: fieldName, value: widget.Config[fieldName]}, fieldInfo));
 					}
 				}
 				
@@ -324,6 +422,12 @@ YUI.add('ss-smugmug-backup-view', function(Y, NAME) {
 						break;
 					case NODE_TYPE_SMUG_NODE:
 						this._renderSmugNode(node.data.data, pane);
+						break;
+					case NODE_TYPE_SITE_DESIGN:
+						this._renderSiteDesign(node.data.data, pane);
+						break;
+					case NODE_TYPE_SITE_SKIN:
+						this._renderSiteSkin(node.data.data, pane);
 						break;
 				}
 			}
