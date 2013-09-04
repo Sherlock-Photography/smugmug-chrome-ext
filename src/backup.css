@@ -48,15 +48,13 @@ h1 {
 	color:red;
 }
 
-.ss-field-list > dt {
-    float:left;
-    clear:left;
-    width:10em;
-    margin:0.5em 0;
+.ss-field-list .field-title {
+    padding:0.5em 1.5em 0.5em 0;
+    vertical-align:top;
 }
-.ss-field-list > dd {
-    float:left;
-    margin:0.5em 0;
+.ss-field-list .field-value {
+    padding:0.5em 0;
+    vertical-align:top;
 }
 
 .ss-collapsable-section > dt, .ss-collapsable-section > dd {
@@ -92,4 +90,20 @@ h1 {
 
 #file-backup-open {
 	visibility:hidden;
+}
+
+.field-node-feature-image .smugmug-image {
+	max-width: 500px;
+	max-height: 230px;
+}
+
+.smugmug-images li {
+    display: inline-block;
+    vertical-align: top;
+    width:150px;
+    height:150px;
+    margin-right:8px;
+    background-position: center center;
+    background-repeat: no-repeat;
+    background-size: cover;
 }

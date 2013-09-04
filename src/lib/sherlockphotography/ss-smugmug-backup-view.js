@@ -252,6 +252,38 @@ YUI.add('ss-smugmug-backup-view', function(Y, NAME) {
 			
 			return cm;
 		},
+
+		_renderSectionList: function(options) {
+			if (Array.isArray(options)) {
+				options = {items: options};
+			}
+			
+			var dl = Y.Node.create("<dl></dl>");
+			
+			if (options.className) {
+				dl.addClass(options.className);
+			}
+			
+			for (var index in options.items) {
+				var 
+					item = options.items[index],
+					dt = Y.Node.create("<dt class='field-title'>" + item.title + "</dt>"),
+					dd = Y.Node.create("<dd class='field-value'></dd>"); 
+
+				if (item.className) {
+					dt.addClass(item.className);
+					dd.addClass(item.className);
+				}
+				
+				dl.append(dt);
+				
+				dd.append(item.value);
+								
+				dl.append(dd);
+			}
+			
+			return dl;
+		},		
 		
 		/**
 		 * Options is either an array of field items or an object:
@@ -270,7 +302,7 @@ YUI.add('ss-smugmug-backup-view', function(Y, NAME) {
 				options = {items: options};
 			}
 			
-			var dl = Y.Node.create("<dl></dl>");
+			var dl = Y.Node.create("<table></table>");
 			
 			if (options.className) {
 				dl.addClass(options.className);
@@ -316,15 +348,16 @@ YUI.add('ss-smugmug-backup-view', function(Y, NAME) {
 				}
 				
 				var
-					dt = Y.Node.create("<dt>" + item.title + "</dt>"),
-					dd = Y.Node.create("<dd></dd>"); 
+					row = Y.Node.create("<tr></tr>"),
+					dt = Y.Node.create("<td class='field-title'>" + item.title + "</td>"),
+					dd = Y.Node.create("<td class='field-value'></td>"); 
 
 				if (item.className) {
 					dt.addClass(item.className);
 					dd.addClass(item.className);
 				}
 				
-				dl.append(dt);
+				row.append(dt);
 				
 				var valueRendered = false;
 				
@@ -409,7 +442,9 @@ YUI.add('ss-smugmug-backup-view', function(Y, NAME) {
 					dd.setHTML(valueRendered);
 				}
 								
-				dl.append(dd);
+				row.append(dd);
+				
+				dl.append(row);
 			}
 			
 			return dl;
@@ -549,7 +584,7 @@ YUI.add('ss-smugmug-backup-view', function(Y, NAME) {
 				}
 			}
 			
-			pane.append(this._renderFieldList({items:topLevelBlocks, className: "ss-collapsable-section"}));
+			pane.append(this._renderSectionList({items:topLevelBlocks, className: "ss-collapsable-section"}));
 		},
 				
 		
