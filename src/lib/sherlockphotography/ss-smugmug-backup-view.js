@@ -80,6 +80,15 @@ YUI.add('ss-smugmug-backup-view', function(Y, NAME) {
 					CustomURL: {title: "Custom URL", type: "url"}
 				}
 			},
+			"Profile": {
+				fields: {
+					TrackProfile: {title: "Use data from your profile"},
+					BioPhoto: {title: "Bio photo", type: "smugimage"},
+					CoverPhoto: {title: "Cover photo", type: "smugimage"},
+					MyPhoto: {title: "My name"},
+					Description: {type: "lines", supportCopy:true}
+				}
+			},
 			"Galleries" : { //Navigation / Galleries
 				fields: NODE_TILES_DEFINITIONS
 			},
@@ -91,6 +100,11 @@ YUI.add('ss-smugmug-backup-view', function(Y, NAME) {
 			},
 			"Folders, Galleries & Pages" : {
 				fields: NODE_TILES_DEFINITIONS
+			},
+			"Multiple Photos" : {
+				fields: Y.merge(NODE_TILES_DEFINITIONS, {
+					SelectedImages: {title: "Selected images", type: "smugimages"}
+				})
 			}
 		},
 		
@@ -276,6 +290,10 @@ YUI.add('ss-smugmug-backup-view', function(Y, NAME) {
 					}
 				}
 				
+				if (item.value === "") {
+					continue;
+				}
+				
 				if (!item.type) {
 					if (item.value === "") {
 						//No type, no value, don't bother showing this field
@@ -340,20 +358,36 @@ YUI.add('ss-smugmug-backup-view', function(Y, NAME) {
 								valueRendered = '(default)';
 							}
 						break;
+					case 'smugimages':
+						if (item.value) {
+							var images = item.value.split(',');
+	
+							valueRendered = '<ul class="smugmug-images">';
+							
+							for (var index in images) {
+								var 
+									image = images[index],
+									url = 'http://photos.smugmug.com/photos/' + image.replace('-', '_') + '-S.jpg';
+								
+								valueRendered += '<li style="background-image:url(' + Y.Escape.html(url) + ')"></li>';
+							}
+							
+							valueRendered += '</ul>';
+						} else {
+							valueRendered = "(none)";
+						}
+						
+						break;
 					case 'smugimage':
-						var image;
+						var url;
 						
 						if (!item.value.imageID) {
-							image = {imageID: item.value.split('-')[0], imageKey: item.value.split('-')[1]};
+							url = 'http://photos.smugmug.com/photos/' + item.value.replace('-', '_') + '-S.jpg';
 						} else {
-							image = item.value;
+							url = 'http://photos.smugmug.com/photos/' + item.value.imageID + '_' + item.value.imageKey + '-S.jpg';
 						}
 						
-						valueRendered = '<img class="smugmug-image" src="http://photos.smugmug.com/photos/' + image.imageID + '_' + image.imageKey + '-S.jpg">';
-						
-						if (image.link) {
-							valueRendered = '<a href="' + Y.Escape.html(image.link) + '">' + valueRendered + '</a>';
-						}
+						valueRendered = '<img class="smugmug-image" src="' + Y.Escape.html(url) + '">';
 						break;
 					default:
 						if (item.value instanceof Y.Node) {
