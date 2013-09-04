@@ -5,7 +5,6 @@ body {
 	padding:1em;
 }
 h1 {
-	font-size:200%;
 	margin-bottom:0.5em;
 }
 .yui3-ss-event-log-widget ul {
@@ -18,6 +17,13 @@ h1 {
 	margin: 0.5em 0;
 	background-color: #eee;
 	border-radius: 10px;
+}
+#control-buttons input {
+	max-width: 11em;
+}
+#file-backup-open {
+	visibility:hidden;
+	position:absolute;
 }
 
 #backup-explorer {
@@ -51,10 +57,16 @@ h1 {
 .ss-field-list .field-title {
     padding:0.5em 1.5em 0.5em 0;
     vertical-align:top;
+    min-width: 7em;
 }
 .ss-field-list .field-value {
     padding:0.5em 0;
     vertical-align:top;
+    width:100%;
+}
+.ss-field-list .field-value input[type="text"] {
+	width: 80%;	
+	max-width: 50em;
 }
 
 .ss-collapsable-section > dt, .ss-collapsable-section > dd {
@@ -73,10 +85,21 @@ h1 {
 .CodeMirror {
 	height:auto;
 	font-size:14px;
+	margin-right:1em;
+	border: 1px solid #ccc;
+
+	-webkit-border-radius: 3px;
+	border-radius: 3px;
+	
+	-webkit-box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075);
+	box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075);
+	
+	-webkit-transition: border linear 0.2s, box-shadow linear 0.2s;
+	transition: border linear 0.2s, box-shadow linear 0.2s;  	
 }
 .CodeMirror-scroll {
 	max-height:14em;
-	width:70em;
+	width:100%;
 }
 
 .colour-swatch {
@@ -86,10 +109,6 @@ h1 {
 	vertical-align: middle;
 	border: 1px solid black;
 	border-radius: 4px;
-}
-
-#file-backup-open {
-	visibility:hidden;
 }
 
 .field-node-feature-image .smugmug-image {

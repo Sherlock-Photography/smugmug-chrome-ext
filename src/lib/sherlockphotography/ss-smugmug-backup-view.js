@@ -26,11 +26,11 @@ YUI.add('ss-smugmug-backup-view', function(Y, NAME) {
 			Url: {title:"URL", type:'url'},
 			Description: {title:"Description", supportCopy:true, type:'lines'},
 			Keywords: {title:"Keywords", supportCopy:true, type:'lines'},
-			DateAddedDisplay: {title:"Creation date", type:'line'},
+			DateAddedDisplay: {title:"Created", type:'line'},
 			DateModifiedDisplay: {title:"Last modified", type:'line'},
 			PrivacyLevel: {title: "Privacy", type:'line', lookup: {1: "Inherit", 2: "Unlisted", 3: "Private"}},
 			SmugSearchable: {title: "SmugMug searchable", lookup: {0: "No", 1: "Site-setting"}},
-			WorldSearchable: {title: "SmugMug searchable", lookup: {0: "No", 1: "Site-setting"}},
+			WorldSearchable: {title: "Web searchable", lookup: {0: "No", 1: "Site-setting"}},
 			SortMethod: {title: "Sort by"},
 			SortDirection: {title: "Sort direction"},
 		},
@@ -374,7 +374,8 @@ YUI.add('ss-smugmug-backup-view', function(Y, NAME) {
 						break;
 					case 'lines':
 						if (item.supportCopy) {
-							valueRendered = '<textarea>' + Y.Escape.html(item.value) + '</textarea>';
+							this._renderCodeMirror(dd, item.value, 'text/plain');
+							valueRendered = false;
 						} else {
 							valueRendered = Y.Escape.html(item.value);
 						}
@@ -431,7 +432,7 @@ YUI.add('ss-smugmug-backup-view', function(Y, NAME) {
 							}
 							
 							if (item.supportCopy) {
-								valueRendered = '<input type="text" value="' + Y.Escape.html(item.value) + '">';
+								valueRendered = '<input type="text" class="form-control" value="' + Y.Escape.html(item.value) + '">';
 							} else {
 								valueRendered = Y.Escape.html(item.value);
 							}
@@ -496,15 +497,24 @@ YUI.add('ss-smugmug-backup-view', function(Y, NAME) {
 				var widget = style.PageDesign.WidgetMap[mapIndex];
 				
 				var fields = [];
+				
+				fields.push({title: "Title", value: widget.Title, supportCopy: true});
 
 				if (widget.Config) {
 					var configDef = WIDGET_CONFIG_DEFINITION[widget.Name] || {fields: {}}; 
 					
 					for (var fieldName in widget.Config) {
 						var 
+							fieldValue = widget.Config[fieldName],
 							fieldInfo = configDef.fields[fieldName] || {};
+						
+						if (widget.Name == 'Single Photo') {
+							if ((fieldName == 'CustomWidth' || fieldName == 'CustomHeight') && fieldValue == 0) {
+								continue;
+							}
+						}
 							
-						fields.push(Y.merge({title: fieldName, value: widget.Config[fieldName]}, fieldInfo));
+						fields.push(Y.merge({title: fieldName, value: fieldValue}, fieldInfo));
 					}
 				}
 				
