@@ -74,6 +74,12 @@ YUI.add('ss-smugmug-backup-view', function(Y, NAME) {
 				     CSS: {type: "code:css"}
 				}
 			},
+			"Single Photo": {
+				fields: {
+					ImageID: {title: "Image", type: "smugimage"},
+					CustomURL: {title: "Custom URL", type: "url"}
+				}
+			},
 			"Galleries" : { //Navigation / Galleries
 				fields: NODE_TILES_DEFINITIONS
 			},
@@ -334,6 +340,21 @@ YUI.add('ss-smugmug-backup-view', function(Y, NAME) {
 								valueRendered = '(default)';
 							}
 						break;
+					case 'smugimage':
+						var image;
+						
+						if (!item.value.imageID) {
+							image = {imageID: item.value.split('-')[0], imageKey: item.value.split('-')[1]};
+						} else {
+							image = item.value;
+						}
+						
+						valueRendered = '<img class="smugmug-image" src="http://photos.smugmug.com/photos/' + image.imageID + '_' + image.imageKey + '-S.jpg">';
+						
+						if (image.link) {
+							valueRendered = '<a href="' + Y.Escape.html(image.link) + '">' + valueRendered + '</a>';
+						}
+						break;
 					default:
 						if (item.value instanceof Y.Node) {
 							dd.append(item.value);
@@ -467,7 +488,11 @@ YUI.add('ss-smugmug-backup-view', function(Y, NAME) {
 			}
 			
 			if (nodeData.HLImageID) {
-				aboutThisNode.push({title: "Feature image", value: nodeData.HLImageID + "," + nodeData.HLImageKey, type: "smugimage"});
+				aboutThisNode.push({title: "Feature image", value:{
+					imageID: nodeData.HLImageID, 
+					imageKey: nodeData.HLImageKey,
+					/* link: todo */ 
+				}, type: "smugimage", className: "field-node-feature-image"});
 			}
 			
 			for (var fieldName in NODE_DEFINITIONS) {
