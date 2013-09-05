@@ -39,14 +39,19 @@ YUI().use(['node', 'json', 'io', 'event-resize', 'ss-event-log-widget',
 			
 			backup.on({
 				update: function() {
-					Y.one('#btn-backup-save').removeAttribute('disabled');
-					//Since the vertical height could have been reduced by the expanding log
-					adjustPaneSize();
-					
-					backupView = new Y.SherlockPhotography.SmugmugBackupView();
+					Y.all('#btn-backup-save, #btn-backup-create, #btn-backup-open').removeAttribute('disabled');
+
+					if (backupView) {
+						backupView.destroy();
+						backupView = null;
+					}				
+
+					backupView = new Y.SherlockPhotography.SmugmugBackupView({backup: backup.get('backup')});
 					
 					backupView.render(Y.one('#backup-explorer'));
-					backupView.set('backup', backup.get('backup'));
+
+					//Since the vertical height could have been reduced by the expanding log
+					adjustPaneSize();
 				},
 				complete: function() {
 					if (backup.hadErrors()) {
@@ -64,7 +69,9 @@ YUI().use(['node', 'json', 'io', 'event-resize', 'ss-event-log-widget',
 					backupView.destroy();
 					backupView = null;
 				}				
-				
+
+				Y.all('#btn-backup-save, #btn-backup-create, #btn-backup-open').setAttribute('disabled', 'disabled');
+
 				backup.createBackup();
 			});
 	

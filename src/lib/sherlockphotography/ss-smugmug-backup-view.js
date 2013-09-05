@@ -695,11 +695,12 @@ YUI.add('ss-smugmug-backup-view', function(Y, NAME) {
 			});
 			
 			this._treeView.on('select', this._onTreeNodeSelect, this);
-			
-			this.after('backupChange', this._rebuildTree, this);
-
 			this._treeView.render();
 		},
+		
+		syncUI: function() {
+			this._rebuildTree();
+		}
 	}, {
 		ATTRS : {	
 			structurePane : {
@@ -711,7 +712,8 @@ YUI.add('ss-smugmug-backup-view', function(Y, NAME) {
 			},
 
 			backup: {
-				value: null
+				value: null,
+				writeOnce: "initOnly"
 			}
 		}
 	});
