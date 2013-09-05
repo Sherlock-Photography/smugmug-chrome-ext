@@ -5,13 +5,17 @@ YUI().use(['node', 'json', 'io', 'event-resize', 'ss-event-log-widget',
 		smugDomain = smugNickname + ".smugmug.com",
 		albumID = '7KrTxZ',
 		eventLog = new Y.SherlockPhotography.EventLogWidget(),
-		images = [],
 		imageListContainer = null;
+
+	var 
+		regPayPalItemNameField = /<input type="hidden" name="item_name" value="[^"]*">/,
+		regFindInstalledPayPalCode = /<div class="ss-paypal-button">[\s\S]+?<\/div>/, //Yeah, I know, Zalgo and all that.
+		regFindInstalledPayPalCodeGlobal = new RegExp(regFindInstalledPayPalCode.source, "g"); 	
 	
 	//Sorry, this is the best I can do on Chrome! (it doesn't allow User-Agent to be changed)
 	Y.io.header('X-User-Agent', 'Unofficial SmugMug extension for Chrome v0.1 / I\'m in ur server, mogrifying ur data / n.sherlock@gmail.com');
 	
-	function enumeratePhotos() {
+	function fetchPhotos() {
 		var 
 			logProgress = eventLog.appendLog('info', "Finding photos in this gallery...");
 		
@@ -25,9 +29,14 @@ YUI().use(['node', 'json', 'io', 'event-resize', 'ss-event-log-widget',
 					for (var index in response.AlbumImage) {
 						var image = response.AlbumImage[index];
 						
-						var rendered = Y.Node.create('<li><a class="smugmug-image" href="#" style="background-image: url(' + image.ThumbnailUrl + ')"></a></li>');
+						var 
+							rendered = Y.Node.create('<li class="smugmug-image" style="background-image: url(' + image.ThumbnailUrl + ')"></li>');
 						
-						rendered.one('a').setData('image', image);
+						rendered.setData('image', image);
+						
+						if (image.Caption.match(regFindInstalledPayPalCode)) {
+							rendered.append('<span class="label label-info">Has button</span>');
+						}
 						
 						imageListContainer.append(rendered);
 					}
@@ -68,12 +77,7 @@ YUI().use(['node', 'json', 'io', 'event-resize', 'ss-event-log-widget',
 		
 		queue.run();		
 	}
-	
-	var 
-		regPayPalItemNameField = /<input type="hidden" name="item_name" value="[^"]*">/,
-		regFindInstalledPayPalCode = /<div class="ss-paypal-button">[\s\S]+?<\/div>/, //Yeah, I know, Zalgo and all that.
-		regFindInstalledPayPalCodeGlobal = new RegExp(regFindInstalledPayPalCode.source, "g"); 
-	
+		
 	/**
 	 * Does the PayPal button code look correct? 
 	 */
@@ -104,6 +108,7 @@ YUI().use(['node', 'json', 'io', 'event-resize', 'ss-event-log-widget',
 					return true;
 				},
 				responseType: 'json',
+				retryPosts: true, //Since our requests are idempotent				
 				delayBetweenRequests: 100
 			});
 		
@@ -165,6 +170,7 @@ YUI().use(['node', 'json', 'io', 'event-resize', 'ss-event-log-widget',
 					return true;
 				},
 				responseType: 'json',
+				retryPosts: true, //Since our requests are idempotent
 				delayBetweenRequests: 100
 			});
 		
@@ -238,7 +244,7 @@ YUI().use(['node', 'json', 'io', 'event-resize', 'ss-event-log-widget',
 				}
 			});			
 			
-			enumeratePhotos();
+			fetchPhotos();
 		}
 	});
 });

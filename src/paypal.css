@@ -10,25 +10,28 @@ h1 {
 	max-height:8em;
 }
 
-.smugmug-images li {
+.smugmug-images .smugmug-image {
     display: inline-block;
     vertical-align: top;
-}
-.smugmug-images .smugmug-image {
-    display:block;
 	width:150px;
     height:150px;
-    background-position: center center;
+	line-height:150px;
+	background-position: center center;
     background-repeat: no-repeat;
     background-size: contain;
 	box-sizing: content-box;
 	margin: 9px;
 	border: 1px solid #333;
+    border-radius: 6px;
+	text-align:center;
+    cursor:pointer;	
 }
 .smugmug-images .smugmug-image.selected {
 	border: 6px solid #88F;
-    border-radius: 6px;
 	margin: 4px;
+}
+.smugmug-images .smugmug-image.paypal:after {
+	content: "Has button";
 }
 
 #control-buttons input {
