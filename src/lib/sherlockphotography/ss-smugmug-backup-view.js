@@ -76,15 +76,15 @@ YUI.add('ss-smugmug-backup-view', function(Y, NAME) {
 			},
 			"Single Photo": {
 				fields: {
-					ImageID: {title: "Image", type: "smugimage"},
+					ImageID: {title: "Image<br><small>Not saved inside the backup</small>", type: "smugimage"},
 					CustomURL: {title: "Custom URL", type: "url"}
 				}
 			},
 			"Profile": {
 				fields: {
 					TrackProfile: {title: "Use data from your profile"},
-					BioPhoto: {title: "Bio photo", type: "smugimage"},
-					CoverPhoto: {title: "Cover photo", type: "smugimage"},
+					BioPhoto: {title: "Bio photo<br><small>Not saved inside the backup</small>", type: "smugimage"},
+					CoverPhoto: {title: "Cover photo<br><small>Not saved inside the backup</small>", type: "smugimage"},
 					MyPhoto: {title: "My name"},
 					Description: {type: "lines", supportCopy:true}
 				}
@@ -103,7 +103,7 @@ YUI.add('ss-smugmug-backup-view', function(Y, NAME) {
 			},
 			"Multiple Photos" : {
 				fields: Y.merge(NODE_TILES_DEFINITIONS, {
-					SelectedImages: {title: "Selected images", type: "smugimages"}
+					SelectedImages: {title: "Selected images<br><small>Image files not saved inside the backup</small>", type: "smugimages"}
 				})
 			}
 		},
@@ -567,7 +567,7 @@ YUI.add('ss-smugmug-backup-view', function(Y, NAME) {
 			}
 			
 			if (nodeData.HLImageID) {
-				aboutThisNode.push({title: "Feature image", value:{
+				aboutThisNode.push({title: "Feature image<br><small>Not saved inside the backup</small>", value:{
 					imageID: nodeData.HLImageID, 
 					imageKey: nodeData.HLImageKey,
 					/* link: todo */ 

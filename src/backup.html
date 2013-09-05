@@ -72,7 +72,9 @@ async-queue, base, classnamemanager, datatype-date-format, escape, event-resize,
 
 <div id="control-buttons" class="form-inline">
 	<input type="button" class="btn btn-primary" id="btn-backup-create" value="Start backup" class="form-control" />
-	<input type="button" class="btn btn-default" id="btn-backup-save" value="Save backup to disk" class="form-control" disabled="disabled" />
+	<button type="button" class="btn btn-default" id="btn-backup-save" class="form-control" disabled="disabled">
+		<span class="glyphicon glyphicon-floppy-disk"></span> Save backup to disk
+	</button>
 	
 	<input type="button" class="btn btn-default" id="btn-backup-open" value="Open backup file..." class="form-control" />
 	<input type="button" class="btn btn-default" data-toggle="modal" data-target="#dlg-about-backup" value="Help">
@@ -101,7 +103,7 @@ async-queue, base, classnamemanager, datatype-date-format, escape, event-resize,
         	 from the backup viewer into SmugMug.
         </p>
         <p>
-        	This tool focuses on backing up the stuff that takes the longest time to create, such as:
+        	This tool focuses on backing up the stuff that takes the longest time to create, but can be easily copied and pasted, such as:
         </p>
         <ul>
         	<li>Contents of text, HTML and CSS blocks</li>
@@ -109,7 +111,7 @@ async-queue, base, classnamemanager, datatype-date-format, escape, event-resize,
         	<li>Theme CSS</li>
         </ul>
         <p>
-        	<em>Not all of your site content is backed up!</em> Some of the things that are <strong>not</strong> backed up include:
+        	<em>Not all of your site content is backed up!</em> Some of the things that are <strong>not backed up</strong> include:
         </p>
         <ul>
         	<li>Site designs and themes that aren't currently being used</li>
@@ -124,7 +126,7 @@ async-queue, base, classnamemanager, datatype-date-format, escape, event-resize,
         	carefully before you decide to rely on the backup. 
         </p>
         <p>
-        	<strong>No warranty is offered</strong>, and I cannot guarantee that backups will be readable, or even that using this tool won't cause
+        	<strong>No warranty is offered</strong>. I cannot guarantee that backups will be complete or readable, or even that using this tool won't cause
         	damage to your SmugMug site (though I believe that it should be safe.) 
         </p>
       </div>

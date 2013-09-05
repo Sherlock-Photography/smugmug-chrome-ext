@@ -339,7 +339,9 @@ YUI.add('ss-smugmug-site-backup', function(Y, NAME) {
 				var metadata = {
 					nickname: this.get('smugmugNickname'),
 					date: new Date(),
-					smugmug: "rocks!"
+					numErrors: 0,
+					version: 1,
+					smugmug: "rocks!",
 				};
 				
 				this._backup.backup = metadata;
