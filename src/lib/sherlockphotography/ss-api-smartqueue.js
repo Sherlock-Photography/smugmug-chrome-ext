@@ -17,7 +17,7 @@ YUI.add('ss-api-smartqueue', function(Y, NAME) {
 					context: this,
 					args: [request, retryCount],
 					timeout: this.get('delayBetweenNodes')
-				}).run();
+				});
 			},		
 			
 			_reportProgress: function() {
@@ -129,13 +129,18 @@ YUI.add('ss-api-smartqueue', function(Y, NAME) {
 				}
 			},
 			
+			run: function() {
+				this._reportProgress();
+				this._queue.run();
+			},
+			
 		    initializer : function(cfg) {
 		    	this._queue = new Y.AsyncQueue();
 		    			    	
 		    	var self = this;
 
 		    	//Maintain request counts and notify listeners of progress:
-		    	this.on({
+		    	this.after({
 		    		requestSuccess: function() {
 						self.set('numSuccessfulRequests', self.get('numSuccessfulRequests') + 1);
 						self._reportProgress();
@@ -183,7 +188,7 @@ YUI.add('ss-api-smartqueue', function(Y, NAME) {
 				
 				//Delay in milliseconds between node fetches (be kind to SmugMug!)
 				delayBetweenNodes: {
-					value: 800
+					value: 200
 				},
 				
 				numFailedRequests: {

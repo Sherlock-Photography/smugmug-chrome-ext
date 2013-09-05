@@ -73,6 +73,8 @@ YUI.add('ss-smugmug-node-enumerator', function(Y, NAME) {
 						maxDepth: maxDepth
 					});
 				}
+				
+				this._queue.run();
 			}
 		}, {	
 			ATTRS: {

@@ -503,11 +503,11 @@ YUI.add('ss-smugmug-backup-view', function(Y, NAME) {
 			pane.append(this._renderFieldList({items:items, className:"ss-field-list"}));
 		},
 		
-		_renderWidgetBlocks: function(style) {
+		_renderWidgetBlocks: function(pageDesign) {
 			var result = [];
 			
-			for (var mapIndex in style.PageDesign.WidgetMap) {
-				var widget = style.PageDesign.WidgetMap[mapIndex];
+			for (var mapIndex in pageDesign.WidgetMap) {
+				var widget = pageDesign.WidgetMap[mapIndex];
 				
 				var fields = [];
 				
@@ -597,15 +597,21 @@ YUI.add('ss-smugmug-backup-view', function(Y, NAME) {
 				{title:aboutThisText, value:this._renderFieldList({items:aboutThisNode, className:"ss-field-list"})}
 			);
 
+			var pageDesign = false;
+			
 			if (node.initData) {
 				var pageDesignID = node.initData.pageDesignId || node.initData.sitePageDesignId; 
 				
 				if (pageDesignID && backup.pageDesigns[pageDesignID]) {
-					var widgetBlocks = this._renderWidgetBlocks(backup.pageDesigns[pageDesignID]);
-					
-					for (index in widgetBlocks) {
-						topLevelBlocks.push(widgetBlocks[index]);
-					}
+					pageDesign = backup.pageDesigns[pageDesignID];
+				}
+			}
+			
+			if (pageDesign) {
+				var widgetBlocks = this._renderWidgetBlocks(pageDesign);
+				
+				for (index in widgetBlocks) {
+					topLevelBlocks.push(widgetBlocks[index]);
 				}
 			} else {
 				topLevelBlocks.push({

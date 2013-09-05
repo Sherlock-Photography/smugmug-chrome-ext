@@ -62,7 +62,9 @@ YUI.add('ss-smugmug-site-backup', function(Y, NAME) {
 					progress: function(progress) {
 						logProgress.set('progress', progress);
 					}
-				});					
+				});
+				
+				queue.run();
 			},			
 			
 			/**
@@ -104,7 +106,9 @@ YUI.add('ss-smugmug-site-backup', function(Y, NAME) {
 					progress: function(progress) {
 						logProgress.set('progress', progress);
 					}
-				});					
+				});
+				
+				queue.run();
 			},
 			
 			/**
@@ -149,7 +153,9 @@ YUI.add('ss-smugmug-site-backup', function(Y, NAME) {
 					progress: function(progress) {
 						logProgress.set('progress', progress);
 					}
-				});	
+				});
+				
+				queue.run();
 			},
 			
 			/**
@@ -198,12 +204,14 @@ YUI.add('ss-smugmug-site-backup', function(Y, NAME) {
 						that._backupStageCompleted(true);
 					},
 					requestFail: function(e) {
-						that._logError("Failed to find default page designs for design ID#" + e.request.data.SiteDesignID);
+						that._logError("Failed to find the designs for the default pages of design ID#" + e.request.data.SiteDesignID);
 					},										
 					progress: function(progress) {
 						logProgress.set('progress', progress);
 					}
 				});
+				
+				queue.run();
 			},
 			
 			_findUniquePageDesignIDs:function(nodes) {
@@ -292,6 +300,8 @@ YUI.add('ss-smugmug-site-backup', function(Y, NAME) {
 						logProgress.set('progress', progress);
 					}
 				});
+				
+				queue.run();
 			},
 			
 			/**
