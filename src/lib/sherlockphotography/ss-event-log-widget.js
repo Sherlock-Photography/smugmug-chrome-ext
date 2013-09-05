@@ -13,7 +13,6 @@ YUI.add('ss-event-log-widget', function(Y, NAME) {
 				switch (type) {
 					case 'error':
 					case 'warning':
-					case 'info':
 						classname = type;
 						break;
 					default:
@@ -42,7 +41,7 @@ YUI.add('ss-event-log-widget', function(Y, NAME) {
 			},
 			
 			render: function() {
-				element = Y.Node.create('<li class="' + this._logTypeToClassname(this.get('type')) + '"><span class="message"></span></li>');
+				element = Y.Node.create('<li class="' + (this.get('type') == 'error' ? 'alert-danger' : '') + '"><span class="message"></span></li>');
 
 				this.set('element', element);
 
@@ -102,7 +101,12 @@ YUI.add('ss-event-log-widget', function(Y, NAME) {
 			},
 		
 			appendLog: function(type, message) {
-				if (this._list.get('children').size() >= this.get('maximumHistory')) {
+				if (type != 'info') {
+					//As soon as something goes wrong, log everything
+					this.set('maximumInfoHistory', 1000);
+				}
+				
+				if (this._list.get('children').size() >= this.get('maximumInfoHistory')) {
 					this._list.one('*').remove();
 				}
 				
@@ -110,12 +114,17 @@ YUI.add('ss-event-log-widget', function(Y, NAME) {
 				
 				this._list.append(entry.get('element'));
 				
+				this._list.getDOMNode().scrollTop = this._list.getDOMNode().scrollHeight;
+				
 				return entry;
 			}
 		},
 		{
 			ATTRS : {
-				maximumHistory: {
+				/**
+				 * Only bother keeping a set number of Info level entries in a row.
+				 */
+				maximumInfoHistory: {
 					value: 1 
 				}
 			}
