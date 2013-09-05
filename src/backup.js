@@ -4,15 +4,11 @@ YUI().use(['node', 'json', 'io', 'event-resize', 'ss-event-log-widget',
 	
 	var 
 		eventLog = new Y.SherlockPhotography.EventLogWidget(),
-		
 		backup = new Y.SherlockPhotography.SmugmugSiteBackup({
 			smugmugNickname: nickname,
 			eventLog: eventLog
 		}),
-		
-		backupView = new Y.SherlockPhotography.SmugmugBackupView({
-			container: '#backup-explorer'
-		});
+		backupView = null;
 	
 	//Sorry, this is the best I can do on Chrome! (it doesn't allow User-Agent to be changed)
 	Y.io.header('X-User-Agent', 'Unofficial SmugMug extension for Chrome v0.1 / I\'m in ur server, exfiltrating ur data / n.sherlock@gmail.com');
@@ -29,7 +25,7 @@ YUI().use(['node', 'json', 'io', 'event-resize', 'ss-event-log-widget',
 		
 		//Rightmost pane fills the remaining space in the window
 		Y.all('.ss-smugmug-backup-node-pane').each(function(pane) {
-            var parent = pane.get('parentNode');
+            var parent = Y.one("#backup-explorer");
             
 			pane.setStyle('width', (parent.get('offsetWidth') + parent.getXY()[0] - pane.getXY()[0]) + 'px');
 		});
@@ -38,13 +34,18 @@ YUI().use(['node', 'json', 'io', 'event-resize', 'ss-event-log-widget',
 	Y.on({
 		domready: function () {
 			eventLog.render('#eventLog');
-			backupView.render();
 			
 			adjustPaneSize();
 			
 			backup.on({
 				update: function() {
 					Y.one('#btn-backup-save').removeAttribute('disabled');
+					//Since the vertical height could have been reduced by the expanding log
+					adjustPaneSize();
+					
+					backupView = new Y.SherlockPhotography.SmugmugBackupView();
+					
+					backupView.render(Y.one('#backup-explorer'));
 					backupView.set('backup', backup.get('backup'));
 				},
 				complete: function() {
@@ -58,6 +59,11 @@ YUI().use(['node', 'json', 'io', 'event-resize', 'ss-event-log-widget',
 			
 			Y.one('#btn-backup-create').on('click', function(e) {
 				e.preventDefault();
+				
+				if (backupView) {
+					backupView.destroy();
+					backupView = null;
+				}				
 				
 				backup.createBackup();
 			});

@@ -144,6 +144,8 @@ YUI.add('ss-smugmug-backup-view', function(Y, NAME) {
 	var SmugmugBackupView = Y.Base.create(NAME, Y.Widget, [], {
 		_treeView : null,
 
+		CONTENT_TEMPLATE : null,
+		
 		/**
 		 * Recursively build up the folders tree from the SmugMug node tree.
 		 * 
@@ -672,7 +674,9 @@ YUI.add('ss-smugmug-backup-view', function(Y, NAME) {
 		},
 
 		renderUI : function() {
-			var container = Y.one(this.get('container'));
+			var container = this.get("contentBox");
+			
+			container.get('children').remove();
 			
 			this.set('structurePane', Y.Node.create("<div class='ss-smugmug-backup-pane ss-smugmug-backup-structure-pane'></div>"));
 			this.set('nodePane', Y.Node.create("<div class='ss-smugmug-backup-pane ss-smugmug-backup-node-pane'></div>"));
@@ -697,11 +701,7 @@ YUI.add('ss-smugmug-backup-view', function(Y, NAME) {
 			this._treeView.render();
 		},
 	}, {
-		ATTRS : {
-			container : {
-				writeOnce: 'initOnly'
-			},
-			
+		ATTRS : {	
 			structurePane : {
 				value: null
 			},

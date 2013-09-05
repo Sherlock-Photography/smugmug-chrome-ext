@@ -23,10 +23,6 @@ YUI.add('ss-progress-bar', function(Y, NAME) {
 				
 				contentBox.addClass("progress");
 				contentBox.append('<div class="progress-bar" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="1" style="width: 0%;"></div>');
-				
-				if (this.get('total')) {
-					this.syncUI();
-				}
 			},
 			
 			initializer: function(cfg) {
