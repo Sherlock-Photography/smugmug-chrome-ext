@@ -1,9 +1,10 @@
 YUI().use(['node', 'json', 'io', 'event-resize', 'ss-event-log-widget',  
            'ss-progress-bar', 'ss-api-smartqueue'], function(Y) {
 	var 
-		smugNickname = 'n-sherlock',
-		smugDomain = smugNickname + ".smugmug.com",
-		albumID = '7KrTxZ',
+		nickname = chrome.extension.getBackgroundPage().nickname,
+		pageDetails = chrome.extension.getBackgroundPage().pageDetails,
+		smugDomain = nickname + ".smugmug.com",
+		albumID = pageDetails.userNode.RemoteKey,
 		eventLog = new Y.SherlockPhotography.EventLogWidget(),
 		imageListContainer = null;
 
@@ -29,8 +30,12 @@ YUI().use(['node', 'json', 'io', 'event-resize', 'ss-event-log-widget',
 					for (var index in response.AlbumImage) {
 						var image = response.AlbumImage[index];
 						
+						//Sanity checks:
+						if (!image.ThumbnailUrl || image.Caption === undefined)
+							continue;
+						
 						var 
-							rendered = Y.Node.create('<li class="smugmug-image" style="background-image: url(' + image.ThumbnailUrl + ')"></li>');
+							rendered = Y.Node.create('<li class="smugmug-image" style="background-image: url(' + Y.Escape.html(image.ThumbnailUrl) + ')"></li>');
 						
 						rendered.setData('image', image);
 						
@@ -68,7 +73,7 @@ YUI().use(['node', 'json', 'io', 'event-resize', 'ss-event-log-widget',
 				logProgress.set('message', "Finding photos in this gallery... done!");
 			},
 			requestFail: function(e) {
-				//eventLog._logError("Failed to fetch site themes");
+				eventLog.appendLog('error', "Failed to fetch a page, gallery listing is incomplete");
 			},
 			progress: function(progress) {
 				logProgress.set('progress', progress);

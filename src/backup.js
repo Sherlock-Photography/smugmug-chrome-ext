@@ -1,8 +1,8 @@
 YUI().use(['node', 'json', 'io', 'event-resize', 'ss-event-log-widget',  
            'ss-progress-bar', 'ss-smugmug-site-backup', 'ss-smugmug-backup-view'], function(Y) {
-	var nickname =  chrome.extension.getBackgroundPage().nickname;
-	
 	var 
+		nickname =  chrome.extension.getBackgroundPage().nickname,
+		
 		eventLog = new Y.SherlockPhotography.EventLogWidget(),
 		backup = new Y.SherlockPhotography.SmugmugSiteBackup({
 			smugmugNickname: nickname,
