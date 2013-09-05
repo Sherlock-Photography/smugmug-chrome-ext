@@ -34,17 +34,21 @@ YUI.add('ss-api-smartqueue', function(Y, NAME) {
 			},
 						
 			_executeRequest: function(request, retryCount) {
-				var self = this;
+				var 
+					self = this,
+					cacheable = (request.method || "GET") == "GET",
+					retryable = (request.method || "GET") == "GET" || request.method == "POST" && this.get('retryPosts');
 				
 				/* 
 				 * Attempt to queue up a retry of this request. If the maximum number of retries has already
 				 * been reached, false is returned instead.
 				 */
 				var attemptRetry = function() {
-					if (retryCount < self.get('maxRetries')) {
+					if (retryable && retryCount < self.get('maxRetries')) {
 						//Retry this request later
 						self._enqueueCallback(request, retryCount + 1);					
-
+						self._queue.run();
+						
 						return true;
 					}
 					
@@ -69,7 +73,7 @@ YUI.add('ss-api-smartqueue', function(Y, NAME) {
 					responseText = null,
 					cacheKey = null;
 				
-				if (this.get('persistentCache')) {
+				if (cacheable && this.get('persistentCache')) {
 					cacheKey = Y.Crypto.MD5(request.url + '?' + Y.JSON.stringify(request.data));
 					
 					responseText = window.localStorage[cacheKey];
@@ -186,6 +190,11 @@ YUI.add('ss-api-smartqueue', function(Y, NAME) {
 				//How many times will we retry requests upon errors?
 				maxRetries: {
 					value: 3
+				},
+				
+				//Set to true to enable retry of POST requests
+				retryPosts: {
+					value: false
 				},
 				
 				//Delay in milliseconds between node fetches (be kind to SmugMug!)
