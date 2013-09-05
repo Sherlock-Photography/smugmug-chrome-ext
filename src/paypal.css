@@ -21,11 +21,16 @@ h1 {
     background-position: center center;
     background-repeat: no-repeat;
     background-size: contain;
-	margin: 10px;	
+	box-sizing: content-box;
+	margin: 9px;
+	border: 1px solid #333;
 }
 .smugmug-images .smugmug-image.selected {
 	border: 6px solid #88F;
     border-radius: 6px;
-	box-sizing: content-box;
 	margin: 4px;
+}
+
+#control-buttons input {
+	max-width: 11em;
 }

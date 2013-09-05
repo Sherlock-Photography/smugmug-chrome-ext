@@ -39,49 +39,52 @@
 
 <h1>Add PayPal buttons to this SmugMug gallery</h1>
 
-<h2>Step one: Create a Buy Now button at PayPal</h2> 
+<h2>Step one: Create a Buy Now button on PayPal</h2> 
 
-<div class="instruction">On PayPal's website, log in to your account. Click on the "Merchant Services" tab, then click on the "Buy Now buttons" link on the right.</div>
+<p>On PayPal's website, log in to your account. Click on the "Merchant Services" tab, then click on the "Buy Now buttons" link on the right.</p>
 
-<div class="instruction">In Step 1, change the "button type" to "Buy Now", and enter an Item Name.</div>
-<div class="instruction">
+<p>In Step 1, change the "button type" to "Buy Now". Leave the Item Name blank.</p>
+<p>
 	If you are offering multiple photo sizes or multiple product options,
-	tick the "add drop-down menu option" and fill in the menu details.
-</div>
-<div class="instruction">
-	Enter shipping and tax information. Choose the option to use your secure merchant account ID (you can also choose the other option if you
-	like, which would include your PayPal email address in your button code.)
-</div>
-<div class="instruction">
+	tick the "add drop-down menu option" and fill in the details you want displayed.
+</p>
+<p>
+	Enter your shipping and tax information. Choose the option to use your secure merchant account ID (you can choose the other option if you
+	like, which would include your PayPal email address in your button code instead.)
+</p>
+<p>
 	In Step 2, untick the option to "save button at PayPal".
-</div>
-<div class="instruction">
+</p>
+<p>
 	Now click "Create Button". On the next screen that appears, click the link "Remove code protection".
-</div>
-<div class="instruction">
-	Finally, copy the code from the code box and paste it into this form:
-</div>
+</p>
+<p>
+	Finally, copy the code from the code box and paste it into the box below.
+</p>
 
 <form id="frm-paypal-code" role="form">
   <div class="form-group">
-    <label for="buynow-button-code">Buy-now button code from PayPal</label>
+    <label for="buynow-button-code">Button HTML code from PayPal</label>
     <textarea class="form-control" id="buynow-button-code" placeholder="Paste PayPal code here" rows="6"></textarea>
   </div>
 </form>
 
-<h2>Step two: Select which photos you would like to add the button to</h2>
+<h2>Step two: Select the photos to modify</h2>
 
 <div id="eventLog">
 </div>
 
-<ul class="smugmug-images">
+<ul class="smugmug-images list-unstyled">
 </ul>
 
 <h2>Step three: Go!</h2>
 <p>This will add PayPal buttons to the captions of each of the photos you have selected.
 This will overwrite any PayPal button that is currently in use on those photos.</p>
 
-<button class="form-control btn btn-primary" id="btn-apply" type="button">Add PayPal buttons to my photos</button>
+<div id="control-buttons" class="form-inline">
+	<button class="btn btn-primary" id="btn-apply" type="button">Add PayPal buttons</button>
+	<button class="btn btn-default" id="btn-remove" type="button">Remove PayPal buttons</button>
+</div>
 
 </body>
 </html>
