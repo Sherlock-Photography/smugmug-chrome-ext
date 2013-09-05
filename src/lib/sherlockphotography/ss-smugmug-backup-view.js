@@ -151,8 +151,24 @@ YUI.add('ss-smugmug-backup-view', function(Y, NAME) {
 		 * @param treeNode
 		 */
 		_recurseBuildFoldersTree: function(smugNode, parentTreeNode) {
+			var label;
+			
+			if (smugNode.nodeData.Depth == 0) {
+				label = "Site root";
+			} else {
+				label = smugNode.nodeData.Name;
+				
+				if (smugNode.initData) {
+					if (smugNode.initData.pageDesignId) {
+						label += " <span class='label label-primary'>Customised</span>";
+					}					
+				} else {
+					label += " <span class='label label-danger'>Error</span>";
+				} 
+			}
+			
 			var treeNode = parentTreeNode.append({
-				label: smugNode.nodeData.Name + (smugNode.initData && smugNode.initData.pageDesignId ? " <span class='label label-primary'>Customised</span>" : ""),
+				label: label,
 				state: {open: true},
 				data: {
 					type: NODE_TYPE_SMUG_NODE,
@@ -230,10 +246,7 @@ YUI.add('ss-smugmug-backup-view', function(Y, NAME) {
 				}
 			});
 
-			var foldersRoot = this._recurseBuildFoldersTree(backup.nodeTree, root);
-			
-			foldersRoot.label = 'Galleries/pages';
-			
+			this._recurseBuildFoldersTree(backup.nodeTree, root);
 			this._buildSiteDesignsTree(backup.siteDesigns, root);
 			this._buildSkinsTree(backup.siteSkins, root);
 		},
@@ -607,8 +620,8 @@ YUI.add('ss-smugmug-backup-view', function(Y, NAME) {
 				}
 			}
 			
-			if (pageDesign) {
-				var widgetBlocks = this._renderWidgetBlocks(pageDesign);
+			if (pageDesign && pageDesign.PageDesign) {
+				var widgetBlocks = this._renderWidgetBlocks(pageDesign.PageDesign);
 				
 				for (index in widgetBlocks) {
 					topLevelBlocks.push(widgetBlocks[index]);
