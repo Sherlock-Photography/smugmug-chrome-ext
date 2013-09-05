@@ -6,4 +6,12 @@ document.addEventListener('DOMContentLoaded', function() {
 		
 		return false;
 	};
+	
+	document.getElementById("paypal-buynow").onclick = function() {
+		chrome.tabs.create({
+			url:'paypal.html'
+		});
+		
+		return false;
+	};	
 });

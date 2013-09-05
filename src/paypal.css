@@ -1,0 +1,31 @@
+body {
+	padding:1em;
+}
+
+h1 {
+	margin-bottom:0.5em;
+}
+
+.yui3-ss-event-log-widget ul {
+	max-height:8em;
+}
+
+.smugmug-images li {
+    display: inline-block;
+    vertical-align: top;
+}
+.smugmug-images .smugmug-image {
+    display:block;
+	width:150px;
+    height:150px;
+    background-position: center center;
+    background-repeat: no-repeat;
+    background-size: contain;
+	margin: 10px;	
+}
+.smugmug-images .smugmug-image.selected {
+	border: 6px solid #88F;
+    border-radius: 6px;
+	box-sizing: content-box;
+	margin: 4px;
+}

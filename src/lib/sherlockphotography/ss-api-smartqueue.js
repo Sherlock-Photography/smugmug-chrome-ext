@@ -16,7 +16,7 @@ YUI.add('ss-api-smartqueue', function(Y, NAME) {
 					fn: this._executeRequest,
 					context: this,
 					args: [request, retryCount],
-					timeout: this.get('delayBetweenNodes')
+					timeout: this.get('delayBetweenRequests')
 				});
 			},		
 			
@@ -124,6 +124,8 @@ YUI.add('ss-api-smartqueue', function(Y, NAME) {
 								}
 							}
 						},
+						headers: request.headers || {},
+						method: request.method,
 						context: this
 					});
 				}
@@ -178,7 +180,7 @@ YUI.add('ss-api-smartqueue', function(Y, NAME) {
 				
 				//If persistent caching is used, this option simulates failed AJAX requests to test error-handling
 				simulateFail: {
-					value: true
+					value: false
 				},
 				
 				//How many times will we retry requests upon errors?
@@ -187,7 +189,7 @@ YUI.add('ss-api-smartqueue', function(Y, NAME) {
 				},
 				
 				//Delay in milliseconds between node fetches (be kind to SmugMug!)
-				delayBetweenNodes: {
+				delayBetweenRequests: {
 					value: 200
 				},
 				
