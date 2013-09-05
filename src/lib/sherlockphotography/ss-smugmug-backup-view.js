@@ -152,7 +152,7 @@ YUI.add('ss-smugmug-backup-view', function(Y, NAME) {
 		 */
 		_recurseBuildFoldersTree: function(smugNode, parentTreeNode) {
 			var treeNode = parentTreeNode.append({
-				label: smugNode.nodeData.Name + (smugNode.initData.pageDesignId ? " <span class='label label-primary'>Customised</span>" : ""),
+				label: smugNode.nodeData.Name + (smugNode.initData && smugNode.initData.pageDesignId ? " <span class='label label-primary'>Customised</span>" : ""),
 				state: {open: true},
 				data: {
 					type: NODE_TYPE_SMUG_NODE,
@@ -202,7 +202,7 @@ YUI.add('ss-smugmug-backup-view', function(Y, NAME) {
 				var siteDesign = siteDesigns[siteDesignId];
 				
 				designsRoot.append({
-					label: siteDesign.Name,
+					label: siteDesign.SiteDesignID ? siteDesign.Name : '(failed to fetch)',
 					data: {
 						type: NODE_TYPE_SITE_DESIGN,
 						data: siteDesign
@@ -396,7 +396,7 @@ YUI.add('ss-smugmug-backup-view', function(Y, NAME) {
 						if (item.value) {
 							var images = item.value.split(',');
 	
-							valueRendered = '<ul class="smugmug-images">';
+							valueRendered = '<ul class="list-unstyled smugmug-images">';
 							
 							for (var index in images) {
 								var 
@@ -471,21 +471,34 @@ YUI.add('ss-smugmug-backup-view', function(Y, NAME) {
 				fields = [],
 				fieldDefs = SITE_DESIGN_FIELD_DEFINITIONS;
 			
-			for (var fieldName in design) {
-				var 
-					fieldInfo = fieldDefs[fieldName] || {};
-					
-				fields.push(Y.merge({title: fieldName, value: design[fieldName]}, fieldInfo));
+			if (design.SiteDesignID) {
+				for (var fieldName in design) {
+					var 
+						fieldInfo = fieldDefs[fieldName] || {};
+						
+					fields.push(Y.merge({title: fieldName, value: design[fieldName]}, fieldInfo));
+				}
+			} else {
+				fields.push({title: "Error", value: Y.Node.create('<div class="alert alert-danger">This site design could not be fetched!</div>')});
 			}
 			
 			pane.append(this._renderFieldList({items:fields, className:"ss-field-list"}));
 		},		
 		
 		_renderBackupInfo: function(backup, pane) {
-			var items = [
+			var items = [];
+			
+			if (backup.numErrors > 0) {
+				items.push({
+					title: "Errors", 
+					value: Y.Node.create('<div class="alert alert-danger">' + backup.numErrors + ' fatal errors were encountered during backup, this backup is incomplete!</div>')
+				});
+			}
+			
+			items.push(
 				{title:"SmugMug nickname", value:backup.nickname, type: "line"},
 				{title:"Backup creation date", value:backup.date, type: "line"}
-			];
+			);
 			
 			pane.append(this._renderFieldList({items:items, className:"ss-field-list"}));
 		},
@@ -583,15 +596,28 @@ YUI.add('ss-smugmug-backup-view', function(Y, NAME) {
 			topLevelBlocks.push(
 				{title:aboutThisText, value:this._renderFieldList({items:aboutThisNode, className:"ss-field-list"})}
 			);
-			
-			var pageDesignID = node.initData.pageDesignId || node.initData.sitePageDesignId; 
-			
-			if (pageDesignID && backup.pageDesigns[pageDesignID]) {
-				var widgetBlocks = this._renderWidgetBlocks(backup.pageDesigns[pageDesignID]);
+
+			if (node.initData) {
+				var pageDesignID = node.initData.pageDesignId || node.initData.sitePageDesignId; 
 				
-				for (index in widgetBlocks) {
-					topLevelBlocks.push(widgetBlocks[index]);
+				if (pageDesignID && backup.pageDesigns[pageDesignID]) {
+					var widgetBlocks = this._renderWidgetBlocks(backup.pageDesigns[pageDesignID]);
+					
+					for (index in widgetBlocks) {
+						topLevelBlocks.push(widgetBlocks[index]);
+					}
 				}
+			} else {
+				topLevelBlocks.push({
+					title: "Page design and content blocks", 
+					value: this._renderFieldList({
+						items:[{
+							title:"Error", 
+							value: Y.Node.create('<div class="alert alert-danger">The design for this page was not found!</div>')
+						}],
+						className: "ss-field-list"
+					})
+				});
 			}
 			
 			pane.append(this._renderSectionList({items:topLevelBlocks, className: "ss-collapsable-section"}));

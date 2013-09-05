@@ -57,6 +57,9 @@ h1 {
 	width: 80%;	
 	max-width: 50em;
 }
+.ss-field-list .alert {
+	margin-bottom:0;
+}
 
 .ss-collapsable-section > dt, .ss-collapsable-section > dd {
     overflow:hidden;

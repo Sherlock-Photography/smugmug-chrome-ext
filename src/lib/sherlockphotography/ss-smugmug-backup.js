@@ -6,6 +6,11 @@ YUI.add('ss-smugmug-site-backup', function(Y, NAME) {
 		{
 			_backup: {},
 			
+			_logError: function(message) {
+				this._backup.backup.numErrors++;
+				this.get('eventLog').appendLog('error', message);				
+			},
+			
 			_stageBackupComplete: function() {
 				this.fire('complete');
 				this.fire('update');
@@ -51,6 +56,9 @@ YUI.add('ss-smugmug-site-backup', function(Y, NAME) {
 					complete: function() {
 						that._backupStageCompleted(true);
 					},
+					requestFail: function(e) {
+						that._logError("Failed to fetch site themes");
+					},
 					progress: function(progress) {
 						logProgress.set('progress', progress);
 					}
@@ -90,6 +98,9 @@ YUI.add('ss-smugmug-site-backup', function(Y, NAME) {
 					complete: function() {
 						that._backupStageCompleted(true);
 					},
+					requestFail: function(e) {
+						that._logError("Failed to fetch site design ID#" + e.request.data.SiteDesignID);
+					},					
 					progress: function(progress) {
 						logProgress.set('progress', progress);
 					}
@@ -132,6 +143,9 @@ YUI.add('ss-smugmug-site-backup', function(Y, NAME) {
 					complete: function() {
 						that._backupStageCompleted(true);
 					},
+					requestFail: function(e) {
+						that._logError("Failed to fetch page design ID#" + e.request.data.PageDesignID);
+					},					
 					progress: function(progress) {
 						logProgress.set('progress', progress);
 					}
@@ -183,6 +197,9 @@ YUI.add('ss-smugmug-site-backup', function(Y, NAME) {
 					complete: function() {
 						that._backupStageCompleted(true);
 					},
+					requestFail: function(e) {
+						that._logError("Failed to find default page designs for design ID#" + e.request.data.SiteDesignID);
+					},										
 					progress: function(progress) {
 						logProgress.set('progress', progress);
 					}
@@ -268,7 +285,9 @@ YUI.add('ss-smugmug-site-backup', function(Y, NAME) {
 									
 						that._backupStageCompleted(true);
 					},
-					
+					requestFail: function(e) {
+						that._logError("Failed to check the design for page '" + e.request.node.nodeData.Name + "'");
+					},					
 					progress: function(progress) {
 						logProgress.set('progress', progress);
 					}
@@ -296,7 +315,7 @@ YUI.add('ss-smugmug-site-backup', function(Y, NAME) {
 					},
 					
 					requestFail: function(e) {
-						that.get('eventLog').appendLog('error', "Failed to fetch children of node '" + e.NodeID + "': " + e.statusText);
+						that._logError("Failed to find the children of page '" + e.request.node.nodeData.Name + "': " + e.statusText);
 					},
 					
 					complete: function(e) {
@@ -423,6 +442,10 @@ YUI.add('ss-smugmug-site-backup', function(Y, NAME) {
 				};
 				
 				reader.readAsText(file);				
+			},
+			
+			hadErrors: function() {
+				return this._backup && this._backup.backup.numErrors;
 			}
 		},
 		{

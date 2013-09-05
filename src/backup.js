@@ -48,7 +48,11 @@ YUI().use(['node', 'json', 'io', 'event-resize', 'ss-event-log-widget',
 					backupView.set('backup', backup.get('backup'));
 				},
 				complete: function() {
-					this.get('eventLog').appendLog('info', "Backup is complete! Don't forget to click on the save button!");
+					if (backup.hadErrors()) {
+						this.get('eventLog').appendLog('error', "Errors were encountered during backup, your backup is incomplete!");
+					} else {
+						this.get('eventLog').appendLog('info', "Backup is complete! Don't forget to click on the save button!");
+					}
 				}
 			});
 			

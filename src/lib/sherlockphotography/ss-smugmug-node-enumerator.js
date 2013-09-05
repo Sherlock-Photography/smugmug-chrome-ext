@@ -69,6 +69,7 @@ YUI.add('ss-smugmug-node-enumerator', function(Y, NAME) {
 							PageSize: 1000,
 							method: 'rpc.node.getchildnodes'
 						},
+						node: this._nodes[rootNode.NodeID],
 						maxDepth: maxDepth
 					});
 				}
