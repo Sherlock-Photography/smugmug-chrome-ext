@@ -278,7 +278,9 @@ YUI().use(['node', 'json', 'io', 'event-resize', 'ss-event-log-widget',
 				e.preventDefault();
 			}, ".smugmug-image");
 
-			Y.one("#buynow-button-code").on({
+			var textareaButtonCode = Y.one("#buynow-button-code");			
+			
+			textareaButtonCode.on({
 				valuechange: function(e) {
 					updateButtonStates();
 				}
@@ -286,9 +288,11 @@ YUI().use(['node', 'json', 'io', 'event-resize', 'ss-event-log-widget',
 			
 			Y.one('#btn-apply').on({
 				click: function(e) {
-					var payPalCode = Y.one('#buynow-button-code').get('value');
+					var payPalCode = textareaButtonCode.get('value');
 					
 					if (validatePayPalCode(payPalCode)) {
+						window.localStorage["payPalButtonTool.payPalCode"] = payPalCode;
+						
 						payPalCode = preparePayPalCode(payPalCode);
 
 						installPayPalButtons(collectSelectedImageModels(), payPalCode);
@@ -304,7 +308,28 @@ YUI().use(['node', 'json', 'io', 'event-resize', 'ss-event-log-widget',
 					
 					e.preventDefault();
 				}
-			});			
+			});	
+			
+				directions = Y.one(".directions");
+			
+			Y.one("#btn-show-hide-instructions").on({
+				click: function(e) {
+					directions.toggleClass("collapsed");
+			
+					window.localStorage["payPalButtonTool.hideInstructions"] = directions.hasClass("collapsed") ? 1 : 0;
+					
+					e.preventDefault();
+				}
+			});
+	
+			// Restore settings from local storage
+			if (window.localStorage["payPalButtonTool.hideInstructions"] == 1) {
+				directions.addClass("collapsed");
+			}
+
+			if (window.localStorage["payPalButtonTool.payPalCode"] !== undefined) {
+				textareaButtonCode.set('value', window.localStorage["payPalButtonTool.payPalCode"]);
+			}
 			
 			fetchPhotos();
 		}

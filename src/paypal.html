@@ -1,7 +1,7 @@
 <!doctype html>
 <html>
 <head>
-<title>PayPal buy-now button tool - SmugMug site tools</title>
+<title>PayPal button tool - SmugMug site tools</title>
 
 <link href="lib/bootstrap/css/bootstrap.min.css" rel="stylesheet" media="screen">
 
@@ -39,27 +39,46 @@
 
 <h1>Add PayPal buttons to this SmugMug gallery</h1>
 
-<h2>Step one: Create a Buy Now button on PayPal</h2> 
+<h2>
+	Step one: Create your button on PayPal <button id="btn-show-hide-instructions" class="btn btn-default btn-sm">Show/hide detailed instructions</button>
+</h2> 
+<div class="directions">
+	<p>On PayPal's website, log in to your account. Click on the "Merchant Services" tab, then click on the "Buy Now buttons" link on the right.</p>
+	
+	<img src="images/paypal/merchant-services.png" width="754" height="581">
+	
+	<p>In Step 1, change the "button type" to "buy now" (if you want to sell photos one at a time) or "add to cart" (recommended). Leave the Item Name blank.</p>
+	
+	<p>
+		If you are offering multiple photo sizes or multiple product options,
+		tick the "add drop-down menu option" and fill in the details you want displayed.
+	</p>
+	
+	<img src="images/paypal/step-one.png" width="598" height="593">
+	
+	<p>
+		Enter your shipping and tax information. Choose the option to use your secure merchant account ID.
+	</p>
+	
+	<img src="images/paypal/shipping.png" width="308" height="235">
+	
+	<p>
+		In Step 2, untick the option to "save button at PayPal".
+	</p>
+	
+	<img src="images/paypal/save-button-at-paypal.png" width="465" height="193">
+	
+	<p>
+		Now click "Create Button". On the next screen that appears, click the link "Remove code protection".
+	</p>
+	
+	<img src="images/paypal/remove-code-protection.png" width="465" height="236">
+	
+	<p>
+		Finally, copy the code from the code box and paste it into the box below.
+	</p>
+</div>
 
-<p>On PayPal's website, log in to your account. Click on the "Merchant Services" tab, then click on the "Buy Now buttons" link on the right.</p>
-
-<p>In Step 1, change the "button type" to "Buy Now". Leave the Item Name blank.</p>
-<p>
-	If you are offering multiple photo sizes or multiple product options,
-	tick the "add drop-down menu option" and fill in the details you want displayed.
-</p>
-<p>
-	Enter your shipping and tax information. Choose the option to use your secure merchant account ID.
-</p>
-<p>
-	In Step 2, untick the option to "save button at PayPal".
-</p>
-<p>
-	Now click "Create Button". On the next screen that appears, click the link "Remove code protection".
-</p>
-<p>
-	Finally, copy the code from the code box and paste it into the box below.
-</p>
 
 <form id="frm-paypal-code" role="form">
   <div class="form-group">
