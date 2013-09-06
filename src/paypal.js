@@ -264,6 +264,13 @@ YUI().use(['node', 'json', 'io', 'event-resize', 'ss-event-log-widget',
 		return images;
 	}
 	
+	function updateButtonPreview() {
+		var preview = Y.one("#paypal-button-preview");
+		
+		preview.get('childNodes').remove();
+		preview.append(Y.Node.create(Y.one("#paypal-button-code").get("value")));
+	}
+	
 	Y.on({
 		domready: function () {
 			eventLog.render('#eventLog');
@@ -283,7 +290,11 @@ YUI().use(['node', 'json', 'io', 'event-resize', 'ss-event-log-widget',
 			var textareaButtonCode = Y.one("#paypal-button-code");			
 			
 			textareaButtonCode.on({
-				valuechange: syncButtonStates
+				valuechange: function() {
+					updateButtonPreview();
+					
+					syncButtonStates();
+				}
 			});
 			
 			Y.one('#btn-apply').on({
@@ -341,6 +352,7 @@ YUI().use(['node', 'json', 'io', 'event-resize', 'ss-event-log-widget',
 
 			if (window.localStorage["payPalButtonTool.payPalCode"] !== undefined) {
 				textareaButtonCode.set('value', window.localStorage["payPalButtonTool.payPalCode"]);
+				updateButtonPreview();
 			}
 			
 			fetchPhotos();

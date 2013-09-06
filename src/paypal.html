@@ -80,6 +80,8 @@
 		Finally, copy the code from the code box and paste it into the "Button HTML code" box below.
 	</p>
 	
+	<h4>View cart button</h4>
+	
 	<p>
 		If you are creating an "add to cart" button, you will also want to create a "view cart" button that your visitors can use to
 		view the contents of their PayPal cart. Just after creating the "add to cart" button, you will see this banner at the bottom of the page:
@@ -92,15 +94,20 @@
 	
 </div>
 
+<h2>Step two: Enter your PayPal button code</h2>
 
-<form id="frm-paypal-code" role="form">
-  <div class="form-group">
-    <label for="paypal-button-code">Buy now/add to cart HTML code from PayPal</label>
-    <textarea class="form-control" id="paypal-button-code" placeholder="Paste PayPal code here" rows="6"></textarea>
-  </div>
-</form>
+<div id="paypal-button-panels">
+	<div class="form-group">
+		<label for="paypal-button-code">Buy now/add to cart HTML code from PayPal</label>
+		<textarea class="form-control" id="paypal-button-code" placeholder="Paste PayPal code here" rows="6"></textarea>
+	</div>
+	<div class="form-group">
+		<label>Customer preview of this button</label>
+		<div id="paypal-button-preview"></div>
+	</div>
+</div>
 
-<h2>Step two: Select the photos to modify</h2>
+<h2>Step three: Select the photos to modify</h2>
 
 <p>Click on any image to select it, click it again to deselect it. You can select multiple images at the same time by holding down shift.</p>
 
@@ -118,7 +125,7 @@
 <ul id="image-selector" class="smugmug-images list-unstyled">
 </ul>
 
-<h2>Step three: Go!</h2>
+<h2>Step four: Go!</h2>
 <p>This will add PayPal buttons to the captions of each of the photos you have selected, replacing any PayPal buttons that might have been there already.</p>
 
 <div id="control-buttons" class="form-inline">

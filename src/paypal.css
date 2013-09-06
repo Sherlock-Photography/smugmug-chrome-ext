@@ -1,6 +1,6 @@
 body {
 	padding:1em;
-	padding-bottom:6em;
+	padding-bottom:12em;
 }
 
 h1 {
@@ -39,7 +39,7 @@ h1 {
 	max-width: 11em;
 }
 
-.directions p {
+p {
     max-width:55em;
 }
 .directions img {
@@ -66,4 +66,13 @@ h1 {
 .select-button-bar {
 	margin-top:1em;
 	margin-bottom:1em;
+}
+
+#paypal-button-panels .form-group {
+	float: left;
+	width: 35em;
+	margin-right: 2em;
+}
+#paypal-button-panels {
+	overflow: hidden;
 }
