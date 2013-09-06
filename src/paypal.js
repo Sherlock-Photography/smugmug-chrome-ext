@@ -12,6 +12,7 @@ YUI().use(['node', 'json', 'io', 'event-resize', 'ss-event-log-widget',
 
 	var 
 		regPayPalItemNameField = /<input type="hidden" name="item_name" value="[^"]*">/,
+		regPayPalItemNumberField = /<input type="hidden" name="item_number" value="[^"]*">/,
 		regFindInstalledPayPalCode = /<div class="ss-paypal-button">[\s\S]+?<\/div>/, //Yeah, I know, Zalgo and all that.
 		regFindInstalledPayPalCodeGlobal = new RegExp(regFindInstalledPayPalCode.source, "g"); 	
 	
@@ -126,15 +127,57 @@ YUI().use(['node', 'json', 'io', 'event-resize', 'ss-event-log-widget',
 	 * Does the PayPal button code look correct? 
 	 */
 	function validatePayPalCode(code) {
-		return code && code.match(regPayPalItemNameField);
+		return code && code.match(regPayPalItemNameField) && code.match(regPayPalItemNumberField);
 	}
 	
 	function preparePayPalCode(code) {
 		return '<div class="ss-paypal-button">' + code.trim() + '</div>';
 	}
 	
+	/* Not to be used for security-critical purposes (not a sanitiser!) */
+	function stripHTML(text) {
+		return text.replace(/<\S[^><]*>/g, "");
+	}
+	
 	function customizePayPalCodeForImage(payPalCode, image) {
-		return payPalCode.replace(regPayPalItemNameField, '<input type="hidden" name="item_name" value="' + Y.Escape.html(image.get('WebUri')) + '">');
+		var 
+			link = image.get('WebUri'),
+			caption, title, description;
+		
+		if (image.get("Caption")) {
+			//Tidy up the caption by removing HTML and PayPal code
+			caption = image.get("Caption").replace(regFindInstalledPayPalCodeGlobal, '');
+			caption = stripHTML(caption).trim();
+			caption = caption.replace("\n", " ");
+		} else {
+			caption = "";
+		}
+		
+		if (image.get("Title")) {
+			//Tidy up the title by removing HTML
+			title = stripHTML(image.get("Title")).trim();
+			title = title.replace("\n", " ");
+		} else {
+			title = "";
+		}
+		
+		if (title || caption) {
+			if (title) {
+				description = title + " / " + caption;	
+			} else {
+				description = caption;
+			}
+		} else {
+			if (image.get("Filename")) {
+				description = image.get("Filename");
+			} else {
+				description = link;
+			}
+		}
+		
+		return payPalCode
+			.replace(regPayPalItemNameField, '<input type="hidden" name="item_name" value="' + Y.Escape.html(description) + '">')
+			.replace(regPayPalItemNumberField, '<input type="hidden" name="item_number" value="' + Y.Escape.html(link) + '">');
 	}
 		
 	function installPayPalButtons(images, payPalCode) {
@@ -168,18 +211,22 @@ YUI().use(['node', 'json', 'io', 'event-resize', 'ss-event-log-widget',
 			}
 			
 			if (newCaption != oldCaption) {
-				queue.enqueueRequest({
-					url: 'http://' + smugDomain + image.get('Uris').Image.Uri + '?_method=PATCH',
-					method: 'POST',				
-					data: JSON.stringify({
-						Caption: newCaption
-					}),
-					headers: {
-						'Accept': 'application/json',
-						'Content-Type': 'application/json'
-					},
-					context: image
-				});
+				if (newCaption.match(regFindInstalledPayPalCode)) {
+					queue.enqueueRequest({
+						url: 'http://' + smugDomain + image.get('Uris').Image.Uri + '?_method=PATCH',
+						method: 'POST',				
+						data: JSON.stringify({
+							Caption: newCaption
+						}),
+						headers: {
+							'Accept': 'application/json',
+							'Content-Type': 'application/json'
+						},
+						context: image
+					});
+				} else {
+					applyEventLog.appendLog('error', 'Generating button code for ' + image.get('WebUri') + ' failed, the photo was left unmodified.');
+				}
 			}
 		}
 		
@@ -344,12 +391,14 @@ YUI().use(['node', 'json', 'io', 'event-resize', 'ss-event-log-widget',
 			Y.one("#btn-select-all").on({
 				click: function(e) {
 					Y.all("#image-selector .smugmug-image").addClass("selected");
+					syncButtonStates();
 				}
 			});
 
 			Y.one("#btn-select-none").on({
 				click: function(e) {
 					Y.all("#image-selector .smugmug-image.selected").removeClass("selected");
+					syncButtonStates();
 				}
 			});
 			

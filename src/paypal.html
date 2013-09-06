@@ -7,10 +7,6 @@
 
 <link rel="stylesheet" type="text/css" href="lib/yui/widget-base.css">
 
-<link rel="stylesheet" type="text/css" href="lib/gallery-sm/gallery-sm-treeview/assets/gallery-sm-treeview-core.css">
-<link rel="stylesheet" type="text/css" href="lib/gallery-sm/gallery-sm-treeview/assets/skins/sam/gallery-sm-treeview.css">
-<link rel="stylesheet" type="text/css" href="lib/gallery-sm/gallery-sm-treeview/assets/skins/sam/gallery-sm-treeview-skin.css">
-
 <link rel="stylesheet" type="text/css" href="lib/sherlockphotography/ss-event-log-widget.css">
 <link rel="stylesheet" type="text/css" href="lib/sherlockphotography/ss-progress-bar.css">
 
@@ -28,7 +24,6 @@
 <script type="text/javascript" src="lib/gallery/gallery-crypto/gallery-crypto-md5.js"></script>
 
 <script type="text/javascript" src="lib/sherlockphotography/ss-api-smartqueue.js"></script>
-<script type="text/javascript" src="lib/sherlockphotography/ss-smugmug-tools.js"></script>
 <script type="text/javascript" src="lib/sherlockphotography/ss-event-log-widget.js"></script>
 <script type="text/javascript" src="lib/sherlockphotography/ss-progress-bar.js"></script>
 
@@ -39,9 +34,9 @@
 
 <h1>Add PayPal buttons to this SmugMug gallery</h1>
 
-<h2>
+<h3>
 	Create your button on PayPal <button id="btn-show-hide-instructions" class="btn btn-default btn-sm">Show/hide detailed instructions</button>
-</h2> 
+</h3> 
 <div class="directions">
 	<p>On PayPal's website, log in to your account. Click on the "Merchant Services" tab, then click on the "Buy Now buttons" link on the right.</p>
 	
@@ -49,7 +44,7 @@
 	
 	<p>In Step 1, change the "button type" to "buy now" (if you only want to sell photos one at a time) or "shopping cart" (recommended).</p> 
 
-	<p>Enter something for "item name", this will later be replaced by the URL of the photo your customer selected.</p>
+	<p>Enter something in both the "item name" and "item ID" boxes. These values will later be replaced by the details of the photo your customer selected.</p>
 	
 	<p>
 		If you are offering multiple photo sizes or multiple product options,
@@ -71,13 +66,13 @@
 	<img src="images/paypal/save-button-at-paypal.png" width="465" height="193">
 	
 	<p>
-		Now click "Create Button". On the next screen that appears, click the link "Remove code protection".
+		Now click "Create Button". On the next screen that appears, click the link "remove code protection".
 	</p>
 	
 	<img src="images/paypal/remove-code-protection.png" width="465" height="236">
 	
 	<p>
-		Finally, copy the code from the code box and paste it into the "Button HTML code" box below.
+		Finally, copy the code from the code box and paste it into the text box in the next section of this page.
 	</p>
 	
 	<h4>View cart button</h4>
@@ -89,12 +84,14 @@
 	
 	<img src="images/paypal/view-cart-button.png" width="731" height="85">
 	
-	<p>Click on "create a view cart button". Choose the display options you like, then click "create button". Now copy the HTML code from
-	the box that appears. Paste that code into an HTML block in the SmugMug customiser to add the View Cart button to your website.</p>
-	
+	<p>
+		Click on "create a view cart button". Choose the display options you like, then click "create button". Click the link "remove code protection". 
+		Now copy the HTML code from
+		the box that appears. In the SmugMug customiser for your gallery, create an HTML block to hold the View Cart button, and paste the HTML code into it.
+	</p>	
 </div>
 
-<h2>Enter your PayPal button code</h2>
+<h3>Enter your PayPal button code</h3>
 
 <div id="paypal-button-panels">
 	<div class="form-group">
@@ -102,12 +99,12 @@
 		<textarea class="form-control" id="paypal-button-code" placeholder="Paste PayPal button code here" rows="6"></textarea>
 	</div>
 	<div class="form-group paypal-button-preview-pane" style="display:none">
-		<label>Preview of this button</label>
+		<label>Button preview</label>
 		<div id="paypal-button-preview"></div>
 	</div>
 </div>
 
-<h2>Select the photos to modify</h2>
+<h3>Select the photos to modify</h3>
 
 <p>Click on any image to select it, click it again to deselect it. You can select multiple images at the same time by holding down shift.</p>
 
@@ -125,7 +122,7 @@
 <ul id="image-selector" class="smugmug-images list-unstyled">
 </ul>
 
-<h2>Go!</h2>
+<h3>Go!</h3>
 <p>This will add PayPal buttons to the captions of each of the photos you have selected, replacing any PayPal buttons that might have been there already.</p>
 
 <div id="control-buttons" class="form-inline">
