@@ -47,11 +47,13 @@
 	
 	<img src="images/paypal/merchant-services.png" width="754" height="581">
 	
-	<p>In Step 1, change the "button type" to "buy now" (if you want to sell photos one at a time) or "add to cart" (recommended). Leave the Item Name blank.</p>
+	<p>In Step 1, change the "button type" to "buy now" (if you only want to sell photos one at a time) or "shopping cart" (recommended).</p> 
+
+	<p>Enter something for "item name", this will later be replaced by the URL of the photo your customer selected.</p>
 	
 	<p>
 		If you are offering multiple photo sizes or multiple product options,
-		tick the "add drop-down menu option" and fill in the details you want displayed.
+		tick the "add drop-down menu with price" option and fill in the details you want displayed. Otherwise just enter the price for your single product.
 	</p>
 	
 	<img src="images/paypal/step-one.png" width="598" height="593">
@@ -75,22 +77,32 @@
 	<img src="images/paypal/remove-code-protection.png" width="465" height="236">
 	
 	<p>
-		Finally, copy the code from the code box and paste it into the box below.
+		Finally, copy the code from the code box and paste it into the "Button HTML code" box below.
 	</p>
+	
+	<p>
+		If you are creating an "add to cart" button, you will also want to create a "view cart" button that your visitors can use to
+		view the contents of their PayPal cart. Just after creating the "add to cart" button, you will see this banner at the bottom of the page:
+	</p>
+	
+	<img src="images/paypal/view-cart-button.png" width="731" height="85">
+	
+	<p>Click on "create a view cart button". Choose the display options you like, then click "create button". Now copy the HTML code from
+	the box that appears. You can paste that code into an HTML block in the SmugMug customiser to add the View Cart button to your website.</p>
+	
 </div>
 
 
 <form id="frm-paypal-code" role="form">
   <div class="form-group">
-    <label for="buynow-button-code">Button HTML code from PayPal</label>
-    <textarea class="form-control" id="buynow-button-code" placeholder="Paste PayPal code here" rows="6"></textarea>
+    <label for="paypal-button-code">Buy now/add to cart HTML code from PayPal</label>
+    <textarea class="form-control" id="paypal-button-code" placeholder="Paste PayPal code here" rows="6"></textarea>
   </div>
 </form>
 
 <h2>Step two: Select the photos to modify</h2>
 
-<p>Click on any image to select it, click it again to deselect it.</p>
-<p>Select multiple images at the same time by holding down shift.</p>
+<p>Click on any image to select it, click it again to deselect it. You can select multiple images at the same time by holding down shift.</p>
 
 <div id="eventLog">
 </div>

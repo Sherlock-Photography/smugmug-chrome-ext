@@ -39,6 +39,9 @@ h1 {
 	max-width: 11em;
 }
 
+.directions p {
+    max-width:55em;
+}
 .directions img {
     margin-bottom: 1.5em;
     margin-left: 3em;

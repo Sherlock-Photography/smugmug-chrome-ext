@@ -28,6 +28,24 @@ YUI().use(['node', 'json', 'io', 'event-resize', 'ss-event-log-widget',
 		}		
 	}
 	
+	function syncButtonStates() {
+		var 
+			selected = Y.all(".smugmug-image.selected"),
+			hasPayPalCode = validatePayPalCode(Y.one("#paypal-button-code").get("value"));
+		
+		if (selected.size() && hasPayPalCode) {
+			Y.one('#btn-apply').removeAttribute("disabled");
+		} else {
+			Y.one('#btn-apply').setAttribute("disabled", "disabled");
+		}
+		
+		if (selected.size() && selected.filter(".paypal").size()) {
+			Y.one('#btn-remove').removeAttribute("disabled");
+		} else {
+			Y.one('#btn-remove').setAttribute("disabled", "disabled");				
+		}
+	}	
+	
 	function renderImageNode(image) {
 		var 
 			rendered = Y.Node.create('<li class="smugmug-image" style="background-image: url(' + Y.Escape.html(image.get('ThumbnailUrl')) + ')"></li>');
@@ -168,6 +186,7 @@ YUI().use(['node', 'json', 'io', 'event-resize', 'ss-event-log-widget',
 		queue.on({
 			complete: function() {
 				logProgress.set('message', "Adding PayPal buttons to selected photos... done!");
+				syncButtonStates();
 			},
 			requestFail: function(e) {
 				//eventLog._logError("Failed to fetch site themes");
@@ -222,6 +241,7 @@ YUI().use(['node', 'json', 'io', 'event-resize', 'ss-event-log-widget',
 		queue.on({
 			complete: function() {
 				logProgress.set('message', "Removing PayPal buttons from selected photos... done!");
+				syncButtonStates();
 			},
 			requestFail: function(e) {
 				//eventLog._logError("Failed to fetch site themes");
@@ -233,24 +253,6 @@ YUI().use(['node', 'json', 'io', 'event-resize', 'ss-event-log-widget',
 	
 		queue.run();
 	}	
-	
-	function updateButtonStates() {
-		var 
-			selected = Y.all(".smugmug-image.selected"),
-			hasPayPalCode = validatePayPalCode(Y.one("#buynow-button-code").get("value"));
-		
-		if (selected.size() && hasPayPalCode) {
-			Y.one('#btn-apply').removeAttribute("disabled");
-		} else {
-			Y.one('#btn-apply').setAttribute("disabled", "disabled");
-		}
-		
-		if (selected.size() && selected.filter(".paypal").size()) {
-			Y.one('#btn-remove').removeAttribute("disabled");
-		} else {
-			Y.one('#btn-remove').setAttribute("disabled", "disabled");				
-		}
-	}
 	
 	function collectSelectedImageModels() {
 		var images = [];
@@ -273,17 +275,15 @@ YUI().use(['node', 'json', 'io', 'event-resize', 'ss-event-log-widget',
 			imageListContainer.delegate("click", function(e) {
 				e.currentTarget.toggleClass('selected');
 				
-				updateButtonStates();
+				syncButtonStates();
 				
 				e.preventDefault();
 			}, ".smugmug-image");
 
-			var textareaButtonCode = Y.one("#buynow-button-code");			
+			var textareaButtonCode = Y.one("#paypal-button-code");			
 			
 			textareaButtonCode.on({
-				valuechange: function(e) {
-					updateButtonStates();
-				}
+				valuechange: syncButtonStates
 			});
 			
 			Y.one('#btn-apply').on({
