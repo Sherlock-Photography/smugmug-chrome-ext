@@ -77,7 +77,7 @@ YUI().use(['node', 'json', 'io', 'event-resize', 'ss-event-log-widget',
 						var image = response.AlbumImage[index];
 						
 						//Sanity checks:
-						if (!image.ThumbnailUrl || image.Caption === undefined)
+						if (!image.ThumbnailUrl || !image.WebUri || image.Caption === undefined)
 							continue;
 						
 						var
@@ -321,7 +321,7 @@ YUI().use(['node', 'json', 'io', 'event-resize', 'ss-event-log-widget',
 				}
 			});	
 			
-				directions = Y.one(".directions");
+			var directions = Y.one(".directions");
 			
 			Y.one("#btn-show-hide-instructions").on({
 				click: function(e) {
