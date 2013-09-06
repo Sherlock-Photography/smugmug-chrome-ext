@@ -265,10 +265,18 @@ YUI().use(['node', 'json', 'io', 'event-resize', 'ss-event-log-widget',
 	}
 	
 	function updateButtonPreview() {
-		var preview = Y.one("#paypal-button-preview");
+		var 
+			preview = Y.one("#paypal-button-preview"),
+			code = Y.one("#paypal-button-code").get("value").trim();
 		
 		preview.get('childNodes').remove();
-		preview.append(Y.Node.create(Y.one("#paypal-button-code").get("value")));
+
+		if (code) {
+			preview.append(Y.Node.create(code));
+			Y.one(".paypal-button-preview-pane").setStyle("display", "block");
+		} else {
+			Y.one(".paypal-button-preview-pane").setStyle("display", "none");			
+		}
 	}
 	
 	Y.on({
