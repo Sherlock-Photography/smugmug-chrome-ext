@@ -179,7 +179,7 @@ YUI.add('ss-api-smartqueue', function(Y, NAME) {
 				
 				//Only suitable for debugging, as this causes successful responses received to be cached indefinitely
 				persistentCache: {
-					value: true
+					value: false
 				},
 				
 				//If persistent caching is used, this option simulates failed AJAX requests to test error-handling
@@ -197,9 +197,9 @@ YUI.add('ss-api-smartqueue', function(Y, NAME) {
 					value: false
 				},
 				
-				//Delay in milliseconds between node fetches (be kind to SmugMug!)
+				//Delay in milliseconds between requests (be kind to SmugMug!)
 				delayBetweenRequests: {
-					value: 200
+					value: 800
 				},
 				
 				numFailedRequests: {

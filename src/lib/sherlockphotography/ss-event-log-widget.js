@@ -50,7 +50,7 @@ YUI.add('ss-event-log-widget', function(Y, NAME) {
 				
 				return element;
 			},
-						
+									
 			initializer: function(cfg) {
 				var self = this;
 				
@@ -100,6 +100,10 @@ YUI.add('ss-event-log-widget', function(Y, NAME) {
 				contentBox.append(this._list);
 			},
 		
+			clear: function() {
+				this._list.get('childNodes').remove();
+			},			
+			
 			appendLog: function(type, message) {
 				if (type != 'info') {
 					//As soon as something goes wrong, log everything

@@ -156,7 +156,7 @@ YUI.add('ss-smugmug-backup-view', function(Y, NAME) {
 			var label;
 			
 			if (smugNode.nodeData.Depth == 0) {
-				label = "Site root";
+				label = "Homepage";
 			} else {
 				label = smugNode.nodeData.Name;
 				

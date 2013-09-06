@@ -314,7 +314,7 @@ YUI.add('ss-smugmug-site-backup', function(Y, NAME) {
 				var
 					nodeEnumerator = new Y.SherlockPhotography.SmugmugNodeEnumerator({
 						domain: this.get('smugmugDomain'), 
-						maxDepth: 1 /* TODO */
+						maxDepth: 10 /* TODO */
 					}),
 					logProgress = this.get('eventLog').appendLog('info', "Finding your pages..."),
 					that = this;

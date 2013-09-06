@@ -361,6 +361,7 @@ YUI().use(['node', 'json', 'io', 'event-resize', 'ss-event-log-widget',
 						
 						payPalCode = preparePayPalCode(payPalCode);
 
+						applyEventLog.clear();						
 						installPayPalButtons(collectSelectedImageModels(), payPalCode);
 					}
 					
@@ -370,6 +371,7 @@ YUI().use(['node', 'json', 'io', 'event-resize', 'ss-event-log-widget',
 			
 			Y.one('#btn-remove').on({
 				click: function(e) {
+					applyEventLog.clear();
 					removePayPalButtons(collectSelectedImageModels());
 					
 					e.preventDefault();
@@ -401,6 +403,8 @@ YUI().use(['node', 'json', 'io', 'event-resize', 'ss-event-log-widget',
 					syncButtonStates();
 				}
 			});
+			
+			Y.all(".smugmug-gallery-name").set('text', pageDetails.userNode.Name);
 			
 			// Restore settings from local storage
 			if (window.localStorage["payPalButtonTool.hideInstructions"] == 1) {

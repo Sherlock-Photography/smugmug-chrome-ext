@@ -92,6 +92,8 @@ YUI().use(['node', 'json', 'io', 'event-resize', 'ss-event-log-widget',
 				}
 			});
 			
+			Y.all(".smugmug-site-address").set('text', backup.get('smugmugDomain'));
+			
 			eventLog.appendLog('info', 'Click the "Start Backup" button below to begin the backup process.');
 		},
 		windowresize: adjustPaneSize
