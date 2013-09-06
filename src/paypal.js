@@ -1,11 +1,12 @@
 YUI().use(['node', 'json', 'io', 'event-resize', 'ss-event-log-widget',  
-           'ss-progress-bar', 'ss-api-smartqueue', 'model'], function(Y) {
+           'ss-progress-bar', 'ss-api-smartqueue', 'model', 'event-valuechange'], function(Y) {
 	var 
 		nickname = chrome.extension.getBackgroundPage().nickname,
 		pageDetails = chrome.extension.getBackgroundPage().pageDetails,
 		smugDomain = nickname + ".smugmug.com",
 		albumID = pageDetails.userNode.RemoteKey,
 		eventLog = new Y.SherlockPhotography.EventLogWidget(),
+		applyEventLog = new Y.SherlockPhotography.EventLogWidget(),
 		imageListContainer = null;
 
 	var 
@@ -16,7 +17,7 @@ YUI().use(['node', 'json', 'io', 'event-resize', 'ss-event-log-widget',
 	//Sorry, this is the best I can do on Chrome! (it doesn't allow User-Agent to be changed)
 	Y.io.header('X-User-Agent', 'Unofficial SmugMug extension for Chrome v0.1 / I\'m in ur server, mogrifying ur data / n.sherlock@gmail.com');
 	
-	function syncButtonState(buttonNode, image) {
+	function syncImageUIState(buttonNode, image) {
 		buttonNode.get('childNodes').remove();
 		if (image.get('Caption').match(regFindInstalledPayPalCode)) {
 			buttonNode.addClass("paypal");
@@ -34,11 +35,11 @@ YUI().use(['node', 'json', 'io', 'event-resize', 'ss-event-log-widget',
 
 		image.after({
 			CaptionChange: function() {
-				syncButtonState(rendered, image);
+				syncImageUIState(rendered, image);
 			}
 		});
 		
-		syncButtonState(rendered, image);
+		syncImageUIState(rendered, image);
 		
 		return rendered;
 	}
@@ -112,7 +113,7 @@ YUI().use(['node', 'json', 'io', 'event-resize', 'ss-event-log-widget',
 	}
 	
 	function preparePayPalCode(code) {
-		return '<div class="ss-paypal-button">' + code + '</div>';
+		return '<div class="ss-paypal-button">' + code.trim() + '</div>';
 	}
 	
 	function customizePayPalCodeForImage(payPalCode, image) {
@@ -121,7 +122,7 @@ YUI().use(['node', 'json', 'io', 'event-resize', 'ss-event-log-widget',
 		
 	function installPayPalButtons(images, payPalCode) {
 		var 
-			logProgress = eventLog.appendLog('info', "Adding PayPal buttons to selected photos..."),
+			logProgress = applyEventLog.appendLog('info', "Adding PayPal buttons to selected photos..."),
 			queue = new Y.SherlockPhotography.APISmartQueue({
 				processResponse: function(request, data) {
 					if (data.Response && data.Response.Image && data.Response.Image.Caption !== undefined) {
@@ -131,7 +132,7 @@ YUI().use(['node', 'json', 'io', 'event-resize', 'ss-event-log-widget',
 				},
 				responseType: 'json',
 				retryPosts: true, //Since our requests are idempotent				
-				delayBetweenRequests: 100
+				delayBetweenRequests: 400
 			});
 		
 		for (var index in images) {
@@ -182,7 +183,7 @@ YUI().use(['node', 'json', 'io', 'event-resize', 'ss-event-log-widget',
 	
 	function removePayPalButtons(images) {
 		var 
-			logProgress = eventLog.appendLog('info', "Removing PayPal buttons from selected photos..."),
+			logProgress = applyEventLog.appendLog('info', "Removing PayPal buttons from selected photos..."),
 			queue = new Y.SherlockPhotography.APISmartQueue({
 				processResponse: function(request, data) {
 					if (data.Response && data.Response.Image && data.Response.Image.Caption !== undefined) {
@@ -192,9 +193,8 @@ YUI().use(['node', 'json', 'io', 'event-resize', 'ss-event-log-widget',
 				},
 				responseType: 'json',
 				retryPosts: true, //Since our requests are idempotent
-				delayBetweenRequests: 100
+				delayBetweenRequests: 400
 			});
-		
 
 		for (var index in images) {
 			var 
@@ -266,6 +266,7 @@ YUI().use(['node', 'json', 'io', 'event-resize', 'ss-event-log-widget',
 	Y.on({
 		domready: function () {
 			eventLog.render('#eventLog');
+			applyEventLog.render('#applyEventLog');
 
 			imageListContainer = Y.one('.smugmug-images');
 			
@@ -277,8 +278,8 @@ YUI().use(['node', 'json', 'io', 'event-resize', 'ss-event-log-widget',
 				e.preventDefault();
 			}, ".smugmug-image");
 
-			Y.one("#buynow-button-code").after({
-				valueChange: function(e) {
+			Y.one("#buynow-button-code").on({
+				valuechange: function(e) {
 					updateButtonStates();
 				}
 			});
