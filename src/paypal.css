@@ -30,9 +30,6 @@ h1 {
 	border: 6px solid #88F;
 	margin: 4px;
 }
-.smugmug-images .smugmug-image.paypal:after {
-	content: "Has button";
-}
 
 #control-buttons input {
 	max-width: 11em;

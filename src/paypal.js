@@ -1,5 +1,5 @@
 YUI().use(['node', 'json', 'io', 'event-resize', 'ss-event-log-widget',  
-           'ss-progress-bar', 'ss-api-smartqueue'], function(Y) {
+           'ss-progress-bar', 'ss-api-smartqueue', 'model'], function(Y) {
 	var 
 		nickname = chrome.extension.getBackgroundPage().nickname,
 		pageDetails = chrome.extension.getBackgroundPage().pageDetails,
@@ -16,11 +16,38 @@ YUI().use(['node', 'json', 'io', 'event-resize', 'ss-event-log-widget',
 	//Sorry, this is the best I can do on Chrome! (it doesn't allow User-Agent to be changed)
 	Y.io.header('X-User-Agent', 'Unofficial SmugMug extension for Chrome v0.1 / I\'m in ur server, mogrifying ur data / n.sherlock@gmail.com');
 	
+	function syncButtonState(buttonNode, image) {
+		buttonNode.get('childNodes').remove();
+		if (image.get('Caption').match(regFindInstalledPayPalCode)) {
+			buttonNode.addClass("paypal");
+			buttonNode.append('<span class="label label-info">Has button</span>');
+		} else {
+			buttonNode.removeClass("paypal");
+		}		
+	}
+	
+	function renderImageNode(image) {
+		var 
+			rendered = Y.Node.create('<li class="smugmug-image" style="background-image: url(' + Y.Escape.html(image.get('ThumbnailUrl')) + ')"></li>');
+
+		rendered.setData('image', image);
+
+		image.after({
+			CaptionChange: function() {
+				syncButtonState(rendered, image);
+			}
+		});
+		
+		syncButtonState(rendered, image);
+		
+		return rendered;
+	}
+	
 	function fetchPhotos() {
 		var 
 			logProgress = eventLog.appendLog('info', "Finding photos in this gallery...");
 		
-		imageListContainer.get('children').remove();
+		imageListContainer.get('childNodes').remove();
 		
 		var queue = new Y.SherlockPhotography.APISmartQueue({
 			processResponse: function(request, data) {
@@ -34,22 +61,16 @@ YUI().use(['node', 'json', 'io', 'event-resize', 'ss-event-log-widget',
 						if (!image.ThumbnailUrl || image.Caption === undefined)
 							continue;
 						
-						var 
-							rendered = Y.Node.create('<li class="smugmug-image" style="background-image: url(' + Y.Escape.html(image.ThumbnailUrl) + ')"></li>');
+						var
+							model = new Y.Model(image);
 						
-						rendered.setData('image', image);
-						
-						if (image.Caption.match(regFindInstalledPayPalCode)) {
-							rendered.append('<span class="label label-info">Has button</span>');
-						}
-						
-						imageListContainer.append(rendered);
+						imageListContainer.append(renderImageNode(model));
 					}
 
 					if (response.Pages && response.Pages.NextPage) {
 						queue.enqueueRequest({
 							url: 'http://' + smugDomain + response.Pages.NextPage,
-							headers: {'Accept': 'application/json'}
+							headers: {'Accept': 'application/json'},
 						});
 						queue.run();
 					}
@@ -95,55 +116,54 @@ YUI().use(['node', 'json', 'io', 'event-resize', 'ss-event-log-widget',
 	}
 	
 	function customizePayPalCodeForImage(payPalCode, image) {
-		return payPalCode.replace(regPayPalItemNameField, '<input type="hidden" name="item_name" value="' + Y.Escape.html(image.WebUri) + '">');
+		return payPalCode.replace(regPayPalItemNameField, '<input type="hidden" name="item_name" value="' + Y.Escape.html(image.get('WebUri')) + '">');
 	}
-	
-	function installPayPalButtons(payPalCode) {
-		var 
-			nodes = Y.all(".smugmug-image.selected");
-
-		if (!nodes.size()) {
-			return;
-		}
 		
+	function installPayPalButtons(images, payPalCode) {
 		var 
 			logProgress = eventLog.appendLog('info', "Adding PayPal buttons to selected photos..."),
 			queue = new Y.SherlockPhotography.APISmartQueue({
 				processResponse: function(request, data) {
-					return true;
+					if (data.Response && data.Response.Image && data.Response.Image.Caption !== undefined) {
+						//Update our model of the caption to the new caption the server ack'ed
+						request.context.set('Caption', data.Response.Image.Caption);
+					}
 				},
 				responseType: 'json',
 				retryPosts: true, //Since our requests are idempotent				
 				delayBetweenRequests: 100
 			});
 		
-		nodes.each(function(node) {
-			var image = node.getData('image');
-			
+		for (var index in images) {
 			var 
+				image = images[index],
 				imagePayPalCode = customizePayPalCodeForImage(payPalCode, image),
+				oldCaption = image.get('Caption'), 
 				newCaption;
 			
-			if (image.Caption.match(regFindInstalledPayPalCode)) {
-				newCaption = image.Caption.replace(regFindInstalledPayPalCode, imagePayPalCode);
+			if (oldCaption.match(regFindInstalledPayPalCode)) {
+				newCaption = oldCaption.replace(regFindInstalledPayPalCode, imagePayPalCode);
 			} else if (image.Caption == ""){
 				newCaption = imagePayPalCode;
 			} else {
-				newCaption = image.Caption + "\n" + imagePayPalCode;
+				newCaption = oldCaption + "\n" + imagePayPalCode;
 			}
 			
-			queue.enqueueRequest({
-				url: 'http://' + smugDomain + image.Uris.Image.Uri + '?_method=PATCH',
-				method: 'POST',				
-				data: JSON.stringify({
-					Caption: newCaption
-				}),
-				headers: {
-					'Accept': 'application/json',
-					'Content-Type': 'application/json'
-				}
-			});			
-		});
+			if (newCaption != oldCaption) {
+				queue.enqueueRequest({
+					url: 'http://' + smugDomain + image.get('Uris').Image.Uri + '?_method=PATCH',
+					method: 'POST',				
+					data: JSON.stringify({
+						Caption: newCaption
+					}),
+					headers: {
+						'Accept': 'application/json',
+						'Content-Type': 'application/json'
+					},
+					context: image
+				});
+			}
+		}
 		
 		queue.on({
 			complete: function() {
@@ -160,19 +180,15 @@ YUI().use(['node', 'json', 'io', 'event-resize', 'ss-event-log-widget',
 		queue.run();
 	}
 	
-	function removePayPalButtons() {
-		var 
-			nodes = Y.all(".smugmug-image.selected");
-
-		if (!nodes.size()) {
-			return;
-		}
-		
+	function removePayPalButtons(images) {
 		var 
 			logProgress = eventLog.appendLog('info', "Removing PayPal buttons from selected photos..."),
 			queue = new Y.SherlockPhotography.APISmartQueue({
 				processResponse: function(request, data) {
-					return true;
+					if (data.Response && data.Response.Image && data.Response.Image.Caption !== undefined) {
+						//Update our model of the caption to the new caption the server ack'ed
+						request.context.set('Caption', data.Response.Image.Caption);
+					}
 				},
 				responseType: 'json',
 				retryPosts: true, //Since our requests are idempotent
@@ -180,14 +196,17 @@ YUI().use(['node', 'json', 'io', 'event-resize', 'ss-event-log-widget',
 			});
 		
 
-		nodes.each(function(node) {
-			var image = node.getData('image');
+		for (var index in images) {
+			var 
+				image = images[index],
+				oldCaption = image.get('Caption'),
+				newCaption;
 						
-			if (image.Caption.match(regFindInstalledPayPalCodeGlobal)) {
-				newCaption = image.Caption.replace(regFindInstalledPayPalCodeGlobal, '');
+			if (oldCaption.match(regFindInstalledPayPalCodeGlobal)) {
+				newCaption = oldCaption.replace(regFindInstalledPayPalCodeGlobal, '');
 			
 				queue.enqueueRequest({
-					url: 'http://' + smugDomain + image.Uris.Image.Uri + '?_method=PATCH',
+					url: 'http://' + smugDomain + image.get('Uris').Image.Uri + '?_method=PATCH',
 					method: 'POST',				
 					data: JSON.stringify({
 						Caption: newCaption
@@ -195,10 +214,11 @@ YUI().use(['node', 'json', 'io', 'event-resize', 'ss-event-log-widget',
 					headers: {
 						'Accept': 'application/json',
 						'Content-Type': 'application/json'
-					}
+					},
+					context: image
 				});
 			}
-		});
+		}
 		
 		queue.on({
 			complete: function() {
@@ -215,6 +235,34 @@ YUI().use(['node', 'json', 'io', 'event-resize', 'ss-event-log-widget',
 		queue.run();
 	}	
 	
+	function updateButtonStates() {
+		var 
+			selected = Y.all(".smugmug-image.selected"),
+			hasPayPalCode = validatePayPalCode(Y.one("#buynow-button-code").get("value"));
+		
+		if (selected.size() && hasPayPalCode) {
+			Y.one('#btn-apply').removeAttribute("disabled");
+		} else {
+			Y.one('#btn-apply').setAttribute("disabled", "disabled");
+		}
+		
+		if (selected.size() && selected.filter(".paypal").size()) {
+			Y.one('#btn-remove').removeAttribute("disabled");
+		} else {
+			Y.one('#btn-remove').setAttribute("disabled", "disabled");				
+		}
+	}
+	
+	function collectSelectedImageModels() {
+		var images = [];
+		
+		Y.all(".smugmug-image.selected").each(function() {
+			images.push(this.getData('image'));
+		});
+		
+		return images;
+	}
+	
 	Y.on({
 		domready: function () {
 			eventLog.render('#eventLog');
@@ -224,17 +272,25 @@ YUI().use(['node', 'json', 'io', 'event-resize', 'ss-event-log-widget',
 			imageListContainer.delegate("click", function(e) {
 				e.currentTarget.toggleClass('selected');
 				
+				updateButtonStates();
+				
 				e.preventDefault();
 			}, ".smugmug-image");
 
+			Y.one("#buynow-button-code").after({
+				valueChange: function(e) {
+					updateButtonStates();
+				}
+			});
+			
 			Y.one('#btn-apply').on({
 				click: function(e) {
 					var payPalCode = Y.one('#buynow-button-code').get('value');
 					
 					if (validatePayPalCode(payPalCode)) {
 						payPalCode = preparePayPalCode(payPalCode);
-						
-						installPayPalButtons(payPalCode);
+
+						installPayPalButtons(collectSelectedImageModels(), payPalCode);
 					}
 					
 					e.preventDefault();
@@ -243,7 +299,7 @@ YUI().use(['node', 'json', 'io', 'event-resize', 'ss-event-log-widget',
 			
 			Y.one('#btn-remove').on({
 				click: function(e) {
-					removePayPalButtons();
+					removePayPalButtons(collectSelectedImageModels());
 					
 					e.preventDefault();
 				}
