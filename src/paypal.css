@@ -1,5 +1,6 @@
 body {
 	padding:1em;
+	padding-bottom:6em;
 }
 
 h1 {
@@ -10,6 +11,9 @@ h1 {
 	max-height:8em;
 }
 
+.smugmug-images {
+	margin-left: -5px;
+}
 .smugmug-images .smugmug-image {
     display: inline-block;
     vertical-align: top;
@@ -44,4 +48,19 @@ h1 {
 
 .directions.collapsed {
 	display:none;
+}
+
+.loading-spinner {
+	margin-right:8px;
+	width:32px;
+	height:32px;
+	background-image:url(spinner.gif);
+	background-repeat:no-repeat;
+	display:inline-block;
+	vertical-align:middle;
+}
+
+.select-button-bar {
+	margin-top:1em;
+	margin-bottom:1em;
 }

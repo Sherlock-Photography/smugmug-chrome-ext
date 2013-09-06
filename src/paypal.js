@@ -7,7 +7,8 @@ YUI().use(['node', 'json', 'io', 'event-resize', 'ss-event-log-widget',
 		albumID = pageDetails.userNode.RemoteKey,
 		eventLog = new Y.SherlockPhotography.EventLogWidget(),
 		applyEventLog = new Y.SherlockPhotography.EventLogWidget(),
-		imageListContainer = null;
+		imageListContainer = null,
+		imageListSpinner = null;
 
 	var 
 		regPayPalItemNameField = /<input type="hidden" name="item_name" value="[^"]*">/,
@@ -45,10 +46,9 @@ YUI().use(['node', 'json', 'io', 'event-resize', 'ss-event-log-widget',
 	}
 	
 	function fetchPhotos() {
-		var 
-			logProgress = eventLog.appendLog('info', "Finding photos in this gallery...");
-		
 		imageListContainer.get('childNodes').remove();
+		
+		imageListSpinner.setStyle("display", "block");
 		
 		var queue = new Y.SherlockPhotography.APISmartQueue({
 			processResponse: function(request, data) {
@@ -92,13 +92,12 @@ YUI().use(['node', 'json', 'io', 'event-resize', 'ss-event-log-widget',
 		
 		queue.on({
 			complete: function() {
-				logProgress.set('message', "Finding photos in this gallery... done!");
+				imageListSpinner.setStyle("display", "none");
 			},
 			requestFail: function(e) {
-				eventLog.appendLog('error', "Failed to fetch a page, gallery listing is incomplete");
+				eventLog.appendLog('error', "Failed to fetch a page, so this gallery listing is incomplete");
 			},
 			progress: function(progress) {
-				logProgress.set('progress', progress);
 			}
 		});
 		
@@ -268,7 +267,8 @@ YUI().use(['node', 'json', 'io', 'event-resize', 'ss-event-log-widget',
 			eventLog.render('#eventLog');
 			applyEventLog.render('#applyEventLog');
 
-			imageListContainer = Y.one('.smugmug-images');
+			imageListContainer = Y.one('#image-selector');
+			imageListSpinner = Y.one('#image-selector-spinner');
 			
 			imageListContainer.delegate("click", function(e) {
 				e.currentTarget.toggleClass('selected');
@@ -321,7 +321,19 @@ YUI().use(['node', 'json', 'io', 'event-resize', 'ss-event-log-widget',
 					e.preventDefault();
 				}
 			});
-	
+			
+			Y.one("#btn-select-all").on({
+				click: function(e) {
+					Y.all("#image-selector .smugmug-image").addClass("selected");
+				}
+			});
+
+			Y.one("#btn-select-none").on({
+				click: function(e) {
+					Y.all("#image-selector .smugmug-image.selected").removeClass("selected");
+				}
+			});
+			
 			// Restore settings from local storage
 			if (window.localStorage["payPalButtonTool.hideInstructions"] == 1) {
 				directions.addClass("collapsed");
