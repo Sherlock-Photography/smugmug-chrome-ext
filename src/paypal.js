@@ -13,7 +13,7 @@ YUI().use(['node', 'json', 'io', 'event-resize', 'ss-event-log-widget',
 	var 
 		regPayPalItemNameField = /<input type="hidden" name="item_name" value="[^"]*">/,
 		regPayPalItemNumberField = /<input type="hidden" name="item_number" value="[^"]*">/,
-		regFindInstalledPayPalCode = /<div class="ss-paypal-button">[\s\S]+?<\/div>/, //Yeah, I know, Zalgo and all that.
+		regFindInstalledPayPalCode = /<div class="ss-paypal-button">[\s\S]+?<\/div><div class="ss-paypal-button-end" style="display:none">\.?<\/div>/,
 		regFindInstalledPayPalCodeGlobal = new RegExp(regFindInstalledPayPalCode.source, "g"); 	
 	
 	//Sorry, this is the best I can do on Chrome! (it doesn't allow User-Agent to be changed)
@@ -131,7 +131,7 @@ YUI().use(['node', 'json', 'io', 'event-resize', 'ss-event-log-widget',
 	}
 	
 	function preparePayPalCode(code) {
-		return '<div class="ss-paypal-button">' + code.trim() + '</div>';
+		return '<div class="ss-paypal-button">' + code.trim() + '</div><div class="ss-paypal-button-end" style="display:none">.</div>';
 	}
 	
 	/* Not to be used for security-critical purposes (not a sanitiser!) */
@@ -168,16 +168,32 @@ YUI().use(['node', 'json', 'io', 'event-resize', 'ss-event-log-widget',
 				description = caption;
 			}
 		} else {
-			if (image.get("Filename")) {
-				description = image.get("Filename");
+			if (image.get("FileName")) {
+				description = image.get("FileName");
 			} else {
 				description = link;
 			}
 		}
 		
-		return payPalCode
-			.replace(regPayPalItemNameField, '<input type="hidden" name="item_name" value="' + Y.Escape.html(description) + '">')
-			.replace(regPayPalItemNumberField, '<input type="hidden" name="item_number" value="' + Y.Escape.html(link) + '">');
+		var result = '<div class="ss-paypal-button">' + 
+			payPalCode
+				.trim()
+				.replace(regPayPalItemNameField, '<input type="hidden" name="item_name" value="' + Y.Escape.html(description) + '">')
+				.replace(regPayPalItemNumberField, '<input type="hidden" name="item_number" value="' + Y.Escape.html(link) + '">');
+		
+		result += '</div><div class="ss-paypal-button-end" style="display:none">';
+			
+		/* 
+		 * A current bug in SmugMug means that a caption which has no text in it after HTML-removal does not get displayed 
+		 * even when HTML code would be visible
+		 */
+		if (!caption && stripHTML(payPalCode).trim().length == 0) {
+			result += '.';
+		}
+		
+		result += '</div>';
+				
+		return result;
 	}
 		
 	function installPayPalButtons(images, payPalCode) {
@@ -359,8 +375,6 @@ YUI().use(['node', 'json', 'io', 'event-resize', 'ss-event-log-widget',
 					if (validatePayPalCode(payPalCode)) {
 						window.localStorage["payPalButtonTool.payPalCode"] = payPalCode;
 						
-						payPalCode = preparePayPalCode(payPalCode);
-
 						applyEventLog.clear();						
 						installPayPalButtons(collectSelectedImageModels(), payPalCode);
 					}
