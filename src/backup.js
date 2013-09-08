@@ -1,5 +1,5 @@
 YUI().use(['node', 'json', 'io', 'event-resize', 'ss-event-log-widget',  
-           'ss-progress-bar', 'ss-smugmug-site-backup', 'ss-smugmug-backup-view'], function(Y) {
+           'ss-progress-bar', 'ss-smugmug-site-backup', 'ss-smugmug-backup-view', 'node-event-simulate'], function(Y) {
 	var 
 		nickname =  chrome.extension.getBackgroundPage().nickname,
 		
@@ -95,6 +95,12 @@ YUI().use(['node', 'json', 'io', 'event-resize', 'ss-event-log-widget',
 			Y.all(".smugmug-site-address").set('text', backup.get('smugmugDomain'));
 			
 			eventLog.appendLog('info', 'Click the "Start Backup" button below to begin the backup process.');
+			
+			if (window.localStorage["backupTool.seenHelp"] != "1") {
+				Y.one("#btn-help").simulate('click');
+				
+				window.localStorage["backupTool.seenHelp"] = 1;
+			}			
 		},
 		windowresize: adjustPaneSize
 	});

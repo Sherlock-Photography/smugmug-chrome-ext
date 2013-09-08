@@ -205,6 +205,8 @@ YUI().use(['node', 'json', 'io', 'event-resize', 'ss-event-log-widget',
 						//Update our model of the caption to the new caption the server ack'ed
 						request.context.set('Caption', data.Response.Image.Caption);
 					}
+					
+					return true;
 				},
 				responseType: 'json',
 				retryPosts: true, //Since our requests are idempotent				
@@ -271,11 +273,14 @@ YUI().use(['node', 'json', 'io', 'event-resize', 'ss-event-log-widget',
 						//Update our model of the caption to the new caption the server ack'ed
 						request.context.set('Caption', data.Response.Image.Caption);
 					}
+					
+					return true;
 				},
 				responseType: 'json',
 				retryPosts: true, //Since our requests are idempotent
 				delayBetweenRequests: 400
-			});
+			}),
+			hadFailures = false;
 
 		for (var index in images) {
 			var 
@@ -303,11 +308,15 @@ YUI().use(['node', 'json', 'io', 'event-resize', 'ss-event-log-widget',
 		
 		queue.on({
 			complete: function() {
-				logProgress.set('message', "Removing PayPal buttons from selected photos... done!");
+				if (hadFailures) {
+					logProgress.set('message', "Some buttons were not removed due to a server error or timeout, please try again.");
+				} else {
+					logProgress.set('message', "Done!");
+				}
 				syncButtonStates();
 			},
 			requestFail: function(e) {
-				//eventLog._logError("Failed to fetch site themes");
+				hadFailures = true;
 			},
 			progress: function(progress) {
 				logProgress.set('progress', progress);
