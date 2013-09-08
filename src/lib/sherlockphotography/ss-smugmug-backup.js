@@ -121,12 +121,16 @@ YUI.add('ss-smugmug-site-backup', function(Y, NAME) {
 					pageDesigns = this._backup.pageDesigns;
 				
 				var queue = new Y.SherlockPhotography.APISmartQueue({
-					processResponse: function(request, pageDesign) {
-						//Don't store the API status along with the page design:
-						delete pageDesign.method;
-						delete pageDesign.stat;
-						
-						pageDesigns[pageDesign.PageDesign.PageDesignID] = pageDesign;
+					processResponse: function(request, response) {
+						if (response.PageDesign) {						
+							//Don't store the API status along with the page design:
+							delete response.method;
+							delete response.stat;
+
+							pageDesigns[response.PageDesign.PageDesignID] = response;
+						} else {
+							that._logError("Got response '" + response.stat + "', '" + response.message + "' while trying to fetch page design #" + request.data.PageDesignID);							
+						}
 
 						return true;
 					},
