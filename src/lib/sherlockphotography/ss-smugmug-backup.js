@@ -116,7 +116,7 @@ YUI.add('ss-smugmug-site-backup', function(Y, NAME) {
 			 */
 			_stageFetchPageDesigns: function() {
 				var 
-					logProgress = this.get('eventLog').appendLog('info', "Fetching all discovered page designs..."),
+					logProgress = this.get('eventLog').appendLog('info', "Fetching all customised page designs..."),
 					that = this,
 					apiEndpoint = 'http://' + this.get('smugmugDomain') + '/services/api/json/1.4.0/',
 					pageDesigns = this._backup.pageDesigns;
@@ -467,6 +467,24 @@ YUI.add('ss-smugmug-site-backup', function(Y, NAME) {
 				var stage = this._backupStages[this._backupStage];
 				
 				stage.call(this);
+			},
+			
+			/**
+			 * Find the node for the given album details, or false if it could not be found.
+			 * 
+			 * @param albumID
+			 * @param albumKey
+			 */
+			findAlbumNode: function(albumID, albumKey) {
+				for (var nodeID in this._backup.nodes) {
+					var node = this._backup.nodes[nodeID];
+					
+					if (node.nodeData && node.nodeData.RemoteID == albumID && node.nodeData.RemoteKey == albumKey) {
+						return node;
+					}
+				}
+				
+				return false;
 			},
 			
 			createBackup: function() {
