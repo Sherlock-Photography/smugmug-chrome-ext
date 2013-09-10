@@ -142,7 +142,8 @@ YUI.add('ss-smugmug-site-backup', function(Y, NAME) {
 						url: 'http://' + this.get('smugmugDomain') + '/services/api/json/1.4.0/',
 						data: {
 							PageDesignID: pageDesignID,
-							method:'rpc.pagedesign.get'	
+							Published: false,
+							method: 'rpc.pagedesign.get'	
 						} 
 					});
 				}
