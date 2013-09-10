@@ -4,47 +4,42 @@ YUI.add('ss-smugmug-node-enumerator', function(Y, NAME) {
 		Y.Base,
 		[],
 		{
-			//Prototype members
-			_nodes: null,
+			_nodes: {},
 			_queue: null,
-
-	    	_processResponse: function(request, response) {
-	    		var nodes = response.Nodes;
-	    		
-				for (var index in nodes) {
-					var node = nodes[index];
-					
-					var seenAlready = this._nodes[node.NodeID] !== undefined;
-
-					if (node.NodeID && !seenAlready) {
-						this.fetchNodes(node, request.maxDepth - 1);
-					}
-				}
-				
-				return true;
-	    	},
 			
 		    initializer : function(cfg) {
-		    	var self = this;
+		    	var that = this;
 		    	
 		    	this._nodes = {};
 		    	
 		    	this._queue = new Y.SherlockPhotography.APISmartQueue({
 		    		processResponse: function(request, response) {
-		    			return self._processResponse(request, response);
+			    		var nodes = response.Nodes;
+			    		
+						for (var index in nodes) {
+							var 
+								node = nodes[index],
+								seenAlready = that._nodes[node.NodeID] !== undefined;
+
+							if (node.NodeID && !seenAlready) {
+								that.fetchNodes(node, request.maxDepth - 1);
+							}
+						}
+						
+						return true;
 		    		},
 		    		responseType: 'json'
 		    	});
 		    	
 		    	this._queue.on({
 		    		complete: function() { 
-		    			self.fire('complete', {nodes: self._nodes});
+		    			that.fire('complete', {nodes: that._nodes});
 		    		},
 		    		requestFail: function(e) { 
-		    			self.fire('requestFail', e);
+		    			that.fire('requestFail', e);
 		    		},
 		    		progress: function(e) { 
-		    			self.fire('progress', e);
+		    			that.fire('progress', e);
 		    		},
 		    	});
 		    },
@@ -93,5 +88,5 @@ YUI.add('ss-smugmug-node-enumerator', function(Y, NAME) {
 	
 	Y.namespace('SherlockPhotography').SmugmugNodeEnumerator = SmugmugNodeEnumerator;
 }, '0.0.1', {
-	requires: ['io', 'base', 'json-parse', 'ss-api-smartqueue']
+	requires: ['io', 'base', 'ss-api-smartqueue']
 });
