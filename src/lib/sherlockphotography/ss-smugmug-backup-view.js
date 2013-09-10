@@ -572,6 +572,28 @@ YUI.add('ss-smugmug-backup-view', function(Y, NAME) {
 			pane.append(this._renderFieldList({items:items, className:"ss-field-list"}));
 		},
 		
+		_renderMargins:function(config) {
+			var margins = [];
+			
+			if (config.TopMargin !== null) {
+				margins.push("top: " + config.TopMargin + "px");
+			}
+
+			if (config.BottomMargin !== null) {
+				margins.push("bottom: " + config.BottomMargin + "px");
+			}
+
+			if (config.LeftMargin !== null) {
+				margins.push("left: " + config.LeftMargin + "px");
+			}
+
+			if (config.RightMargin !== null) {
+				margins.push("right: " + config.RightMargin + "px");
+			}
+			
+			return margins.join(", ");
+		},
+		
 		_renderWidgetBlocks: function(pageDesign) {
 			var result = [];
 			
@@ -581,7 +603,8 @@ YUI.add('ss-smugmug-backup-view', function(Y, NAME) {
 				var fields = [];
 				
 				fields.push({title: "Title", value: widget.Title, supportCopy: true});
-
+				fields.push({title: "Margins", value: this._renderMargins(widget)});
+				
 				if (widget.Config) {
 					var configDef = WIDGET_CONFIG_DEFINITION[widget.Name] || {fields: {}}; 
 					
