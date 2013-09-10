@@ -178,7 +178,7 @@ YUI.add('ss-smugmug-backup-view', function(Y, NAME) {
 			
 			var treeNode = parentTreeNode.append({
 				label: label,
-				state: {open: true},
+				state: {open: smugNode.nodeData.Depth == 0},
 				data: {
 					type: NODE_TYPE_SMUG_NODE,
 					data: smugNode,
