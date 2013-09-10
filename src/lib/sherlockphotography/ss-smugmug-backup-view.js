@@ -45,7 +45,8 @@ YUI.add('ss-smugmug-backup-view', function(Y, NAME) {
 			TileSpacing: {title: "Spacing between photos", type: "pixels"},
 			TileInfo: {title: "Info style" },
 			VaryHeight: {title: "Vary photo height"},
-			ImageSize: {title: "Photo size", lookup: {S: "Small", M: "Medium", L: "Large", XL: "X Large", X2: "X2 Large", X3: "X3 Large"}}
+			ImageSize: {title: "Photo size", lookup: {S: "Small", M: "Medium", L: "Large", XL: "X Large", X2: "X2 Large", X3: "X3 Large"}},
+			SelectedNodes: {title: "Selected nodes", type: "nodelist"}
 		},
 		
 		WIDGET_CONFIG_DEFINITION = {
@@ -298,7 +299,20 @@ YUI.add('ss-smugmug-backup-view', function(Y, NAME) {
 			}
 			
 			return dl;
-		},		
+		},
+		
+		/**
+		 * Cause the treeview to jump to the SmugMug node with the given nodeID.
+		 */
+		_selectSmugMugNode: function(nodeID) {
+			var node = this._treeView.findNode(this._treeView.rootNode, function(n) {
+				return n.data && n.data.type == NODE_TYPE_SMUG_NODE && n.data.data.nodeData && n.data.data.nodeData.NodeID == nodeID; 
+			});
+			
+			if (node) {
+				this._treeView.selectNode(node);
+			}
+		},
 		
 		/**
 		 * Options is either an array of field items or an object:
@@ -313,6 +327,10 @@ YUI.add('ss-smugmug-backup-view', function(Y, NAME) {
 		 *		show - If present, and set to false, field is hidden.
 		 */
 		_renderFieldList: function(options) {
+			var 
+				that = this,
+				backup = this.get('backup');
+			
 			if (Array.isArray(options)) {
 				options = {items: options};
 			}
@@ -437,6 +455,36 @@ YUI.add('ss-smugmug-backup-view', function(Y, NAME) {
 						}
 						
 						valueRendered = '<img class="smugmug-image" src="' + Y.Escape.html(url) + '">';
+						break;
+					case 'nodelist':
+						var 
+							list = Y.Node.create("<ul class='ss-smugmug-backup-nodelist list-unstyled'></ul>");
+						
+						Y.Array.each(item.value.split(","), function(nodeID) {
+							var content;
+							
+							if (backup.nodes[nodeID]) {
+								var nodeLink = Y.Node.create("<a href='#'></a>");
+								
+								nodeLink.set('text', backup.nodes[nodeID].nodeData.Name);
+								nodeLink.on({
+									click: function() {
+										that._selectSmugMugNode(nodeID);
+									}
+								});
+								
+								content = nodeLink;
+							} else {
+								content = Y.Escape.html(nodeID);
+							}
+							
+							var li = Y.Node.create("<li></li>");
+							
+							li.append(content);
+							list.append(li);
+						});
+						
+						valueRendered = list;
 						break;
 					default:
 						if (item.value instanceof Y.Node) {
