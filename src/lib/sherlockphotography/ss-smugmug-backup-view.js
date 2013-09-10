@@ -206,7 +206,23 @@ YUI.add('ss-smugmug-backup-view', function(Y, NAME) {
 				this._recurseBuildFoldersTree(smugChild, treeNode);
 				
 				treeNode.sort({sortComparator:function(node) {
-					return node.label;
+					var typeSortKey;
+					
+					switch (node.data.data.nodeData.Type) {
+						case SMUGMUG_NODE_TYPE_ROOT:
+						case SMUGMUG_NODE_TYPE_FOLDER:
+							typeSortKey = 0;
+							break;
+						case SMUGMUG_NODE_TYPE_GALLERY:
+						case SMUGMUG_NODE_TYPE_PAGE:
+							typeSortKey = 1;
+							break;
+						default:
+							//e.g. system pages
+							typeSortKey = 2;
+					}
+					
+					return typeSortKey + "-" + node.label;
 				}});
 			}
 			
