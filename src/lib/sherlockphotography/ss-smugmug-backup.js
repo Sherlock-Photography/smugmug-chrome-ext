@@ -118,6 +118,7 @@ YUI.add('ss-smugmug-site-backup', function(Y, NAME) {
 				var 
 					logProgress = this.get('eventLog').appendLog('info', "Fetching all discovered page designs..."),
 					that = this,
+					apiEndpoint = 'http://' + this.get('smugmugDomain') + '/services/api/json/1.4.0/',
 					pageDesigns = this._backup.pageDesigns;
 				
 				var queue = new Y.SherlockPhotography.APISmartQueue({
@@ -129,7 +130,21 @@ YUI.add('ss-smugmug-site-backup', function(Y, NAME) {
 
 							pageDesigns[response.PageDesign.PageDesignID] = response;
 						} else {
-							that._logError("Got response '" + response.stat + "', '" + response.message + "' while trying to fetch page design #" + request.data.PageDesignID);							
+							if (request.data.Published === undefined && response.stat == 'fail' && response.message == 'Access denied') {
+								//This is probably a page whose customisation was never published, so fetch the Unpublished version:
+								queue.enqueueRequest({
+									url: apiEndpoint,
+									data: {
+										PageDesignID: pageDesignID,
+										Published: false,
+										method: 'rpc.pagedesign.get'	
+									} 
+								});
+								
+								queue.run();
+							} else {
+								that._logError("Got response '" + response.stat + "', '" + response.message + "' while trying to fetch page design #" + request.data.PageDesignID);
+							}
 						}
 
 						return true;
@@ -139,10 +154,9 @@ YUI.add('ss-smugmug-site-backup', function(Y, NAME) {
 				
 				for (var pageDesignID in pageDesigns) {
 					queue.enqueueRequest({
-						url: 'http://' + this.get('smugmugDomain') + '/services/api/json/1.4.0/',
+						url: apiEndpoint,
 						data: {
 							PageDesignID: pageDesignID,
-							Published: false,
 							method: 'rpc.pagedesign.get'	
 						} 
 					});
