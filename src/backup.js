@@ -46,7 +46,7 @@ YUI().use(['node', 'json', 'io', 'event-resize', 'ss-event-log-widget',
 						backupView = null;
 					}				
 
-					backupView = new Y.SherlockPhotography.SmugmugBackupView({backup: backup.get('backup')});
+					backupView = new Y.SherlockPhotography.SmugmugBackupView({backup: backup});
 					
 					backupView.render(Y.one('#backup-explorer'));
 

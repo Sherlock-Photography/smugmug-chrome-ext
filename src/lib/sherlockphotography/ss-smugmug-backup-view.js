@@ -153,7 +153,11 @@ YUI.add('ss-smugmug-backup-view', function(Y, NAME) {
 	}
 	
 	var SmugmugBackupView = Y.Base.create(NAME, Y.Widget, [], {
+
 		_treeView : null,
+		
+		//So we don't have to keep extracting it from this.get('backup').get('backup')
+		_backupData : null,
 
 		CONTENT_TEMPLATE : null,
 		
@@ -175,7 +179,7 @@ YUI.add('ss-smugmug-backup-view', function(Y, NAME) {
 					//Is this page customised?
 					if (smugNode.initData.pageDesignId) {
 						//Check that the page deisgn is part of the backup
-						if (this.get('backup').pageDesigns[smugNode.initData.pageDesignId].PageDesign) {
+						if (this._backupData.pageDesigns[smugNode.initData.pageDesignId].PageDesign) {
 							label += " <span class='label label-primary'>Customised</span>";
 						} else {
 							label += " <span class='label label-danger'>Error</span>";
@@ -248,7 +252,7 @@ YUI.add('ss-smugmug-backup-view', function(Y, NAME) {
 		
 		_rebuildTree: function() {
 			var 
-				backup = this.get('backup'),
+				backup = this._backupData,
 				tree = this._treeView,
 				root = tree.rootNode;
 
@@ -345,7 +349,7 @@ YUI.add('ss-smugmug-backup-view', function(Y, NAME) {
 		_renderFieldList: function(options) {
 			var 
 				that = this,
-				backup = this.get('backup');
+				backup = this._backupData;
 			
 			if (Array.isArray(options)) {
 				options = {items: options};
@@ -477,19 +481,29 @@ YUI.add('ss-smugmug-backup-view', function(Y, NAME) {
 							list = Y.Node.create("<ul class='ss-smugmug-backup-nodelist list-unstyled'></ul>");
 						
 						Y.Array.each(item.value.split(","), function(nodeID) {
-							var content;
+							var 
+								content,
+								foundNode = false;
 							
 							if (backup.nodes[nodeID]) {
-								var nodeLink = Y.Node.create("<a href='#'></a>");
+								foundNode = backup.nodes[nodeID];
+							}
+							
+							if (!foundNode && nodeID.split('-').length == 2) {
+								var fragments = nodeID.split('-');
 								
-								nodeLink.set('text', backup.nodes[nodeID].nodeData.Name);
-								nodeLink.on({
+								foundNode = that.get('backup').findAlbumNode(fragments[0], fragments[1]);
+							}
+							
+							if (foundNode) {
+								content = Y.Node.create("<a href='#'></a>");
+								
+								content.set('text', foundNode.nodeData.Name);
+								content.on({
 									click: function() {
-										that._selectSmugMugNode(nodeID);
+										that._selectSmugMugNode(foundNode.nodeData.NodeID);
 									}
 								});
-								
-								content = nodeLink;
 							} else {
 								content = Y.Escape.html(nodeID);
 							}
@@ -645,7 +659,7 @@ YUI.add('ss-smugmug-backup-view', function(Y, NAME) {
 		_renderSmugNode: function(node, pane) {
 			var 
 				nodeData = node.nodeData,
-				backup = this.get('backup'),
+				backup = this._backupData,
 				nodeType,
 				aboutThisText;
 			
@@ -773,6 +787,7 @@ YUI.add('ss-smugmug-backup-view', function(Y, NAME) {
 		},
 		
 		initializer : function(cfg) {
+			this._backupData = this.get("backup").get("backup");
 		},
 
 		renderUI : function() {
@@ -816,7 +831,7 @@ YUI.add('ss-smugmug-backup-view', function(Y, NAME) {
 			backup: {
 				value: null,
 				writeOnce: "initOnly"
-			}
+			},
 		}
 	});
 
