@@ -332,6 +332,13 @@ YUI.add('ss-smugmug-backup-view', function(Y, NAME) {
 			
 			if (node) {
 				this._treeView.selectNode(node);
+				
+				//Ensure that the tree branch is visible by expanding parents
+				while (node.parent) {
+					node = node.parent;
+					
+					this._treeView.openNode(node);
+				}
 			}
 		},
 		
