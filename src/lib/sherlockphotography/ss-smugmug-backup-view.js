@@ -92,13 +92,22 @@ YUI.add('ss-smugmug-backup-view', function(Y, NAME) {
 				}
 			},
 			"Galleries" : { //Navigation / Galleries
-				fields: NODE_TILES_DEFINITIONS
+				fields: Y.merge(NODE_TILES_DEFINITIONS, {
+					NodeSource: {title: "Select from", lookup: {selectedNodes: "Selected galleries"}},
+					SelectedNodes: {title: "Selected galleries", type: "nodelist"}
+				})
 			},
 			"Folders" : { //Navigation / Folders
-				fields: NODE_TILES_DEFINITIONS
+				fields: Y.merge(NODE_TILES_DEFINITIONS, {
+					NodeSource: {title: "Select from", lookup: {selectedNodes: "Selected folders"}},
+					SelectedNodes: {title: "Selected folders", type: "nodelist"}
+				})
 			},
 			"Pages" : { //Navigation / Pages
-				fields: NODE_TILES_DEFINITIONS
+				fields: Y.merge(NODE_TILES_DEFINITIONS, {
+					NodeSource: {title: "Select from", lookup: {selectedNodes: "Selected pages"}},
+					SelectedNodes: {title: "Selected pages", type: "nodelist"}
+				})
 			},
 			"Folders, Galleries & Pages" : {
 				fields: NODE_TILES_DEFINITIONS
@@ -607,7 +616,7 @@ YUI.add('ss-smugmug-backup-view', function(Y, NAME) {
 				fields.push({title: "Margins", value: this._renderMargins(widget)});
 				
 				if (widget.Config) {
-					var configDef = WIDGET_CONFIG_DEFINITION[widget.Name] || {fields: {}}; 
+					var configDef = WIDGET_CONFIG_DEFINITION[widget.TypeFriendly] || {fields: {}}; 
 					
 					for (var fieldName in widget.Config) {
 						var 
@@ -666,14 +675,25 @@ YUI.add('ss-smugmug-backup-view', function(Y, NAME) {
 					aboutThisText = "About this node (" + nodeData.Type + ")";
 			}
 
-			var topLevelBlocks = [];
-			
-			var aboutThisNode = [];
+			var 
+				aboutThisNode = [],
+				topLevelBlocks = [];
 
-			if (nodeData.Type != SMUGMUG_NODE_TYPE_ROOT) {
-				aboutThisNode.push(
-					{title: nodeType + " name", supportCopy:true, value:nodeData.Name}
-				);
+			// Add a name field for this node
+			switch (nodeData.Type) {
+				case SMUGMUG_NODE_TYPE_ROOT:
+					//No title needs to be displayed
+					break;
+				case SMUGMUG_NODE_TYPE_SYSTEM_PAGE:
+					//Don't need to support copying since system page names can't be edited anyway
+					aboutThisNode.push(
+						{title: nodeType, value:nodeData.Name}
+					);
+					break;
+				default:
+					aboutThisNode.push(
+						{title: nodeType + " name", supportCopy:true, value:nodeData.Name}
+					);
 			}
 			
 			if (nodeData.HLImageID) {
