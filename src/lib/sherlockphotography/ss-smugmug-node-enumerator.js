@@ -83,7 +83,7 @@ YUI.add('ss-smugmug-node-enumerator', function(Y, NAME) {
 					writeOnce: 'initOnly'
 				},
 				
-				//Maximum depth to fetch (1 means just the root)
+				//Maximum depth to fetch (1 means just the direct children of the root)
 				maxDepth: {
 					value: 2
 				}
