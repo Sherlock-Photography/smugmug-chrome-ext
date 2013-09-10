@@ -134,11 +134,9 @@ YUI.add('ss-smugmug-site-backup', function(Y, NAME) {
 								//This is probably a page whose customisation was never published, so fetch the Unpublished version:
 								queue.enqueueRequest({
 									url: apiEndpoint,
-									data: {
-										PageDesignID: pageDesignID,
+									data: Y.merge(request.data, {
 										Published: false,
-										method: 'rpc.pagedesign.get'	
-									} 
+									}) 
 								});
 								
 								queue.run();
@@ -253,6 +251,17 @@ YUI.add('ss-smugmug-site-backup', function(Y, NAME) {
 			},	
 			
 			/**
+			 * Filter init data scraped from a SmugMug HTML page to include only the information I want stored in a node's initData:{} field.
+			 */
+			_filterInitDataForBackup: function(data) {
+				return {
+					pageDesignId: data.pageDesignId,
+					siteDesignId: data.siteDesignId,
+					sitePageDesignId: data.sitePageDesignId
+				};				
+			},
+			
+			/**
 			 * Fetch every single node from _backup.nodes to fetch their init data, store that data in 
 			 * _backup.nodes[].initData.
 			 * 
@@ -273,11 +282,7 @@ YUI.add('ss-smugmug-site-backup', function(Y, NAME) {
 							return 'retry';
 						
 						//Only keep some of the initData around (most of it I can't see useful keeping in the backup)
-						nodes[request.node.nodeData.NodeID].initData = {
-							pageDesignId: parsed.pageDesignId,
-							siteDesignId: parsed.siteDesignId,
-							sitePageDesignId: parsed.sitePageDesignId
-						};
+						nodes[request.node.nodeData.NodeID].initData = that._filterInitDataForBackup(parsed);
 						
 						return true;
 					},
@@ -287,7 +292,8 @@ YUI.add('ss-smugmug-site-backup', function(Y, NAME) {
 				for (var nodeID in nodes) {
 					var node = nodes[nodeID];
 					
-					if (node.nodeData.Url) {
+					//Don't refetch the initData if the system node enumeration already got it for us
+					if (node.nodeData.Url && !node.initData) {
 						queue.enqueueRequest({
 							url: node.nodeData.Url,
 							data: {},
@@ -323,6 +329,58 @@ YUI.add('ss-smugmug-site-backup', function(Y, NAME) {
 				queue.run();
 			},
 			
+			_stageTreeifyNodes: function() {
+				this._backup.nodeTree = Y.SherlockPhotography.SmugmugTools.treeifyNodes(this._backup.nodes);
+				
+				this._backupStageCompleted(true);
+			},
+			
+			/**
+			 * Find node data for system pages like /browse and add it to _backup.nodes, but only if they've been customised.
+			 */
+			_stageEnumerateSystemNodes: function() {
+				var systemURLs = ["/browse", "/404", "/password", "/date", "/keyword", "/popular", "/search"];
+				
+				var 
+					logProgress = this.get('eventLog').appendLog('info', "Finding system pages..."),
+					that = this,
+					nodes = this._backup.nodes;
+				
+				var queue = new Y.SherlockPhotography.APISmartQueue({
+					processResponse: function(request, response) {
+						var parsed = Y.SherlockPhotography.SmugmugTools.extractPageInitData(response); 
+
+						//Page must be customised to bother storing in backup
+						if (parsed && parsed.userNode && parsed.pageDesignId) {
+							nodes[parsed.userNode.NodeID] = {nodeData: parsed.userNode, initData: that._filterInitDataForBackup(parsed)};
+						}
+						
+						return true;
+					},
+					responseType: 'html'
+				});
+				
+				for (var index in systemURLs) {
+					queue.enqueueRequest({
+						url: 'http://' + this.get('smugmugDomain') + systemURLs[index]
+					});
+				}
+				
+				queue.on({
+					complete: function() {
+						that._backupStageCompleted(true);
+					},
+					requestFail: function(e) {
+						that._logError("Failed to fetch system page '" + e.request.url + "'");
+					},					
+					progress: function(progress) {
+						logProgress.set('progress', progress);
+					}
+				});
+				
+				queue.run();				
+			},
+			
 			/**
 			 * Walk the SmugMug node tree beginning from the _backup.nodeTree root, find all the nodes and store
 			 * in _backup.nodes, _backup.nodeTree.
@@ -349,7 +407,6 @@ YUI.add('ss-smugmug-site-backup', function(Y, NAME) {
 					
 					complete: function(e) {
 						that._backup.nodes = e.nodes;
-						that._backup.nodeTree = Y.SherlockPhotography.SmugmugTools.treeifyNodes(that._backup.nodes);
 						
 						that._backupStageCompleted(true);
 					}
@@ -420,6 +477,8 @@ YUI.add('ss-smugmug-site-backup', function(Y, NAME) {
                   	this._stageCreateBackupMetadata,
                 	this._stageFindRootNode,
                 	this._stageEnumerateNodes,
+                	this._stageEnumerateSystemNodes,
+                	this._stageTreeifyNodes,
 					this._stageEnumerateDesignsForNodes,
 					this._stageEnumerateSitePageDesigns,
 					this._stageFetchPageDesigns,
