@@ -10,6 +10,7 @@ YUI.add('ss-smugmug-backup-view', function(Y, NAME) {
 		SMUGMUG_NODE_TYPE_ROOT = 1,
 		SMUGMUG_NODE_TYPE_FOLDER = 2,
 		SMUGMUG_NODE_TYPE_GALLERY = 4,
+		SMUGMUG_NODE_TYPE_SYSTEM_PAGE = 16,
 		SMUGMUG_NODE_TYPE_PAGE = 64;
 	
 	var
@@ -655,6 +656,10 @@ YUI.add('ss-smugmug-backup-view', function(Y, NAME) {
 				case SMUGMUG_NODE_TYPE_PAGE:
 					nodeType = "Page";
 					aboutThisText = "About this page";
+					break;
+				case SMUGMUG_NODE_TYPE_SYSTEM_PAGE:
+					nodeType = "System page";
+					aboutThisText = "About this system page";
 					break;
 				default:
 					nodeType = "Node (" +nodeData.Type + ")";
