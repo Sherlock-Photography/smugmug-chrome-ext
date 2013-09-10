@@ -114,7 +114,8 @@ YUI.add('ss-smugmug-backup-view', function(Y, NAME) {
 			},
 			"Multiple Photos" : {
 				fields: Y.merge(NODE_TILES_DEFINITIONS, {
-					SelectedImages: {title: "Selected images<br><small>Image files not saved inside the backup</small>", type: "smugimages"}
+					SelectedImages: {title: "Selected images<br><small>Image files not saved inside the backup</small>", type: "smugimages"},
+					AlbumID: {title: "Gallery", type: "albumid"}
 				})
 			}
 		},
@@ -335,6 +336,27 @@ YUI.add('ss-smugmug-backup-view', function(Y, NAME) {
 		},
 		
 		/**
+		 * Create a link to the given node, and return the rendered node.
+		 * 
+		 * @param node
+		 * @returns
+		 */
+		_createNodeLink: function(node) {
+			var 
+				that = this,
+				content = Y.Node.create("<a href='#'></a>");
+			
+			content.set('text', node.nodeData.Name);
+			content.on({
+				click: function() {
+					that._selectSmugMugNode(node.nodeData.NodeID);
+				}
+			});
+			
+			return content;
+		},
+		
+		/**
 		 * Options is either an array of field items or an object:
 		 * 
 		 * className - Class to apply to <dl> (optional)
@@ -496,14 +518,7 @@ YUI.add('ss-smugmug-backup-view', function(Y, NAME) {
 							}
 							
 							if (foundNode) {
-								content = Y.Node.create("<a href='#'></a>");
-								
-								content.set('text', foundNode.nodeData.Name);
-								content.on({
-									click: function() {
-										that._selectSmugMugNode(foundNode.nodeData.NodeID);
-									}
-								});
+								content = that._createNodeLink(foundNode);
 							} else {
 								content = Y.Escape.html(nodeID);
 							}
@@ -515,6 +530,21 @@ YUI.add('ss-smugmug-backup-view', function(Y, NAME) {
 						});
 						
 						valueRendered = list;
+						break;
+					case 'albumid':
+						var 
+							foundNode = false,
+							fragments = item.value.split('-');
+						
+						if (fragments.length == 2) {
+							foundNode = that.get('backup').findAlbumNode(fragments[0], fragments[1]);
+						}
+						
+						if (foundNode) {
+							valueRendered = that._createNodeLink(foundNode);
+						} else {
+							valueRendered = Y.Escape.html(nodeID);
+						}						
 						break;
 					default:
 						if (item.value instanceof Y.Node) {
