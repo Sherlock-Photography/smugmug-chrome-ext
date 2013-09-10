@@ -162,8 +162,14 @@ YUI.add('ss-smugmug-backup-view', function(Y, NAME) {
 				label = smugNode.nodeData.Name;
 				
 				if (smugNode.initData) {
+					//Is this page customised?
 					if (smugNode.initData.pageDesignId) {
-						label += " <span class='label label-primary'>Customised</span>";
+						//Check that the page deisgn is part of the backup
+						if (this.get('backup').pageDesigns[smugNode.initData.pageDesignId].PageDesign) {
+							label += " <span class='label label-primary'>Customised</span>";
+						} else {
+							label += " <span class='label label-danger'>Error</span>";
+						}
 					}					
 				} else {
 					label += " <span class='label label-danger'>Error</span>";
