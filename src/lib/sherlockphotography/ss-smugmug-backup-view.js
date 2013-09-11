@@ -130,8 +130,7 @@ YUI.add('ss-smugmug-backup-view', function(Y, NAME) {
 			Category: {show: false},
 			PrimaryHex: {title: "Primary colour", type: "colour"},
 			AccentHex: {title: "Accent colour", type: "colour"},
-			TextHex: {title: "Text colour", type: "colour"},
-			LeftBackgroundHex: {title: "Text colour", type: "colour"},
+			TextHex: {title: "Text colour", type: "colour"}
 		},
 		
 		SITE_DESIGN_FIELD_DEFINITIONS = {
