@@ -76,6 +76,11 @@ YUI.add('ss-smugmug-backup-view', function(Y, NAME) {
 				     CSS: {type: "code:css"}
 				}
 			},
+			"Title" : {
+				fields: {
+					Text: {type:"line", supportCopy: true},
+				}
+			},
 			"Single Photo": {
 				fields: {
 					ImageID: {title: "Image<br><small>Not saved inside the backup</small>", type: "smugimage"},
@@ -115,7 +120,8 @@ YUI.add('ss-smugmug-backup-view', function(Y, NAME) {
 			"Multiple Photos" : {
 				fields: Y.merge(NODE_TILES_DEFINITIONS, {
 					SelectedImages: {title: "Selected images<br><small>Image files not saved inside the backup</small>", type: "smugimages"},
-					AlbumID: {title: "Gallery", type: "albumid"}
+					AlbumID: {title: "Gallery", type: "albumid"},
+					ImageSource: {lookup: {album: "Selected gallery"}}
 				})
 			}
 		},
@@ -130,7 +136,9 @@ YUI.add('ss-smugmug-backup-view', function(Y, NAME) {
 			Category: {show: false},
 			PrimaryHex: {title: "Primary colour", type: "colour"},
 			AccentHex: {title: "Accent colour", type: "colour"},
-			TextHex: {title: "Text colour", type: "colour"}
+			TextHex: {title: "Text colour", type: "colour"},
+			BackgroundHex: {title: "Background colour", type: "colour"},
+			TopBackgroundHex: {title: "Top background colour", type: "colour"},
 		},
 		
 		SITE_DESIGN_FIELD_DEFINITIONS = {
@@ -780,10 +788,12 @@ YUI.add('ss-smugmug-backup-view', function(Y, NAME) {
 				{title:aboutThisText, value:this._renderFieldList({items:aboutThisNode, className:"ss-field-list"})}
 			);
 
-			var pageDesign = false;
+			var 
+				pageDesign = false,
+				pageDesignID = false;
 			
 			if (node.initData) {
-				var pageDesignID = node.initData.pageDesignId || node.initData.sitePageDesignId; 
+				pageDesignID = node.initData.pageDesignId || node.initData.sitePageDesignId; 
 				
 				if (pageDesignID && backup.pageDesigns[pageDesignID]) {
 					pageDesign = backup.pageDesigns[pageDesignID];
@@ -797,16 +807,29 @@ YUI.add('ss-smugmug-backup-view', function(Y, NAME) {
 					topLevelBlocks.push(widgetBlocks[index]);
 				}
 			} else {
-				topLevelBlocks.push({
-					title: "Page design and content blocks", 
-					value: this._renderFieldList({
-						items:[{
-							title:"Error", 
-							value: Y.Node.create('<div class="alert alert-danger">The design for this page was not found!</div>')
-						}],
-						className: "ss-field-list"
-					})
-				});
+				if (pageDesignID) {
+					topLevelBlocks.push({
+						title: "Page design and content blocks",
+						value: this._renderFieldList({
+							items:[{
+								title:"Error",
+								value: Y.Node.create('<div class="alert alert-danger">The design for this page was not found!</div>')
+							}],
+							className: "ss-field-list"
+						})
+					});
+				} else {
+					topLevelBlocks.push({
+						title: "Page design and content blocks", 
+						value: this._renderFieldList({
+							items:[{
+								title:"Design", 
+								value: Y.Node.create('<div class="alert alert-info">This page appears to use the default, uncustomised design.</div>')
+							}],
+							className: "ss-field-list"
+						})
+					});					
+				}
 			}
 			
 			pane.append(this._renderSectionList({items:topLevelBlocks, className: "ss-collapsable-section"}));
