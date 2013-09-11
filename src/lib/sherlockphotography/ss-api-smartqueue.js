@@ -78,19 +78,22 @@ YUI.add('ss-api-smartqueue', function(Y, NAME) {
 					
 					responseText = window.localStorage[cacheKey];
 				}
+
+				/* 
+				 * If asked to simulate failures, and we decide this request is failed, don't even make the request to the server.
+				 */ 
+				if (this.get('simulateFail') && Math.random() < 0.75) {
+					if (!attemptRetry()) {
+						this.fire('requestFail', {request: request, status: 500, statusText: "Fake error message"});
+					}
+					return;
+				}
 				
 				if (responseText) {
-					//Simulate failures
-					if (this.get('simulateFail') && Math.random() < 0.75) {
-						if (!attemptRetry()) {
-							this.fire('requestFail', {request: request, status: 500, statusText: "Fake error message"});
-						}
+					if (this.get('responseType') == 'json') {
+						handleSuccessData.call(this, Y.JSON.parse(responseText));
 					} else {
-						if (this.get('responseType') == 'json') {
-							handleSuccessData.call(this, Y.JSON.parse(responseText));
-						} else {
-							handleSuccessData.call(this, responseText);
-						}
+						handleSuccessData.call(this, responseText);
 					}
 				} else {
 					Y.io(request.url, {
@@ -177,12 +180,15 @@ YUI.add('ss-api-smartqueue', function(Y, NAME) {
 					value: 'json'
 				},
 				
-				//Only suitable for debugging, as this causes successful responses received to be cached indefinitely
+				/* 
+				 * Only suitable for debugging, as this causes successful responses received to be cached indefinitely, and makes
+				 * no attempt to avoid filling up LocalStorage.
+				 */
 				persistentCache: {
 					value: false
 				},
 				
-				//If persistent caching is used, this option simulates failed AJAX requests to test error-handling
+				//This option simulates failed AJAX requests to test error-handling
 				simulateFail: {
 					value: false
 				},
