@@ -13,8 +13,18 @@ YUI().use(['node', 'json', 'io', 'event-resize', 'ss-event-log-widget',
 	var 
 		regPayPalItemNameField = /<input type="hidden" name="item_name" value="[^"]*">/,
 		regPayPalItemNumberField = /<input type="hidden" name="item_number" value="[^"]*">/,
+		regPayPalIsHosted = /name="hosted_button_id"/,
+		regPayPalIsEncrypted = /-----BEGIN PKCS7-----/,
 		regFindInstalledPayPalCode = /<div class="ss-paypal-button">[\s\S]+?<\/div><div class="ss-paypal-button-end" style="display:none">\.?<\/div>/,
-		regFindInstalledPayPalCodeGlobal = new RegExp(regFindInstalledPayPalCode.source, "g"); 	
+		regFindInstalledPayPalCodeGlobal = new RegExp(regFindInstalledPayPalCode.source, "g");
+	
+	var
+		payPalCodeIsValid = false;
+	
+	if (!albumID) {
+		alert("Whoops, this doesn't seem to be a gallery page. Please navigate back to the gallery you want to edit and try again.");
+		window.close();
+	}
 	
 	//Sorry, this is the best I can do on Chrome! (it doesn't allow User-Agent to be changed)
 	Y.io.header('X-User-Agent', 'Unofficial SmugMug extension for Chrome v0.1 / I\'m in ur server, mogrifying ur data / n.sherlock@gmail.com');
@@ -31,10 +41,9 @@ YUI().use(['node', 'json', 'io', 'event-resize', 'ss-event-log-widget',
 	
 	function syncButtonStates() {
 		var 
-			selected = Y.all(".smugmug-image.selected"),
-			hasPayPalCode = validatePayPalCode(Y.one("#paypal-button-code").get("value"));
+			selected = Y.all(".smugmug-image.selected");
 		
-		if (selected.size() && hasPayPalCode) {
+		if (selected.size() && payPalCodeIsValid) {
 			Y.one('#btn-apply').removeAttribute("disabled");
 		} else {
 			Y.one('#btn-apply').setAttribute("disabled", "disabled");
@@ -124,10 +133,45 @@ YUI().use(['node', 'json', 'io', 'event-resize', 'ss-event-log-widget',
 	}
 		
 	/**
-	 * Does the PayPal button code look correct? 
+	 * Check that the PayPal button code looks correct, if it does, return the code. If not, an error message is added to the UI to tell the user
+	 * what's wrong and false is returned.
+	 * 
+	 * Sets the global boolean payPalCodeIsValid with the result. 
 	 */
-	function validatePayPalCode(code) {
-		return code && code.match(regPayPalItemNameField) && code.match(regPayPalItemNumberField);
+	function validatePayPalCode() {
+		var 
+			code = Y.one("#paypal-button-code").get("value").trim(),
+			statusDisplay = Y.one("#paypal-code-warning");
+		
+		payPalCodeIsValid = false;
+		
+		if (code) {
+			if (code.match(regPayPalIsHosted)) {
+				statusDisplay.set('text', 'You must deselect the option to "save your button at PayPal" when you create your button.');
+			} else if (code.match(regPayPalIsEncrypted)){
+				statusDisplay.set('text', 'You must click the link "remove code protection" that appears in the final stage of creating your button.');
+			} else {
+				if (code.match(regPayPalItemNameField)) {
+					if (code.match(regPayPalItemNumberField)) {
+						payPalCodeIsValid = true;					
+					} else {
+						statusDisplay.set('text', 'The code seems to be missing the Item ID field, did you remember to enter some text into that box when creating your button?');
+					}
+				} else {
+					statusDisplay.set('text', 'The code seems to be missing the Item Name field, did you remember to enter some text into that box when creating your button?');				
+				}
+			}
+			
+			if (payPalCodeIsValid) {
+				statusDisplay.setStyle('display', 'none');
+			} else {
+				statusDisplay.setStyle('display', 'block');
+			}
+		} else {
+			statusDisplay.setStyle('display', 'none');
+		}
+		
+		return payPalCodeIsValid ? code : false;
 	}
 	
 	function preparePayPalCode(code) {
@@ -371,6 +415,8 @@ YUI().use(['node', 'json', 'io', 'event-resize', 'ss-event-log-widget',
 			
 			textareaButtonCode.on({
 				valuechange: function() {
+					validatePayPalCode();
+					
 					updateButtonPreview();
 					
 					syncButtonStates();
@@ -379,9 +425,9 @@ YUI().use(['node', 'json', 'io', 'event-resize', 'ss-event-log-widget',
 			
 			Y.one('#btn-apply').on({
 				click: function(e) {
-					var payPalCode = textareaButtonCode.get('value');
+					var payPalCode = validatePayPalCode();
 					
-					if (validatePayPalCode(payPalCode)) {
+					if (payPalCode) {
 						window.localStorage["payPalButtonTool.payPalCode"] = payPalCode;
 						
 						applyEventLog.clear();						

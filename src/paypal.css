@@ -76,3 +76,7 @@ p {
 #paypal-button-panels {
 	overflow: hidden;
 }
+
+#paypal-code-warning {
+	display: none;
+}
