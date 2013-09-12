@@ -183,6 +183,10 @@ YUI().use(['node', 'json', 'io', 'event-resize', 'ss-event-log-widget',
 		return text.replace(/<\S[^><]*>/g, "");
 	}
 	
+	function newlinesToSpaces(text) {
+		return text.replace(/(\r\n|\n|\r)/gm, " ");
+	}
+	
 	function customizePayPalCodeForImage(payPalCode, image) {
 		var 
 			link = image.get('WebUri'),
@@ -192,7 +196,7 @@ YUI().use(['node', 'json', 'io', 'event-resize', 'ss-event-log-widget',
 			//Tidy up the caption by removing HTML and PayPal code
 			caption = image.get("Caption").replace(regFindInstalledPayPalCodeGlobal, '');
 			caption = stripHTML(caption).trim();
-			caption = caption.replace("\n", " ");
+			caption = newlinesToSpaces(caption);
 		} else {
 			caption = "";
 		}
@@ -200,7 +204,7 @@ YUI().use(['node', 'json', 'io', 'event-resize', 'ss-event-log-widget',
 		if (image.get("Title")) {
 			//Tidy up the title by removing HTML
 			title = stripHTML(image.get("Title")).trim();
-			title = title.replace("\n", " ");
+			title = newlinesToSpaces(title);
 		} else {
 			title = "";
 		}
@@ -220,7 +224,8 @@ YUI().use(['node', 'json', 'io', 'event-resize', 'ss-event-log-widget',
 		}
 		
 		var result = '<div class="ss-paypal-button">' + 
-			payPalCode
+				payPalCode.replace(/(\r\n|\n|\r)/gm, "") /* SmugMug's codegen for tooltips will make every \n start a new line, and we don't want our tooltip that tall! */
+				.replace(/  +|\t/g, " ")
 				.trim()
 				.replace(regPayPalItemNameField, '<input type="hidden" name="item_name" value="' + Y.Escape.html(description) + '">')
 				.replace(regPayPalItemNumberField, '<input type="hidden" name="item_number" value="' + Y.Escape.html(link) + '">');
@@ -269,7 +274,7 @@ YUI().use(['node', 'json', 'io', 'event-resize', 'ss-event-log-widget',
 			} else if (image.Caption == ""){
 				newCaption = imagePayPalCode;
 			} else {
-				newCaption = oldCaption + "\n" + imagePayPalCode;
+				newCaption = oldCaption + "\n\n" + imagePayPalCode;
 			}
 			
 			if (newCaption != oldCaption) {
@@ -482,6 +487,8 @@ YUI().use(['node', 'json', 'io', 'event-resize', 'ss-event-log-widget',
 
 			if (window.localStorage["payPalButtonTool.payPalCode"] !== undefined) {
 				textareaButtonCode.set('value', window.localStorage["payPalButtonTool.payPalCode"]);
+				
+				validatePayPalCode();
 				updateButtonPreview();
 			}
 			
