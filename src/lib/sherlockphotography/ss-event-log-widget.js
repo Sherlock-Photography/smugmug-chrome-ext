@@ -27,8 +27,10 @@ YUI.add('ss-event-log-widget', function(Y, NAME) {
 				
 				if (progress) {
 					if (!this._progressBar) {
-						this._progressBar = new Y.SherlockPhotography.ProgressBar(progress);
-						this._progressBar.render(this.get('element')); 
+						if (progress.total > 0) {
+							this._progressBar = new Y.SherlockPhotography.ProgressBar(progress);
+							this._progressBar.render(this.get('element'));
+						}
 					} else {
 						this._progressBar.set('total', progress.total);
 						this._progressBar.set('completed', progress.completed);
