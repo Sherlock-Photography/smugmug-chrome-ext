@@ -180,7 +180,7 @@ YUI.add('ss-smugmug-site-backup', function(Y, NAME) {
 			 */
 			_stageEnumerateSitePageDesigns: function() {
 				var 
-					logProgress = this.get('eventLog').appendLog('info', "Listing designs for default pages (homepage, all folders, etc)..."),
+					logProgress = this.get('eventLog').appendLog('info', "Listing designs for site pages (homepage, all folders, etc)..."),
 					that = this, 
 					siteDesigns = this._backup.siteDesigns;
 				
@@ -221,7 +221,7 @@ YUI.add('ss-smugmug-site-backup', function(Y, NAME) {
 						that._backupStageCompleted(true);
 					},
 					requestFail: function(e) {
-						that._logError("Failed to find the designs for the default pages of design ID#" + e.request.data.SiteDesignID);
+						that._logError("Failed to find the designs for the site pages of design ID#" + e.request.data.SiteDesignID);
 					},										
 					progress: function(progress) {
 						logProgress.set('progress', progress);

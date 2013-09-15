@@ -4,7 +4,8 @@ YUI.add('ss-smugmug-backup-view', function(Y, NAME) {
 		NODE_TYPE_BACKUP_INFO = 1,
 		NODE_TYPE_SMUG_NODE = 2,
 		NODE_TYPE_SITE_DESIGN = 3,
-		NODE_TYPE_SITE_SKIN = 4;
+		NODE_TYPE_SITE_SKIN = 4,
+		NODE_TYPE_SITEPAGE_DESIGN = 5;
 	
 	var 
 		SMUGMUG_NODE_TYPE_ROOT = 1,
@@ -14,6 +15,13 @@ YUI.add('ss-smugmug-backup-view', function(Y, NAME) {
 		SMUGMUG_NODE_TYPE_PAGE = 64;
 	
 	var
+		SITE_PAGE_DESIGN_NAME_TRANSLATIONS = {
+			"Site": "Entire site",
+			"Homepage": "Homepage",
+			"Folder": "All folders",
+			"Gallery": "All galleries"
+		},
+		
 		LOOKUP_GALLERY_STYLE = {
 			3: "SmugMug",
 			17: "Thumbnails",
@@ -87,6 +95,12 @@ YUI.add('ss-smugmug-backup-view', function(Y, NAME) {
 					CustomURL: {title: "Custom URL", type: "url"}
 				}
 			},
+			"Logo" : {
+				fields: {
+					ImageID: {title: "Image<br><small>Not saved inside the backup</small>", type: "smugimage"},
+					Text: {type: "line", supportCopy: true}
+				}
+			},
 			"Profile": {
 				fields: {
 					TrackProfile: {title: "Use data from your profile"},
@@ -123,6 +137,11 @@ YUI.add('ss-smugmug-backup-view', function(Y, NAME) {
 					AlbumID: {title: "Gallery", type: "albumid"},
 					ImageSource: {lookup: {album: "Selected gallery"}}
 				})
+			},
+			"Slideshow" : {
+				fields: {
+					AlbumID: {title: "Source gallery", type: "albumid"},
+				}
 			}
 		},
 		
@@ -256,21 +275,44 @@ YUI.add('ss-smugmug-backup-view', function(Y, NAME) {
 		},		
 				
 		_buildSiteDesignsTree: function(siteDesigns, parentTreeNode) {
-			var designsRoot = parentTreeNode.append({
-				label: "Site designs",
-				state: {open: true}
-			});
+			var 
+				designsRoot = parentTreeNode.append({
+					label: "Site designs",
+					state: {open: true}
+				});
 			
 			for (var siteDesignId in siteDesigns) {
 				var siteDesign = siteDesigns[siteDesignId];
 				
-				designsRoot.append({
+				var siteDesignNode = designsRoot.append({
 					label: siteDesign.SiteDesignID ? siteDesign.Name : '(failed to fetch)',
 					data: {
 						type: NODE_TYPE_SITE_DESIGN,
 						data: siteDesign
-					}
+					},
+					state: {open: true}					
 				});
+				
+				for (var sitePageDesignID in siteDesign.sitePageDesigns) {
+					var 
+						sitePageDesign = siteDesign.sitePageDesigns[sitePageDesignID],
+						pageDesign = this._backupData.pageDesigns[sitePageDesignID],
+						name;
+					
+					name = SITE_PAGE_DESIGN_NAME_TRANSLATIONS[sitePageDesign.Name] ? SITE_PAGE_DESIGN_NAME_TRANSLATIONS[sitePageDesign.Name] : sitePageDesign.Name;
+					
+					if (!pageDesign || !pageDesign.PageDesign) {
+						name += " <span class='label label-danger'>Error</span>";
+					}
+					
+					siteDesignNode.append({
+						label: name,
+						data: {
+							type: NODE_TYPE_SITEPAGE_DESIGN,
+							data: sitePageDesign
+						}}
+					);
+				}
 			}
 		},		
 		
@@ -604,6 +646,30 @@ YUI.add('ss-smugmug-backup-view', function(Y, NAME) {
 			return dl;
 		},
 
+		_renderSitePageDesign: function(sitePage, pane) {
+			var 
+				fields = [],
+				topLevelBlocks = [],
+				pageDesign = this._backupData.pageDesigns[sitePage.PageDesignID];
+			
+			fields.push({title:"Name", value:SITE_PAGE_DESIGN_NAME_TRANSLATIONS[sitePage.Name] ? SITE_PAGE_DESIGN_NAME_TRANSLATIONS[sitePage.Name] : sitePage.Name});
+			
+			topLevelBlocks.push({
+				title: "About this site page design",
+				value: this._renderFieldList({items:fields, className:"ss-field-list"})
+			});			
+			
+			if (pageDesign && pageDesign.PageDesign) {
+				var widgetBlocks = this._renderWidgetBlocks(pageDesign.PageDesign);
+				
+				for (index in widgetBlocks) {
+					topLevelBlocks.push(widgetBlocks[index]);
+				}
+			}
+			
+			pane.append(this._renderSectionList({items:topLevelBlocks, className: "ss-collapsable-section"}));			
+		},
+		
 		_renderSiteSkin: function(skin, pane) {
 			var 
 				fields = [],
@@ -621,8 +687,9 @@ YUI.add('ss-smugmug-backup-view', function(Y, NAME) {
 		
 		_renderSiteDesign: function(design, pane) {
 			var 
-				fields = [],
-				fieldDefs = SITE_DESIGN_FIELD_DEFINITIONS;
+				topLevelBlocks = [],
+				fieldDefs = SITE_DESIGN_FIELD_DEFINITIONS,
+				fields = [];
 			
 			if (design.SiteDesignID) {
 				for (var fieldName in design) {
@@ -632,10 +699,18 @@ YUI.add('ss-smugmug-backup-view', function(Y, NAME) {
 					fields.push(Y.merge({title: fieldName, value: design[fieldName]}, fieldInfo));
 				}
 			} else {
-				fields.push({title: "Error", value: Y.Node.create('<div class="alert alert-danger">This site design could not be fetched!</div>')});
+				fields.push({
+					title: "Error", 
+					value: Y.Node.create('<div class="alert alert-danger">This site design could not be fetched!</div>')
+				});
 			}
+
+			topLevelBlocks.push({
+				title: "About this design",
+				value: this._renderFieldList({items:fields, className:"ss-field-list"})
+			});
 			
-			pane.append(this._renderFieldList({items:fields, className:"ss-field-list"}));
+			pane.append(this._renderSectionList({items:topLevelBlocks, className: "ss-collapsable-section"}));
 		},		
 		
 		_renderBackupInfo: function(backup, pane) {
@@ -856,6 +931,9 @@ YUI.add('ss-smugmug-backup-view', function(Y, NAME) {
 						break;
 					case NODE_TYPE_SITE_SKIN:
 						this._renderSiteSkin(node.data.data, pane);
+						break;
+					case NODE_TYPE_SITEPAGE_DESIGN:
+						this._renderSitePageDesign(node.data.data, pane);
 						break;
 				}
 			}
