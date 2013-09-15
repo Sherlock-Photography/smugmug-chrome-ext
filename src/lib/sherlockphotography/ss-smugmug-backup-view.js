@@ -201,21 +201,21 @@ YUI.add('ss-smugmug-backup-view', function(Y, NAME) {
 				label = "Homepage";
 			} else {
 				label = smugNode.nodeData.Name;
-				
-				if (smugNode.initData) {
-					//Is this page customised?
-					if (smugNode.initData.pageDesignId) {
-						//Check that the page deisgn is part of the backup
-						if (this._backupData.pageDesigns[smugNode.initData.pageDesignId].PageDesign) {
-							label += " <span class='label label-primary'>Customised</span>";
-						} else {
-							label += " <span class='label label-danger'>Error</span>";
-						}
-					}					
-				} else {
-					label += " <span class='label label-danger'>Error</span>";
-				} 
 			}
+			
+			if (smugNode.initData) {
+				//Is this page customised?
+				if (smugNode.initData.pageDesignId) {
+					//Check that the page deisgn is part of the backup
+					if (this._backupData.pageDesigns[smugNode.initData.pageDesignId].PageDesign) {
+						label += " <span class='label label-primary'>Customised</span>";
+					} else {
+						label += " <span class='label label-danger'>Error</span>";
+					}
+				}					
+			} else {
+				label += " <span class='label label-danger'>Error</span>";
+			} 
 			
 			var treeNode = parentTreeNode.append({
 				label: label,
@@ -474,10 +474,7 @@ YUI.add('ss-smugmug-backup-view', function(Y, NAME) {
 				}
 				
 				if (!item.type) {
-					if (item.value === "") {
-						//No type, no value, don't bother showing this field
-						continue;
-					} else if (item.value === true || item.value === false) {
+					if (item.value === true || item.value === false) {
 						item.type = "yesno";
 					} else if (isNumber(item.value)) {
 						item.type = "line";								
