@@ -106,7 +106,7 @@ YUI.add('ss-smugmug-backup-view', function(Y, NAME) {
 					TrackProfile: {title: "Use data from your profile"},
 					BioPhoto: {title: "Bio photo<br><small>Not saved inside the backup</small>", type: "smugimage"},
 					CoverPhoto: {title: "Cover photo<br><small>Not saved inside the backup</small>", type: "smugimage"},
-					MyPhoto: {title: "My name"},
+					MyName: {title: "My name"},
 					Description: {type: "lines", supportCopy:true}
 				}
 			},
