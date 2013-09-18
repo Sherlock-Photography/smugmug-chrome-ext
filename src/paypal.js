@@ -11,8 +11,6 @@ YUI().use(['node', 'json', 'io', 'event-resize', 'ss-event-log-widget', 'ss-payp
 		imageListSpinner = null;
 
 	var 
-		regPayPalIsHosted = /name="hosted_button_id"/,
-		regPayPalIsEncrypted = /-----BEGIN PKCS7-----/,
 		regFindInstalledPayPalCode = /<div class="ss-paypal-button">[\s\S]+?<\/div><div class="ss-paypal-button-end" style="display:none">\.?<\/div>/,
 		regFindInstalledPayPalCodeGlobal = new RegExp(regFindInstalledPayPalCode.source, "g");
 	
@@ -147,9 +145,9 @@ YUI().use(['node', 'json', 'io', 'event-resize', 'ss-event-log-widget', 'ss-payp
 		payPalCodeIsValid = false;
 		
 		if (code) {
-			if (code.match(regPayPalIsHosted)) {
+			if (Y.SherlockPhotography.PayPalButtonManager.buttonCodeIsHosted(code)) {
 				statusDisplay.set('text', 'You must deselect the option to "save your button at PayPal" when you create your button.');
-			} else if (code.match(regPayPalIsEncrypted)){
+			} else if (Y.SherlockPhotography.PayPalButtonManager.buttonCodeIsEncrypted(code)){
 				statusDisplay.set('text', 'You must click the link "remove code protection" that appears in the final stage of creating your button.');
 			} else {
 				payPalCode = Y.Node.create(code);
@@ -184,7 +182,7 @@ YUI().use(['node', 'json', 'io', 'event-resize', 'ss-event-log-widget', 'ss-payp
 			caption, title, description;
 		
 		if (image.get("Caption")) {
-			//Tidy up the caption by removing HTML and PayPal code
+			//Tidy up the caption by removing HTML and any old PayPal button code
 			caption = image.get("Caption").replace(regFindInstalledPayPalCodeGlobal, '');
 			caption = stripHTML(caption).trim();
 			caption = newlinesToSpaces(caption);
@@ -213,21 +211,25 @@ YUI().use(['node', 'json', 'io', 'event-resize', 'ss-event-log-widget', 'ss-payp
 				description = link;
 			}
 		}
-
-		var result = '<div class="ss-paypal-button">' + 
-				Y.SherlockPhotography.PayPalButtonManager.renderPayPalButtons(payPalCode, description, link).getHTML()
-				.replace(/(\r\n|\n|\r)/gm, "") /* SmugMug's codegen for tooltips will make every \n start a new line, and we don't want our tooltip that tall! */
-				.replace(/  +|\t/g, " ")
-				.trim()
-				.replace("$FILENAME", image.get("FileName"));
 		
-		result += '</div><div class="ss-paypal-button-end" style="display:none">';
+		var 
+			renderedHTML = 
+				Y.SherlockPhotography.PayPalButtonManager.renderPayPalButtons(payPalCode, description, link).getHTML()
+					.replace(/(\r\n|\n|\r)/gm, "") /* SmugMug's codegen for tooltips will make every \n start a new line, and we don't want our tooltip that tall! */
+					.replace(/  +|\t/g, " ")
+					.trim()
+					.replace("$FILENAME", Y.Escape.html(image.get("FileName"))),
+						
+			result = 
+				'<div class="ss-paypal-button">' 
+					+ renderedHTML
+				+ '</div><div class="ss-paypal-button-end" style="display:none">';
 			
 		/* 
 		 * A current bug in SmugMug means that a caption which has no text in it after HTML-removal does not get displayed 
 		 * even when HTML code would be visible
 		 */
-		if (!caption && stripHTML(payPalCode).trim().length == 0) {
+		if (!caption && stripHTML(renderedHTML).trim().length == 0) {
 			result += '.';
 		}
 		
