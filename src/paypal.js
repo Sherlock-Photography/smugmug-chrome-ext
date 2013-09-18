@@ -214,7 +214,7 @@ YUI().use(['node', 'json', 'io', 'event-resize', 'ss-event-log-widget', 'ss-payp
 		
 		var 
 			renderedHTML = 
-				Y.SherlockPhotography.PayPalButtonManager.renderPayPalButtons(payPalCode, description, link).getHTML()
+				Y.SherlockPhotography.PayPalButtonManager.renderPayPalButtons(payPalCode, description, link)
 					.replace(/(\r\n|\n|\r)/gm, "") /* SmugMug's codegen for tooltips will make every \n start a new line, and we don't want our tooltip that tall! */
 					.replace(/  +|\t/g, " ")
 					.trim()
