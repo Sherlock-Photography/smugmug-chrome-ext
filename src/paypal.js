@@ -228,7 +228,8 @@ YUI().use(['node', 'json', 'io', 'event-resize', 'ss-event-log-widget',
 				.replace(/  +|\t/g, " ")
 				.trim()
 				.replace(regPayPalItemNameField, '<input type="hidden" name="item_name" value="' + Y.Escape.html(description) + '">')
-				.replace(regPayPalItemNumberField, '<input type="hidden" name="item_number" value="' + Y.Escape.html(link) + '">');
+				.replace(regPayPalItemNumberField, '<input type="hidden" name="item_number" value="' + Y.Escape.html(link) + '">')
+				.replace("$FILENAME", image.get("FileName"));
 		
 		result += '</div><div class="ss-paypal-button-end" style="display:none">';
 			
