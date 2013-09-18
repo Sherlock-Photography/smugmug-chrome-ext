@@ -1,4 +1,4 @@
-YUI().use(['node', 'json', 'io', 'event-resize', 'ss-event-log-widget',  
+YUI().use(['node', 'json', 'io', 'event-resize', 'ss-event-log-widget', 'ss-paypal-button-manager',
            'ss-progress-bar', 'ss-api-smartqueue', 'model', 'event-valuechange'], function(Y) {
 	var 
 		nickname = chrome.extension.getBackgroundPage().nickname,
@@ -11,14 +11,13 @@ YUI().use(['node', 'json', 'io', 'event-resize', 'ss-event-log-widget',
 		imageListSpinner = null;
 
 	var 
-		regPayPalItemNameField = /<input type="hidden" name="item_name" value="[^"]*">/,
-		regPayPalItemNumberField = /<input type="hidden" name="item_number" value="[^"]*">/,
 		regPayPalIsHosted = /name="hosted_button_id"/,
 		regPayPalIsEncrypted = /-----BEGIN PKCS7-----/,
 		regFindInstalledPayPalCode = /<div class="ss-paypal-button">[\s\S]+?<\/div><div class="ss-paypal-button-end" style="display:none">\.?<\/div>/,
 		regFindInstalledPayPalCodeGlobal = new RegExp(regFindInstalledPayPalCode.source, "g");
 	
 	var
+		payPalCode = false,
 		payPalCodeIsValid = false;
 	
 	if (!albumID) {
@@ -133,16 +132,18 @@ YUI().use(['node', 'json', 'io', 'event-resize', 'ss-event-log-widget',
 	}
 		
 	/**
-	 * Check that the PayPal button code looks correct, if it does, return the code. If not, an error message is added to the UI to tell the user
-	 * what's wrong and false is returned.
+	 * Check that the PayPal button code looks correct and update the globals payPalCodeIsValid and payPalButton with the details.
 	 * 
-	 * Sets the global boolean payPalCodeIsValid with the result. 
+	 * Returns true if the code is valid.
+	 * 
+	 * The UI is updated with error details to let the user know if the code is acceptable. 
 	 */
 	function validatePayPalCode() {
 		var 
 			code = Y.one("#paypal-button-code").get("value").trim(),
 			statusDisplay = Y.one("#paypal-code-warning");
 		
+		payPalCode = false;
 		payPalCodeIsValid = false;
 		
 		if (code) {
@@ -151,15 +152,9 @@ YUI().use(['node', 'json', 'io', 'event-resize', 'ss-event-log-widget',
 			} else if (code.match(regPayPalIsEncrypted)){
 				statusDisplay.set('text', 'You must click the link "remove code protection" that appears in the final stage of creating your button.');
 			} else {
-				if (code.match(regPayPalItemNameField)) {
-					if (code.match(regPayPalItemNumberField)) {
-						payPalCodeIsValid = true;					
-					} else {
-						statusDisplay.set('text', 'The code seems to be missing the Item ID field, did you remember to enter some text into that box when creating your button?');
-					}
-				} else {
-					statusDisplay.set('text', 'The code seems to be missing the Item Name field, did you remember to enter some text into that box when creating your button?');				
-				}
+				payPalCode = Y.Node.create(code);
+				Y.SherlockPhotography.PayPalButtonManager.parsePayPalCode(payPalCode);
+				payPalCodeIsValid = true;					
 			}
 			
 			if (payPalCodeIsValid) {
@@ -171,13 +166,9 @@ YUI().use(['node', 'json', 'io', 'event-resize', 'ss-event-log-widget',
 			statusDisplay.setStyle('display', 'none');
 		}
 		
-		return payPalCodeIsValid ? code : false;
+		return payPalCodeIsValid;
 	}
-	
-	function preparePayPalCode(code) {
-		return '<div class="ss-paypal-button">' + code.trim() + '</div><div class="ss-paypal-button-end" style="display:none">.</div>';
-	}
-	
+		
 	/* Not to be used for security-critical purposes (not a sanitiser!) */
 	function stripHTML(text) {
 		return text.replace(/<\S[^><]*>/g, "");
@@ -222,13 +213,12 @@ YUI().use(['node', 'json', 'io', 'event-resize', 'ss-event-log-widget',
 				description = link;
 			}
 		}
-		
+
 		var result = '<div class="ss-paypal-button">' + 
-				payPalCode.replace(/(\r\n|\n|\r)/gm, "") /* SmugMug's codegen for tooltips will make every \n start a new line, and we don't want our tooltip that tall! */
+				Y.SherlockPhotography.PayPalButtonManager.renderPayPalButtons(payPalCode, description, link).getHTML()
+				.replace(/(\r\n|\n|\r)/gm, "") /* SmugMug's codegen for tooltips will make every \n start a new line, and we don't want our tooltip that tall! */
 				.replace(/  +|\t/g, " ")
 				.trim()
-				.replace(regPayPalItemNameField, '<input type="hidden" name="item_name" value="' + Y.Escape.html(description) + '">')
-				.replace(regPayPalItemNumberField, '<input type="hidden" name="item_number" value="' + Y.Escape.html(link) + '">')
 				.replace("$FILENAME", image.get("FileName"));
 		
 		result += '</div><div class="ss-paypal-button-end" style="display:none">';
@@ -388,13 +378,15 @@ YUI().use(['node', 'json', 'io', 'event-resize', 'ss-event-log-widget',
 	
 	function updateButtonPreview() {
 		var 
-			preview = Y.one("#paypal-button-preview"),
-			code = Y.one("#paypal-button-code").get("value").trim();
+			preview = Y.one("#paypal-button-preview");
 		
 		preview.get('childNodes').remove();
 
-		if (code) {
-			preview.append(Y.Node.create(code));
+		if (payPalCode) {
+			var rendered = Y.SherlockPhotography.PayPalButtonManager.renderPayPalButtons(payPalCode, 'Sample photo', 'http://example.com/');
+			
+			preview.append(rendered);
+			
 			Y.one(".paypal-button-preview-pane").setStyle("display", "block");
 		} else {
 			Y.one(".paypal-button-preview-pane").setStyle("display", "none");			
@@ -431,10 +423,10 @@ YUI().use(['node', 'json', 'io', 'event-resize', 'ss-event-log-widget',
 			
 			Y.one('#btn-apply').on({
 				click: function(e) {
-					var payPalCode = validatePayPalCode();
+					validatePayPalCode();
 					
-					if (payPalCode) {
-						window.localStorage["payPalButtonTool.payPalCode"] = payPalCode;
+					if (payPalCodeIsValid) {
+						window.localStorage["payPalButtonTool.payPalCode"] = Y.one("#paypal-button-code").get("value").trim();
 						
 						applyEventLog.clear();						
 						installPayPalButtons(collectSelectedImageModels(), payPalCode);
