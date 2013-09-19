@@ -112,10 +112,15 @@ p {
 	vertical-align: middle;
 	margin-bottom: 4px;
 }
+.ss-paypal-product-options li a {
+	display: block;
+}
+.ss-paypal-product-options .ss-paypal-plain-label {
+	margin-bottom:0.25em;
+}
 .ss-paypal-product-options .ss-paypal-plain-label:after {
-    display:inline-block;
-    margin-left:0.5em;
-    margin-bottom:0.25em;
+	display:inline-block;
+	margin-left:0.5em;
 }
 .ss-paypal-add-to-cart-section .ss-paypal-product-options .ss-paypal-plain-label:after {
 	content: "[Add to cart]";
