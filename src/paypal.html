@@ -29,7 +29,6 @@
 <script type="text/javascript" src="lib/sherlockphotography/ss-paypal-button-manager.js"></script>
 
 <script type="text/javascript" src="paypal.js"></script>
-
 </head>
 <body>
 
@@ -104,7 +103,7 @@
 
 <h3>Enter your PayPal button code</h3>
 
-<div id="paypal-button-panels">
+<div class="paypal-button-panels">
 	<div class="form-group">
 		<label for="paypal-button-code">'Buy now' or 'add to cart' button code</label>
 		<textarea class="form-control" id="paypal-button-code" placeholder="Paste PayPal button code here" rows="6"></textarea>
@@ -112,6 +111,16 @@
 	<div class="form-group paypal-button-preview-pane" style="display:none">
 		<label>Button preview</label>
 		<div id="paypal-button-preview"></div>
+	</div>
+</div>
+<div class="paypal-button-panels">
+	<div class="form-group">
+		<label for="paypal-button-style">Style of buy now/add to cart buttons</label>
+		<select class="form-control" id="paypal-button-style">
+			<option value="paypal">PayPal images</option>
+			<option value="smugmug">SmugMug style</option>
+			<option value="">Plain links</option>
+		</select>
 	</div>
 </div>
 

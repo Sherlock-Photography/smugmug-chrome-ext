@@ -68,15 +68,58 @@ p {
 	margin-bottom:1em;
 }
 
-#paypal-button-panels .form-group {
+.paypal-button-panels .form-group {
 	float: left;
 	width: 35em;
 	margin-right: 2em;
 }
-#paypal-button-panels {
+.paypal-button-panels {
 	overflow: hidden;
 }
-
+.paypal-button-panels select {
+	width:16em;
+}
 #paypal-code-warning {
 	display: none;
+}
+
+.ss-paypal-buy-now-section, .ss-paypal-button .ss-paypal-add-to-cart-section, .ss-paypal-button .ss-paypal-view-cart-section {
+	margin-top:1em;
+}
+.ss-paypal-buy-now-section {
+	margin-bottom:1em;
+}
+.ss-paypal-buy-now-section h4, .ss-paypal-button .ss-paypal-add-to-cart-section h4 {
+    margin-bottom:0.5em;
+}
+.ss-paypal-product-options {
+	padding:0;
+	margin-left:0;
+}
+.ss-paypal-product-options li {
+	list-style-type:none;
+	padding-left:0;
+	margin-left:0;
+}
+.ss-paypal-product-options li button {
+	margin-left: 1em;
+	margin-bottom: 3px;
+	margin-top: 3px;    
+}
+.ss-paypal-product-options li img {
+	margin-left: 1em;
+	margin-top: 1px;
+	vertical-align: middle;
+	margin-bottom: 4px;
+}
+.ss-paypal-product-options .ss-paypal-plain-label:after {
+    display:inline-block;
+    margin-left:0.5em;
+    margin-bottom:0.25em;
+}
+.ss-paypal-add-to-cart-section .ss-paypal-product-options .ss-paypal-plain-label:after {
+	content: "[Add to cart]";
+}
+.ss-paypal-buy-now-section .ss-paypal-product-options .ss-paypal-plain-label:after {
+	content: "[Buy now]";
 }

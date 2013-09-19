@@ -16,7 +16,8 @@ YUI().use(['node', 'json', 'io', 'event-resize', 'ss-event-log-widget', 'ss-payp
 	
 	var
 		payPalCode = false,
-		payPalCodeIsValid = false;
+		payPalCodeIsValid = false,
+		buttonStyle = "paypal";
 	
 	if (!albumID) {
 		alert("Whoops, this doesn't seem to be a gallery page. Please navigate back to the gallery you want to edit and try again.");
@@ -214,7 +215,7 @@ YUI().use(['node', 'json', 'io', 'event-resize', 'ss-event-log-widget', 'ss-payp
 		
 		var 
 			renderedHTML = 
-				Y.SherlockPhotography.PayPalButtonManager.renderPayPalButtons(payPalCode, description, link)
+				Y.SherlockPhotography.PayPalButtonManager.renderPayPalButtons(payPalCode, buttonStyle, description, link)
 					.replace(/(\r\n|\n|\r)/gm, "") /* SmugMug's codegen for tooltips will make every \n start a new line, and we don't want our tooltip that tall! */
 					.replace(/  +|\t/g, " ")
 					.trim()
@@ -385,7 +386,7 @@ YUI().use(['node', 'json', 'io', 'event-resize', 'ss-event-log-widget', 'ss-payp
 		preview.get('childNodes').remove();
 
 		if (payPalCode) {
-			var rendered = Y.SherlockPhotography.PayPalButtonManager.renderPayPalButtons(payPalCode, 'Sample photo', 'http://example.com/');
+			var rendered = Y.SherlockPhotography.PayPalButtonManager.renderPayPalButtons(payPalCode, buttonStyle, 'Sample photo', 'http://example.com/');
 			
 			preview.append(rendered);
 			
@@ -420,6 +421,18 @@ YUI().use(['node', 'json', 'io', 'event-resize', 'ss-event-log-widget', 'ss-payp
 					updateButtonPreview();
 					
 					syncButtonStates();
+				}
+			});
+			
+			var selPayPalButtonStyle = Y.one("#paypal-button-style"); 
+			
+			selPayPalButtonStyle.on({
+				change: function() {
+					buttonStyle = selPayPalButtonStyle.get('value'); 
+					
+					updateButtonPreview();
+					
+					window.localStorage["payPalButtonTool.payPalButtonStyle"] = buttonStyle; 
 				}
 			});
 			
@@ -479,7 +492,10 @@ YUI().use(['node', 'json', 'io', 'event-resize', 'ss-event-log-widget', 'ss-payp
 			if (window.localStorage["payPalButtonTool.hideInstructions"] == 1) {
 				directions.addClass("collapsed");
 			}
-
+			if (window.localStorage["payPalButtonTool.payPalButtonStyle"] !== undefined) {
+				buttonStyle = window.localStorage["payPalButtonTool.payPalButtonStyle"];
+				selPayPalButtonStyle.set("value", buttonStyle);
+			}
 			if (window.localStorage["payPalButtonTool.payPalCode"] !== undefined) {
 				textareaButtonCode.set('value', window.localStorage["payPalButtonTool.payPalCode"]);
 				
