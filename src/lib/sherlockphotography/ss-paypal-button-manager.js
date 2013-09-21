@@ -160,8 +160,8 @@ YUI.add('ss-paypal-button-manager', function(Y, NAME) {
 				var 
 					container = Y.Node.create('<div></div>'),
 					urlData = Y.merge(button.hidden, {
-						item_name : item_name,
-						item_number : item_number,
+						item_name : (item_name || "").slice(0, 127), /* PayPal only supports 127 characters for these fields */
+						item_number : (item_number || "").slice(0, 127),
 						submit : ""
 					}),
 					that = this;
