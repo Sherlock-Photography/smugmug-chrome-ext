@@ -142,7 +142,8 @@ YUI.add('ss-paypal-button-manager', function(Y, NAME) {
 		 * Render a PayPal button for the given form, return the element to replace the form
 		 * with, or the original form element if it was not a PayPal form.
 		 * 
-		 * @param form
+		 * @param form PayPal form tag to create button from
+		 * 
 		 * @param item_name
 		 * @param item_number
 		 */
@@ -164,8 +165,9 @@ YUI.add('ss-paypal-button-manager', function(Y, NAME) {
 						item_number : (item_number || "").slice(0, 127),
 						submit : ""
 					}),
+					/*uniqueID = Y.Crypto.MD5(Y.JSON.stringify(urlData)).slice(0, 6), */
 					that = this;
-
+				
 				var renderLink = function(productName) {
 					var 
 						productLink = Y.Node.create("<a></a>"),
@@ -222,17 +224,19 @@ YUI.add('ss-paypal-button-manager', function(Y, NAME) {
 				
 				/* Is this a drop-down style button? */
 				if (button.select) {
-					var select = button.select;
+					var 
+						select = button.select,
+						selectContainer = Y.Node.create('<div class="ss-paypal-product-options"></div>');
 
 					if (select.label) {
 						var heading = Y.Node.create("<h4></h4>");
 
 						heading.set('text', select.label);
 
-						container.append(heading);
+						selectContainer.append(heading);
 					}
 
-					var ul = Y.Node.create('<ul class="ss-paypal-product-options">');
+					var ul = Y.Node.create('<ul>');
 
 					for (var i in select.options) {
 						var 
@@ -247,7 +251,9 @@ YUI.add('ss-paypal-button-manager', function(Y, NAME) {
 						ul.append(productLI);
 					}
 
-					container.append(ul);
+					selectContainer.append(ul);
+					
+					container.append(selectContainer);
 				} else {
 					/*
 					 * Otherwise this is a click-to-submit button with no
@@ -269,5 +275,5 @@ YUI.add('ss-paypal-button-manager', function(Y, NAME) {
 
 	Y.namespace("SherlockPhotography").PayPalButtonManager = PayPalButtonManager;
 }, '0.0.1', {
-	requires : [ 'node', 'json', 'querystring-stringify' ]
+	requires : [ 'node', 'json', 'querystring-stringify', 'gallery-crypto-md5' ]
 });

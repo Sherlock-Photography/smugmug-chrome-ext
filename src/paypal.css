@@ -92,7 +92,7 @@ p {
 .ss-paypal-buy-now-section h4, .ss-paypal-button .ss-paypal-add-to-cart-section h4 {
     margin-bottom:0.5em;
 }
-.ss-paypal-product-options {
+.ss-paypal-product-options ul {
 	padding:0;
 	margin-left:0;
 }
