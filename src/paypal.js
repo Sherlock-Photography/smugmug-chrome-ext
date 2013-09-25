@@ -9,10 +9,14 @@ YUI().use(['node', 'json', 'io', 'event-resize', 'ss-event-log-widget', 'ss-payp
 		applyEventLog = new Y.SherlockPhotography.EventLogWidget(),
 		imageListContainer = null,
 		imageListSpinner = null;
-
-	var 
-		regFindInstalledPayPalCode = /<div class="ss-paypal-button">[\s\S]+?<\/div><div class="ss-paypal-button-end" style="display:none">\.?<\/div>/,
-		regFindInstalledPayPalCodeGlobal = new RegExp(regFindInstalledPayPalCode.source, "g");
+	
+	var
+		sampleImage = new Y.Model({
+			WebUri: 'http://www.example.com/Example-gallery/i-laJ82c',
+			Title: 'Example title',
+			Caption: 'Example caption',
+			FileName: 'example.jpg',
+		});
 	
 	var
 		payPalCode = false,
@@ -29,7 +33,7 @@ YUI().use(['node', 'json', 'io', 'event-resize', 'ss-event-log-widget', 'ss-payp
 	
 	function syncImageUIState(buttonNode, image) {
 		buttonNode.get('childNodes').remove();
-		if (image.get('Caption').match(regFindInstalledPayPalCode)) {
+		if (Y.SherlockPhotography.PayPalButtonManager.containsSSPayPalButton(image.get('Caption'))) {
 			buttonNode.addClass("paypal");
 			buttonNode.append('<span class="label label-info">Has button</span>');
 		} else {
@@ -168,77 +172,6 @@ YUI().use(['node', 'json', 'io', 'event-resize', 'ss-event-log-widget', 'ss-payp
 		return payPalCodeIsValid;
 	}
 		
-	/* Not to be used for security-critical purposes (not a sanitiser!) */
-	function stripHTML(text) {
-		return text.replace(/<\S[^><]*>/g, "");
-	}
-	
-	function newlinesToSpaces(text) {
-		return text.replace(/(\r\n|\n|\r)/gm, " ");
-	}
-	
-	function customizePayPalCodeForImage(payPalCode, image) {
-		var 
-			link = image.get('WebUri'),
-			caption, title, description;
-		
-		if (image.get("Caption")) {
-			//Tidy up the caption by removing HTML and any old PayPal button code
-			caption = image.get("Caption").replace(regFindInstalledPayPalCodeGlobal, '');
-			caption = stripHTML(caption).trim();
-			caption = newlinesToSpaces(caption);
-		} else {
-			caption = "";
-		}
-		
-		if (image.get("Title")) {
-			//Tidy up the title by removing HTML
-			title = stripHTML(image.get("Title")).trim();
-			title = newlinesToSpaces(title);
-		} else {
-			title = "";
-		}
-		
-		if (title || caption) {
-			if (title) {
-				description = title + " / " + caption;	
-			} else {
-				description = caption;
-			}
-		} else {
-			if (image.get("FileName")) {
-				description = image.get("FileName");
-			} else {
-				description = link;
-			}
-		}
-		
-		var 
-			renderedHTML = 
-				Y.SherlockPhotography.PayPalButtonManager.renderPayPalButtons(payPalCode, buttonStyle, description, link)
-					.replace(/(\r\n|\n|\r)/gm, "") /* SmugMug's codegen for tooltips will make every \n start a new line, and we don't want our tooltip that tall! */
-					.replace(/  +|\t/g, " ")
-					.trim()
-					.replace("$FILENAME", Y.Escape.html(image.get("FileName"))),
-						
-			result = 
-				'<div class="ss-paypal-button">' 
-					+ renderedHTML
-				+ '</div><div class="ss-paypal-button-end" style="display:none">';
-			
-		/* 
-		 * A current bug in SmugMug means that a caption which has no text in it after HTML-removal does not get displayed 
-		 * even when HTML code would be visible
-		 */
-		if (!caption && stripHTML(renderedHTML).trim().length == 0) {
-			result += '.';
-		}
-		
-		result += '</div>';
-				
-		return result;
-	}
-		
 	function installPayPalButtons(images, payPalCode) {
 		var 
 			logProgress = applyEventLog.appendLog('info', "Adding PayPal buttons to selected photos..."),
@@ -259,12 +192,12 @@ YUI().use(['node', 'json', 'io', 'event-resize', 'ss-event-log-widget', 'ss-payp
 		for (var index in images) {
 			var 
 				image = images[index],
-				imagePayPalCode = customizePayPalCodeForImage(payPalCode, image),
+				imagePayPalCode = Y.SherlockPhotography.PayPalButtonManager.customizePayPalCodeForImage(payPalCode, buttonStyle, image),
 				oldCaption = image.get('Caption'), 
 				newCaption;
 			
-			if (oldCaption.match(regFindInstalledPayPalCode)) {
-				newCaption = oldCaption.replace(regFindInstalledPayPalCode, imagePayPalCode);
+			if (Y.SherlockPhotography.PayPalButtonManager.containsSSPayPalButton(oldCaption)) {
+				newCaption = Y.SherlockPhotography.PayPalButtonManager.replaceSSPayPalButton(oldCaption, imagePayPalCode);
 			} else if (image.Caption == ""){
 				newCaption = imagePayPalCode;
 			} else {
@@ -272,7 +205,7 @@ YUI().use(['node', 'json', 'io', 'event-resize', 'ss-event-log-widget', 'ss-payp
 			}
 			
 			if (newCaption != oldCaption) {
-				if (newCaption.match(regFindInstalledPayPalCode)) {
+				if (Y.SherlockPhotography.PayPalButtonManager.containsSSPayPalButton(newCaption)) {
 					queue.enqueueRequest({
 						url: 'http://' + smugDomain + image.get('Uris').Image.Uri + '?_method=PATCH',
 						method: 'POST',				
@@ -331,8 +264,8 @@ YUI().use(['node', 'json', 'io', 'event-resize', 'ss-event-log-widget', 'ss-payp
 				oldCaption = image.get('Caption'),
 				newCaption;
 						
-			if (oldCaption.match(regFindInstalledPayPalCodeGlobal)) {
-				newCaption = oldCaption.replace(regFindInstalledPayPalCodeGlobal, '');
+			if (Y.SherlockPhotography.PayPalButtonManager.containsSSPayPalButton(oldCaption)) {
+				newCaption = Y.SherlockPhotography.PayPalButtonManager.removeSSPayPalButtons(oldCaption);
 			
 				queue.enqueueRequest({
 					url: 'http://' + smugDomain + image.get('Uris').Image.Uri + '?_method=PATCH',
@@ -386,7 +319,7 @@ YUI().use(['node', 'json', 'io', 'event-resize', 'ss-event-log-widget', 'ss-payp
 		preview.get('childNodes').remove();
 
 		if (payPalCode) {
-			var rendered = Y.SherlockPhotography.PayPalButtonManager.renderPayPalButtons(payPalCode, buttonStyle, 'Sample photo', 'http://example.com/');
+			var rendered = Y.SherlockPhotography.PayPalButtonManager.customizePayPalCodeForImage(payPalCode, buttonStyle, sampleImage);
 			
 			preview.append(rendered);
 			
