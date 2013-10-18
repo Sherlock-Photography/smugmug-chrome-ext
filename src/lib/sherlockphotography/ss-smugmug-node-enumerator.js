@@ -6,28 +6,37 @@ YUI.add('ss-smugmug-node-enumerator', function(Y, NAME) {
 		{
 			_nodes: {},
 			_queue: null,
-			
-		    initializer : function(cfg) {
+
+		    _processNodes: function(request, response) {
+	    		var 
+	    			that = this,
+	    			nodes = response.Nodes;
+	    		
+				for (var index in nodes) {
+					var 
+						node = nodes[index],
+						seenAlready = that._nodes[node.NodeID] !== undefined;
+
+					if (node.NodeID && !seenAlready) {
+						that.fetchNodes(node, request.maxDepth - 1);
+					}
+				}
+				
+				if (response.Pagination && response.Pagination.PageNumber < response.Pagination.TotalPages) {
+					this._fetchPage(request.data.NodeID, request.maxDepth, response.Pagination.PageNumber + 1);
+					this._queue.run();	
+				}
+				
+				return true;
+    		},
+    		
+		    initializer: function(cfg) {
 		    	var that = this;
 		    	
 		    	this._nodes = {};
 		    	
 		    	this._queue = new Y.SherlockPhotography.APISmartQueue({
-		    		processResponse: function(request, response) {
-			    		var nodes = response.Nodes;
-			    		
-						for (var index in nodes) {
-							var 
-								node = nodes[index],
-								seenAlready = that._nodes[node.NodeID] !== undefined;
-
-							if (node.NodeID && !seenAlready) {
-								that.fetchNodes(node, request.maxDepth - 1);
-							}
-						}
-						
-						return true;
-		    		},
+		    		processResponse: Y.bind(this._processNodes, this),
 		    		responseType: 'json'
 		    	});
 		    	
@@ -43,7 +52,21 @@ YUI.add('ss-smugmug-node-enumerator', function(Y, NAME) {
 		    		},
 		    	});
 		    },
-		    	
+		    
+		    _fetchPage: function(nodeID, maxDepth, pageNumber) {
+				this._queue.enqueueRequest({
+					url: 'http://' + this.get('domain') + '/services/api/json/1.4.0/',
+					data: {
+						NodeID: nodeID,
+						PageSize: 50,
+						PageNumber: pageNumber,
+						method: 'rpc.node.getchildnodes'
+					},
+					node: this._nodes[nodeID],
+					maxDepth: maxDepth
+				});
+		    },
+		    
 		    /**
 		     * rootNode is a node descriptor returned from e.g. rpc.node.getchildnodes or rpc.thumbnail.folders.
 		     * 
@@ -57,16 +80,7 @@ YUI.add('ss-smugmug-node-enumerator', function(Y, NAME) {
 				this._nodes[rootNode.NodeID] = {nodeData: rootNode};
 				
 				if (maxDepth >= 1 && rootNode.HasChildren) {
-					this._queue.enqueueRequest({
-						url: 'http://' + this.get('domain') + '/services/api/json/1.4.0/',
-						data: {
-							NodeID: rootNode.NodeID,
-							PageSize: 1000,
-							method: 'rpc.node.getchildnodes'
-						},
-						node: this._nodes[rootNode.NodeID],
-						maxDepth: maxDepth
-					});
+					this._fetchPage(rootNode.NodeID, maxDepth, 1);
 				}
 				
 				this._queue.run();
@@ -80,7 +94,7 @@ YUI.add('ss-smugmug-node-enumerator', function(Y, NAME) {
 				
 				//Maximum depth to fetch (1 means just the direct children of the root)
 				maxDepth: {
-					value: 2
+					value: 10
 				}
 			}
 		}
