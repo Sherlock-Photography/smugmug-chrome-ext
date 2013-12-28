@@ -24,7 +24,7 @@ document.addEventListener('DOMContentLoaded', function() {
 				
 				var 
 					pageUrl = userNode.Url.replace(/\/$/, ""), //Remove trailing backslash
-					matches = tabs[0].url.match(new RegExp("^" + escapeRegExp(pageUrl) + "/i-([0-9a-zA-Z]+)/([A-Z0-9]{1,2})$"));
+					matches = tabs[0].url.match(new RegExp("^" + escapeRegExp(pageUrl) + "/i-([0-9a-zA-Z]+)(?:/([A-Z0-9]{1,2}))?$"));
 				
 				if (matches) {
 					/* When the gallery URL is correct, SmugMug does a 301 permanent to the vanilla gallery URL, discarding
@@ -38,7 +38,11 @@ document.addEventListener('DOMContentLoaded', function() {
 					 * 
 					 * When it arrives at the new-SmugMug gallery router, this gets converted to /i-KT1a1j/XL which opens the lightbox.
 					 */
-					pl = pl + "?k=" + matches[1] + "&lb=1&s=" + matches[2] + "#!/i-" + matches[1] + "/" + matches[2];
+					if (matches[2]) { // Lightbox size
+						pl = pl + "?k=" + matches[1] + "&lb=1&s=" + matches[2] + "#!/i-" + matches[1] + "/" + matches[2];
+					} else { // SmugMug-style image selected
+						pl = pl + "?k=" + matches[1] + "#!/i-" + matches[1];						
+					}
 				}
 				
 				//Attempt to switch the link to use the user's custom domain
