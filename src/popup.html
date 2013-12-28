@@ -14,15 +14,39 @@ body {
 .list-group {
 	margin-bottom:0;
 }
+h2 {
+	font-size: 16px;
+	margin-top: 5px;
+	margin-bottom: 0;
+	font-weight: inherit;
+	line-height: inherit;
+	padding: 5px 15px;
+}
 </style>
 </head>
 <body>
 
-<ul class="nav nav-pills nav-stacked">
-	<li><a href="#" id="create-backup">Back up your site</a></li>
-	<li><a href="#" id="paypal-buynow">Add/edit PayPal buttons for this gallery</a></li>
-	<li><a href="http://www.sherlockphotography.org/Customisations/" target="_blank" id="sherlock-photography">Visit Sherlock Photography for more SmugMug customisations!</a></li>
-</ul>
+<div class="list-group" id="entire-site">
+	<h2>Entire site</h2>
+	<ul class="nav nav-pills nav-stacked">
+		<li><a href="#" id="create-backup">Create/load backup</a></li>
+	</ul>
+</div>
+
+<div class="list-group" id="just-this-page" style="display: none">
+	<h2>Just this page</h2>
+	<ul class="nav nav-pills nav-stacked">
+		<li><a href="#" id="paypal-buynow">Add/edit PayPal buttons</a></li>
+		<li style="display:none"><a href="permalink.html" id="permalink">Get a permalink</a></li>
+	</ul>
+</div>
+
+<div class="list-group" id="about">
+	<h2>About</h2>
+	<ul class="nav nav-pills nav-stacked">
+		<li><a href="http://www.sherlockphotography.org/Customisations/" target="_blank" id="sherlock-photography">Visit Sherlock Photography for more SmugMug customisations!</a></li>
+	</ul>
+</div>
 
 </body>
 </html>

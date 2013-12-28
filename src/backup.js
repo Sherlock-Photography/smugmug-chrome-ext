@@ -1,8 +1,14 @@
-YUI().use(['node', 'json', 'io', 'event-resize', 'ss-event-log-widget',  
+YUI().use(['node', 'json', 'io', 'event-resize', 'querystring-parse-simple', 'ss-event-log-widget',
            'ss-progress-bar', 'ss-smugmug-site-backup', 'ss-smugmug-backup-view', 'node-event-simulate'], function(Y) {
 	var 
-		nickname =  chrome.extension.getBackgroundPage().nickname,
-		
+		nickname = Y.QueryString.parse(location.search.slice(1)).nickname;
+	
+	if (!/^[a-zA-Z0-9-]+$/.test(nickname)) {
+		alert("Bad arguments, please close this page and try again.");
+		return;
+	}
+	
+	var
 		eventLog = new Y.SherlockPhotography.EventLogWidget(),
 		backup = new Y.SherlockPhotography.SmugmugSiteBackup({
 			smugmugNickname: nickname,

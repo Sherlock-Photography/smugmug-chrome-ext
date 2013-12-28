@@ -7,21 +7,20 @@ if (document.body.className.indexOf('sm-user-owner') > -1) {
 	if ((matches = location.href.match(/^http:\/\/(?:www\.)?([^.]+)\.smugmug\.com\//))) {
 		var 
 			siteDetailMessage = {
-				method: "showPageAction",
 				nickname: matches[1],
 				loggedInUser: false,
 				pageDetails: false
 			},
 			loggedInUser = false, pageDetails = false,
 			scriptTags = document.getElementsByTagName('script');
-		
+
 		for (var i in scriptTags) {
 			var 
 				script = scriptTags[i],
 				matches;
 			
 			//Super rough, but should work:
-			if (!siteDetailMessage.loggedInUser && (matches = script.innerHTML.match(/SM\.env\.loggedInUser={[^\n}]+};/))) {
+			if (!siteDetailMessage.loggedInUser && (matches = script.innerHTML.match(/SM\.env\.loggedInUser=({[^\n}]+});/))) {
 				try {
 					siteDetailMessage.loggedInUser = JSON.parse(matches[1]);
 				} catch (e) {
@@ -43,6 +42,12 @@ if (document.body.className.indexOf('sm-user-owner') > -1) {
 			}
 		}
 		
-		chrome.runtime.sendMessage(siteDetailMessage);
+		chrome.extension.onMessage.addListener(function(message, sender, sendResponse) {
+			if (message.method == 'getSiteDetail') {  
+				sendResponse(siteDetailMessage);
+			}
+		});
+		
+		chrome.runtime.sendMessage({method: "showPageAction"});
 	}
 }

@@ -1,16 +1,24 @@
-YUI().use(['node', 'json', 'io', 'event-resize', 'ss-event-log-widget', 'ss-paypal-button-manager',
+YUI().use(['node', 'json', 'io', 'event-resize', 'querystring-parse-simple', 'ss-event-log-widget', 'ss-paypal-button-manager',
            'ss-progress-bar', 'ss-api-smartqueue', 'model', 'event-valuechange'], function(Y) {
 	var 
-		nickname = chrome.extension.getBackgroundPage().nickname,
-		pageDetails = chrome.extension.getBackgroundPage().pageDetails,
+		query = Y.QueryString.parse(location.search.slice(1)),
+		
+		nickname = query.nickname,
+		albumID = query.albumKey,
+		albumName = query.albumName;
+	
+	if (!/^[a-zA-Z0-9]+$/.test(albumID) || !/^[a-zA-Z0-9-]+$/.test(nickname)) {
+		alert("Bad arguments, please close this page and try again.");
+		return;
+	}
+
+	var
 		smugDomain = nickname + ".smugmug.com",
-		albumID = pageDetails.userNode.RemoteKey,
 		eventLog = new Y.SherlockPhotography.EventLogWidget(),
 		applyEventLog = new Y.SherlockPhotography.EventLogWidget(),
 		imageListContainer = null,
-		imageListSpinner = null;
+		imageListSpinner = null,
 	
-	var
 		sampleImage = new Y.Model({
 			WebUri: 'http://www.example.com/Example-gallery/i-laJ82c',
 			Title: 'Example title',
@@ -22,12 +30,7 @@ YUI().use(['node', 'json', 'io', 'event-resize', 'ss-event-log-widget', 'ss-payp
 		payPalCode = false,
 		payPalCodeIsValid = false,
 		buttonStyle = "paypal";
-	
-	if (!albumID) {
-		alert("Whoops, this doesn't seem to be a gallery page. Please navigate back to the gallery you want to edit and try again.");
-		window.close();
-	}
-	
+		
 	//Sorry, this is the best I can do on Chrome! (it doesn't allow User-Agent to be changed)
 	Y.io.header('X-User-Agent', 'Unofficial SmugMug extension for Chrome v0.1 / I\'m in ur server, mogrifying ur data / n.sherlock@gmail.com');
 	
@@ -419,7 +422,7 @@ YUI().use(['node', 'json', 'io', 'event-resize', 'ss-event-log-widget', 'ss-payp
 				}
 			});
 			
-			Y.all(".smugmug-gallery-name").set('text', pageDetails.userNode.Name);
+			Y.all(".smugmug-gallery-name").set('text', albumName);
 			
 			// Restore settings from local storage
 			if (window.localStorage["payPalButtonTool.hideInstructions"] == 1) {

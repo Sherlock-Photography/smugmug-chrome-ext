@@ -10,16 +10,22 @@
 body {
 	min-width: 450px;
 	overflow-x: hidden;
+	padding: 20px 20px;
+	padding-top:0;
 }
 </style>
 </head>
 <body>
-	
-	<ul class="nav nav-pills nav-stacked">
-		<li><a href="#" id="create-backup">Back up your site</a></li>
-		<li><a href="#" id="paypal-buynow">Add/edit PayPal buttons for this gallery</a></li>
-		<li><a href="permalink.html" id="permalink">Get a permalink for this page</a></li>
-		<li><a href="http://www.sherlockphotography.org/Customisations/" target="_blank" id="sherlock-photography">Visit Sherlock Photography for more SmugMug customisations!</a></li>
-	</ul>
+	<h1>Permalink for this page</h1>
+	<p>This link will continue to find your gallery, even if the gallery is renamed or moved in the organiser!
+	This is perfect for links you'll share with others (e.g. posted on a blog.)</p>
+		
+	<div class="input-group">
+		<input class="form-control" type="text" id="permalink-box" />
+		
+		<span class="input-group-btn"> 
+			<button class="btn btn-default" type="button" id="copy">Copy</button>
+		</span>
+	</div>
 </body>
 </html>
