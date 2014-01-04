@@ -1,0 +1,83 @@
+/*!
+Icons by Yusuke Kamiyamane <http://p.yusukekamiyamane.com/>.
+Licensed under a Creative Commons Attribution 3.0 License.
+*/
+.yui3-skin-sam .ss-smugmug-gallery-list-grid .ss-tree-node-icon {
+    background: left center no-repeat url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAABUUlEQVQ4jY2Sv2rDMBDGT3JKl/oB2kdI3sJ7lwx9hvYZQkkIDXQuhWYOeCvdS6DP4D3dstsUZArWH/dOsRQnlk0F8onT3U/fJ2tU1zXQuFssbjFcw/D4MsZ8G63hY7WyiZHbwY2bzXy+rnBT0jQGNMLdAVmWwWa7vcclw7lzfUeA1sxQk5SgEVBhrJQChTmCCCHgfblcT2ezh6ZldwLAJkZojt+LKDqKbiB5nsNrmkIyHr+9pOkj7jydK+DUzC0GOpAkSaySOI7hM8uKjgVFClqAEISUuNoOQCvlLbTHOYQOodoQ4GCBc/olvZDoAOBdC5j0CgYgEUbVA7B3YO+BEj2QCPMqaEFKr4Da+iDWAtaGLZAC/FVDENbUhi04BQMQygct/JalXbs76IOwVu0J4KcoLr3M5kHRy2NNtFCEMJztWg8ohdhfTSbP8I+BkL1b/wF76M1c9BEbZwAAAABJRU5ErkJggg==);
+    float: left;
+    height: 1.6em; /* should match the line-height of the row and label */
+    min-height: 16px; /* to prevent the icon from being clipped */
+    width: 16px;
+}
+
+.yui3-skin-sam .ss-smugmug-gallery-list-grid .ss-tree-node-icon {
+    background-image: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAACJElEQVRYw8WXvW4TQRSFz11vQUEeAAo3afIEFH4HyqSgoQ2PgKxY+VEoKCOh2F0okBAFVbpIvEaKpEjvwgVWbI937qHYmWWzXsPOzgpGsvbu2HP38znHV3JKEv9zpXWbB8fHrwG8iOz9g+Q9SZAEVfH9/LwZAMmXV6PR2FoLAlCyePl7luv8ELyWxhi8v7g4dLf3wQqQhFoLY0xeA1BVWBKqmsP4qwcrQU2nU3w7ORnvj0aHAATAXSiAiAhEBACQkECSAKqbV7f092HM53MYAF9OT8dvjo7euXfumgO4xgIALSBmsxmMq6/Ozi7fDodbIbYrAOQKkMEQxhh8mkyKvVf9/uXn6+shgA+NAFQVIoJEJP9WgRCDwQDWWmRZBmst0jTF15sbG5YBZ0FbCOn10EsSkMTznR30d3d/NgZQVWd/bkFbCF9JqWczBZwFRQhjIUSKYDdWYCOEERDBChQf9ipEQiQiwRYUIWQHEOJ6hlngJyEZDSGhCmh1EkZCOAviQ9gWol0IKz/DGIjgEKq1tQq0hUhEoNYGhrCSgRiIcAXKc6Dm4aEQ4RlwchVzoAOIcAvcweIhERBt5oAIAJaCGAMRZ0EHEMEWZFn2JIRdQBQ9mwAsFou0GsIoiFLPRgDLx8eer7uAkErPvwKslssn+7EQUtPzjwBmtdqg9VPRB7O8R79X+nvGUi1JUttzK8B6vX54trf3ER0uEXloDLC4vZ3gH61free2Cmjs7ecAAAAASUVORK5CYII=);
+    background-size: contain;
+}
+
+.yui3-skin-sam .ss-smugmug-gallery-list-grid .ss-tree-node-icon.ss-tree-node-gallery {
+	background-image: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAADoklEQVR4AbWVT2hcVRTGv3vfy8SMtmpTqgQLbfZdKNlk5y4SXJlICMRAXIhuWoVAipQJbY1/gpsBId1IjMTQECbIgIvBnZC1AReBUoK7YNVA7cR58/56OeTQw+Ga8Rnyg5fvvnfunPtxzrmtgYe3Fxffw+nZBvAHemDcYZAURSEOP3sToTtQGzBwrN+5c4/eAeRK+fGxs7ND+k2r9T6AiWMTv5cxQGoAPGm36T1zT5plSPOc1L0jd+vcqSZJEpGHeItNlKkAYYwhDehPAAbOBKwFPCbiOCZt3L17j06/deuD40o0tAm/AZeUoeNLmGAD/nx+EyFv0BUwXIGiKGWCDXy9vU365sjIChxf3b9/E8C7AL6AIPz14UNILl+9qitQysTh4SF8PDo4GICH0AUgeeXKFV2BUibGx8ehGRoawk8PHjzyGnhtdFT3TA+hNlF6MHXeE2cg9wzhZ7dvg9nf38dJDA8Pg3nn+nVvXkmoA7kawk9qNT2k8OCNf1uvY/bGDZnXY0Am1C0QCScmJkiXl5dJ35hZRCBa8MNajQZwfn6e3huNBk7fAmPYgFb0VQL8dngEFMClCwP0nR+5zxpTrgXslFvA8a2tLU7E+2AMHYg0Tem7W9M+ibUWpmQFdAu8FYraCZ782UFeZLh0PqDvbEISGAMj8vYeQnUNsyyj9dTUFOnS0hJplgOVaj9eeD7Ey1XA7aNncnKS4pubm6RhEPw/A6ZHBfqe68czFojiDAePn7aA4XVoLWxJA2AgZmBjY0PG8cuPK3TI7u4uut0uBgcHKcb7GFEBlG2B94fckk6ng729Pf7Ph1sg9/MMlKxAlslbwAdiZmaGtFarkV4e/QgXXs3xd5Sh0mex+/2HdPj09DTF19fXeY5gRF5N6AK9/yESyoYr/RXERYZqECCwRt8CVjKAstfQV/K1tTX57rBIuyn6qxUYAy4/7ZMY4FTX8N9n4K8cace14HEbSZr4Z0BUoPw1VAfOzc2RLiws8E9hbYGBZ0O8dPEifj4+fHZ2lqKrq6uQecoMIQR0xbj3PP2ECXHuxT5Uz1f4O6Io4n38OzmE+E9DmCSJleXjA+v1OunR0RHpd1++Dkbu533ym84rCV0Akm4UhRA0m02MjY2BYUMaWTGm0WzSbTA6ryB0AUiiTieAotVqPb1egF6TgtSJUNpnjDcvE7qArgBv1KXUazbRe31S3sGREUjibvdTnC0fQ2DOXbsGTRLHn+NsuAnFPzVr6xdHU2wrAAAAAElFTkSuQmCC);
+}
+
+.yui3-skin-sam .ss-smugmug-gallery-list-grid .ss-tree-node-icon.ss-tree-node-can-have-children {
+    background-image: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAECklEQVRYw+1XTUtUURh+752Z68fMaBpGRQRBULZwEZo/IdpICRFBfyCIFvkBoZuCwNIW+QtatAlaiC36DdJCK0ht0ybSwCRnwhxn7j2d57znPfeO4VXDclEH7pyPe877Pu/zfpw7nlKKDrL5dMDN8/uG7ei3jsu5M/q5tMPmV/pZJEO4IrLEZ/fBiLPH2luuPh25eT9t08WBh541c2E/GeiE5VMPbj8ul79TNpulKIrYtz57F3PEWaGQp8sjkwPMhJoXBpIArunfE3uF8OLerYlKpUKe51G1WqVcLkdhGFImkzHKAQTrANfc3ExXRp8M6mOfNIDn9QCIBqfH7oxXqzV9MNQHMyQZAuHGcyqy45iujY0fVKvVjALsh3KM0QRQkpWmpibqH50c0tMJjgEo8bzreD87+3ZP1jc2NlJb2yHTVyqbWjGsB0hljIDoMFQGMM/Rq7rsy1rTTr58NDy2V/rh94WFReroOEJB0EhgD8rQgy2EOghTKjTs+L7SIEMySBwAy/L6+rqmc8PiUY520IexzEE3xvAxWnf3eZqZeU35fIv2ccG6R+RDeJQYVzVbkcFVz4CmhOkh40MoFQXwW60mFvhaecYC44MrK6vU09NDc3NvaG3t246sLS0RnTp6uP3j8tcbWugzjgENGb6Df9hHsRWYex5AVG1gMkg0Abm8/IW6urp27bre3gtD/XfHR5Mu8IV6sVqYwBi95DjWsYa98uDd6uqqSz9xnZzdKgdBq/X61gX1DHDEco81sRpugBDMJTU56HjM7vHdvjQ5bCcHomMAi+yCuHhwDrMLMId1wg7GWJeGfckzaXIAKGaA4fjif1gFi5hy5YqMWAeG0dcrjxwDNs9T5TAA5dcxgEVWkLXpxpHPJVUZnEIj9ogCiZnNTS63OMcBur0cE+BbGPA4uiPru8imHxcWUSSByWWXXP3HHOBQDeUuSJcTuWLkGwYUGIijGwck7+U2wyMCpVBJBsh+WAlAu5FjGFBxFviSBQAiAckRHCYqm2eDiZwwyYzY+siU3DQ5NgvqYwAVLrLMcEDGlPO7yNEPf0MZAyJrfc6MpU+TYy6oOAbIZkHkqBUKkx8VUv9BsdCfbEI5M+KnyjGx4ABw2mRKpTLhwyKuXHIXeBSD810g2c4GI7k0S6bmdnIqlareoMyLrDKRTw35fMGkztY6L00KimRDcg/eBUGDK9dSrLaTUywWSettYAYsANztYIC/enzTJ2s4wOF9MlvYOpW4uNadxWlySqWStkIAvJsiOtcXtLa22nylBI3yaRbV5XHs98hlR/zZpn7Zt1VOEOQAIKD30wZ6q9fZN0TF46f/6j+S8ucPan56HAD03UgB3GA/ULw/rBo0VOwTev/8f8P/AH4C4GNS2u2jtnoAAAAASUVORK5CYII=);
+}
+
+.ss-smugmug-gallery-list-controls {
+	font-size:95;
+}
+
+.ss-smugmug-gallery-list-controls h2 {
+	font-size:140%;
+	margin-top:0.5em;
+	margin-bottom:0.5em;
+}
+.ss-smugmug-gallery-list-controls h3 {
+	margin-top:0.25em;
+	margin-bottom:0.5em;
+	font-size:115%;
+}
+.ss-smugmug-gallery-list-filter-group {
+	display:inline-block;
+	vertical-align:top;
+	margin-right:2em;
+}
+.ss-smugmug-gallery-list-filter-group label {
+	font-weight:normal;
+}
+
+.yui3-skin-sam .ss-smugmug-gallery-list-grid a {
+	display: inline-block;
+}
+
+.yui3-datatable-col-Name > a {
+	display: inline-block;
+}
+
+.ss-smugmug-gallery-list-grid .node-depth-0 {
+	padding-left:0;
+}
+.ss-smugmug-gallery-list-grid .node-depth-1 {
+	padding-left:1.5em;
+}
+.ss-smugmug-gallery-list-grid .node-depth-2 {
+	padding-left:3em;
+}
+.ss-smugmug-gallery-list-grid .node-depth-3 {
+	padding-left:4.5em;
+}
+.ss-smugmug-gallery-list-grid .node-depth-4 {
+	padding-left:6em;
+}
+.ss-smugmug-gallery-list-grid .node-depth-5 {
+	padding-left:7.5em;
+}
+.ss-smugmug-gallery-list-grid .node-depth-6 {
+	padding-left:9em;
+}
+.ss-smugmug-gallery-list-grid .node-depth-7 {
+	padding-left:10.5em;
+}
+.ss-smugmug-gallery-list-grid .node-depth-8 {
+	padding-left:12em;
+}

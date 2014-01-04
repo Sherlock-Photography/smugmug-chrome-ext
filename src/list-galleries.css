@@ -1,0 +1,30 @@
+body {
+	padding:1em;
+}
+h1 {
+	margin-bottom:0.5em;
+}
+.yui3-ss-event-log-widget ul {
+	max-height:8em;
+}
+
+#control-buttons {
+	padding: 0.5em;
+	margin: 0.5em 0;
+	background-color: #eee;
+	border-radius: 10px;
+}
+#control-buttons input {
+	max-width: 11em;
+}
+
+.yui3-datatable-col-DateModifiedDisplay {
+	white-space: nowrap;
+}
+.yui3-datatable-col-Name {
+	min-width: 20em;
+	max-width: 50em;
+}
+.yui3-datatable-col-Description {
+	max-width: 50em;
+}
