@@ -25,6 +25,12 @@ h1 {
 	min-width: 20em;
 	max-width: 50em;
 }
+.yui3-datatable-col-ViewPassHint, 
 .yui3-datatable-col-Description {
 	max-width: 50em;
+}
+
+.yui3-datatable-col-Url input, 
+.yui3-datatable-col-Permalink input {
+	max-width:10em;
 }

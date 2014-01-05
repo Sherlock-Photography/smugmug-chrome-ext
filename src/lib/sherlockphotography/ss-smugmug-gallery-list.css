@@ -24,7 +24,7 @@ Licensed under a Creative Commons Attribution 3.0 License.
 }
 
 .ss-smugmug-gallery-list-controls {
-	font-size:95;
+	font-size:95%;
 }
 
 .ss-smugmug-gallery-list-controls h2 {
@@ -42,12 +42,28 @@ Licensed under a Creative Commons Attribution 3.0 License.
 	vertical-align:top;
 	margin-right:2em;
 }
-.ss-smugmug-gallery-list-filter-group label {
-	font-weight:normal;
-}
 
 .yui3-skin-sam .ss-smugmug-gallery-list-grid a {
 	display: inline-block;
+}
+
+.ss-smugmug-gallery-list-filters, 
+.ss-smugmug-gallery-list-columns {
+	display: inline-block;
+	vertical-align: top;
+	margin-right: 2em;
+}
+.ss-smugmug-gallery-list-columns ul {
+	max-width: 40em;
+}
+.ss-smugmug-gallery-list-columns li {
+	display: inline-block;
+	width:12em;
+}
+
+.ss-smugmug-gallery-list-filters label, 
+.ss-smugmug-gallery-list-columns label {
+	font-weight:normal;
 }
 
 .yui3-datatable-col-Name > a {

@@ -1,7 +1,12 @@
 YUI.add('ss-smugmug-gallery-list', function(Y, NAME) {
 	var
 		Constants = Y.SherlockPhotography.SmugmugConstants;
-	
+
+	// From http://stackoverflow.com/a/6969486/14431
+	function escapeRegExp(str) {
+		return str.replace(/[\-\[\]\/\{\}\(\)\*\+\?\.\\\^\$\|]/g, "\\$&");
+	}
+
 	var SmugmugGalleryList = Y.Base.create(
 		NAME,
 		Y.Base,
@@ -25,7 +30,18 @@ YUI.add('ss-smugmug-gallery-list', function(Y, NAME) {
 			},
 
 			_recurseAugmentNodes: function(treeRoot) {
-				//TODO
+				if (treeRoot.nodeData) {
+					var 
+						customDomain = this.get('customDomain')
+						nickName = this.get('smugmugNickname');
+					
+					//Switch the gallery URL to our custom domain name if we can
+					if (customDomain) {
+						treeRoot.nodeData.Url = treeRoot.nodeData.Url.replace(new RegExp("^http://" + escapeRegExp(nickName) + "\.smugmug\.com"), 'http://' + customDomain);
+					}
+					
+					treeRoot.nodeData.Permalink = Y.SherlockPhotography.SmugmugTools.createGalleryPermalink(treeRoot.nodeData);
+				}
 				
 				for (var index in treeRoot.children) {
 					this._recurseAugmentNodes(treeRoot.children[index]);
@@ -56,7 +72,7 @@ YUI.add('ss-smugmug-gallery-list', function(Y, NAME) {
 				var
 					nodeEnumerator = new Y.SherlockPhotography.SmugmugNodeEnumerator({
 						domain: this.get('smugmugDomain'), 
-						maxDepth: 2 /* TODO */
+						maxDepth: 10 /* TODO */
 					}),
 					logProgress = this.get('eventLog').appendLog('info', "Finding your pages..."),
 					that = this;
@@ -128,20 +144,6 @@ YUI.add('ss-smugmug-gallery-list', function(Y, NAME) {
 				
 				this._stageCompleted(true);
 			},
-	
-			saveBackupToDisk: function() {
-				/* 
-				 * The backup's nodetree contains cycles that prevent it being rendered to JSON.
-				 * So begin with cloning it so we can strip that out.
-				 */
-				var cloned = Y.clone(this._backup);
-
-				delete cloned.nodeTree;
-				Y.SherlockPhotography.SmugmugTools.untreeifyNodes(cloned.nodes);
-				
-				var blob = new Blob([Y.JSON.stringify(cloned, null, 2)], {type: "text/plain;charset=utf-8"});
-				saveAs(blob, 'smugmug backup ' + cloned.backup.nickname + ' ' + Y.Date.format(cloned.backup.date, {format:"%Y-%m-%d %H%M%S"}) + ".json");
-			},
 			
 			hadErrors: function() {
 				return this._numErrors;
@@ -150,6 +152,10 @@ YUI.add('ss-smugmug-gallery-list', function(Y, NAME) {
 		{
 			ATTRS : {
 				smugmugNickname: {
+					writeOnly: 'initOnly'
+				},
+				
+				customDomain: {
 					writeOnly: 'initOnly'
 				},
 				

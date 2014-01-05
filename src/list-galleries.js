@@ -1,7 +1,9 @@
 YUI().use(['node', 'json', 'io', 'event-resize', 'querystring-parse-simple', 'ss-event-log-widget', 'ss-smugmug-gallery-list', 'ss-smugmug-gallery-list-view',
            'ss-progress-bar', 'node-event-simulate', 'event-valuechange'], function(Y) {
-	var 
-		nickname = Y.QueryString.parse(location.search.slice(1)).nickname;
+	var
+		arguments = Y.QueryString.parse(location.search.slice(1)),
+		nickname = arguments.nickname,
+		customDomain = arguments.customDomain;
 	
 	if (!/^[a-zA-Z0-9-]+$/.test(nickname)) {
 		alert("Bad arguments, please close this page and try again.");
@@ -12,6 +14,7 @@ YUI().use(['node', 'json', 'io', 'event-resize', 'querystring-parse-simple', 'ss
 		eventLog = new Y.SherlockPhotography.EventLogWidget(),
 		galleryList = new Y.SherlockPhotography.SmugmugGalleryList({
 			smugmugNickname: nickname,
+			customDomain: customDomain,
 			eventLog: eventLog
 		}),
 		galleryListView = null;

@@ -1,4 +1,10 @@
 YUI.add('ss-smugmug-tools', function(Y) {
+	
+	// From http://stackoverflow.com/a/6969486/14431
+	function escapeRegExp(str) {
+		return str.replace(/[\-\[\]\/\{\}\(\)\*\+\?\.\\\^\$\|]/g, "\\$&");
+	}
+	
 	var SmugmugTools = Y.Base.create(
 		'ssSmugmugTools',
 		Y.Base,
@@ -110,7 +116,64 @@ YUI.add('ss-smugmug-tools', function(Y) {
 				}
 				
 				return false;
-			}			
+			},		
+			
+			/**
+			 * Creates a permalink for given gallery described with the nodedata in gallerynode, or returns false if a link could not be created.
+			 * 
+			 * Supply the optional lightboxUrl which is the complete URL for the open lightbox if you want to include the lightbox data in the URL, or false otherwise.
+			 * 
+			 * Supply the SmugMug user data object from the HTML as loggedInUser if you want to use the custom domain name from there, false otherwise (currently
+			 * this looks for keys 'nickName' and 'homepage' which is http://... ).
+			 */
+			createGalleryPermalink: function(galleryNode, lightboxUrl, loggedInUser) {
+				if (!galleryNode.Url)
+					return false;
+				
+				var 
+					pl = galleryNode.Url;
+				
+				if (galleryNode.RemoteID && galleryNode.RemoteKey) {
+					//Remove NodeID from the end of the URL for unlisted galleries (albumID/albumKey substitutes for that)
+					pl = pl.replace(new RegExp("/n-" + escapeRegExp(galleryNode.NodeID) + "$"), "");
+					
+					//Add the old-style SmugMug albumID/albumKey to the end
+					pl = pl + "/" + galleryNode.RemoteID + "_" + galleryNode.RemoteKey;
+					
+					if (lightboxUrl) {
+						//Does the supplied lightbox URL correspond to a location inside this gallery?
+						var 
+							pageUrl = galleryNode.Url.replace(/\/$/, ""), //Remove trailing backslash
+							matches = lightboxUrl.match(new RegExp("^" + escapeRegExp(pageUrl) + "/i-([0-9a-zA-Z]+)(?:/([A-Z0-9]{1,2}))?$"));
+						
+						if (matches) {
+							/* When the gallery URL is correct, SmugMug does a 301 permanent to the vanilla gallery URL, discarding
+							 * the query string. The New SmugMug gallery then interprets the hashbang arguments and opens the lightbox. 
+							 * 
+							 * When the gallery URL is incorrect, SmugMug loads a special gallery-404 page to examine the hash with
+							 * JS (which the SM server couldn't see on its own).
+							 * 
+							 * The query string part (?) ends up being examined as well as the hash (I think accidentally). The information
+							 * in the query string causes a redirect to a URL like /r-KT1a1j/XL.
+							 * 
+							 * When it arrives at the new-SmugMug gallery router, this gets converted to /i-KT1a1j/XL which opens the lightbox.
+							 */
+							if (matches[2]) { // Lightbox size
+								pl = pl + "?k=" + matches[1] + "&lb=1&s=" + matches[2] + "#!/i-" + matches[1] + "/" + matches[2];
+							} else { // SmugMug-style image selected
+								pl = pl + "?k=" + matches[1] + "#!/i-" + matches[1];						
+							}
+						}
+					}
+				}
+				
+				//Attempt to switch the link to use the user's custom domain
+				if (loggedInUser && loggedInUser.homepage && !loggedInUser.homepage.match(/\.smugmug\.com$/)) {
+					pl = pl.replace(new RegExp("^http://" + loggedInUser.nickName + "\.smugmug\.com"), loggedInUser.homepage);
+				}
+				
+				return pl;
+			}
 		}
 	);
 	

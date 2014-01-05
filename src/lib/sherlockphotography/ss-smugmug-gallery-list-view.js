@@ -1,14 +1,14 @@
 YUI.add('ss-smugmug-gallery-list-view', function(Y, NAME) {
 	var
-		Constants = Y.SherlockPhotography.SmugmugConstants;
-	
-	var
+		Constants = Y.SherlockPhotography.SmugmugConstants,
+		
 		GRID_COLUMNS = [
             {
         		key: "GridDisplayName", 
         		label: "Name", 
         		name: "Name",
         		allowHTML: true, 
+        		showByDefault: true,
         		formatter: function(cell) {
 	            	var 
 	            		depth = cell.record.get('Depth') * 1,
@@ -48,12 +48,48 @@ YUI.add('ss-smugmug-gallery-list-view', function(Y, NAME) {
 	            }
             },
             {
+            	key: "Url",
+            	label: "Link",
+            	showByDefault: false,
+            	allowHTML: true,
+        		formatter: function(cell) {
+        			return '<input type="text" name="" value="' + Y.Escape.html(cell.value) + '" />'; 
+        		}
+            },
+            {
+            	key: "Permalink",
+            	name: "Permalink",
+            	label: "Permalink",
+            	showByDefault: false,
+            	allowHTML: true,
+        		formatter: function(cell) {
+        			return '<input type="text" name="" value="' + Y.Escape.html(cell.value) + '" />'; 
+        		}
+            },
+            {
+            	key: "RemoteID",
+            	label: "AlbumID",
+            	showByDefault: false,
+            }, 
+            {
+            	key: "RemoteKey",
+            	label: "AlbumKey",
+            	showByDefault: false,
+            },
+            {
         		key: "Description", 
-        		label: "Description"
+        		label: "Description", 
+        		showByDefault: true
         	},
+            {
+        		key: "Keywords", 
+        		label: "Keywords", 
+        		showByDefault: false
+        	},            
             {
             	key: "PrivacyLevel", 
             	label: "Privacy", 
+        		showByDefault: true,
             	formatter: function(cell) {
 	            	var result = Constants.PRIVACY_NAMES[cell.value];
 	            	
@@ -64,8 +100,34 @@ YUI.add('ss-smugmug-gallery-list-view', function(Y, NAME) {
 	            }
             },
             {
+            	key: "PasswordProtected",
+            	label: "Passworded",
+            	showByDefault: false,
+            	formatter: function(cell) {
+            		if (cell.value) 
+            			return "Passworded";
+            		return "";
+	            }
+            },
+            {
+            	key: "ViewPassHint",
+            	label: "Password hint",
+            	showByDefault: false
+            },            
+            {
+            	key: "HasImages",
+            	label: "Empty",
+            	showByDefault: false,
+            	formatter: function(cell) {
+            		if (cell.value === false) 
+            			return "Empty";
+            		return "";
+	            }
+            },            
+            {
             	key: "SmugSearchable", 
-            	label:" SM searchable", 
+            	label: "SM searchable", 
+            	showByDefault: true,
             	formatter: function(cell) {
             		return Constants.NODE_SMUGMUG_SEARCHABLE_NAMES[cell.value];
             	}
@@ -73,18 +135,35 @@ YUI.add('ss-smugmug-gallery-list-view', function(Y, NAME) {
             {
         		key: "WorldSearchable", 
         		label: "Web searchable", 
+        		showByDefault: true,
         		formatter: function(cell) {
         			return Constants.NODE_WORLD_SEARCHABLE_NAMES[cell.value];
         		}
             },
             {
+        		key: "DateAdded", 
+        		label: "Date created",
+        		showByDefault: false,
+        		formatter: function(cell) {
+        			return Y.Date.format(new Date(cell.value * 1000), {format:"%Y-%m-%d"});	
+        		}
+        	},            
+            {
         		key: "DateModified", 
         		label: "Last modified",
+        		showByDefault: true,
         		formatter: function(cell) {
         			return Y.Date.format(new Date(cell.value * 1000), {format:"%Y-%m-%d"});	
         		}
         	}
         ];
+	
+	// Ensure each grid column has a sensible name defined (derived like DataTable does) for unique names in HTML
+	for (var index in GRID_COLUMNS) {
+		if (!GRID_COLUMNS[index].name) {
+			GRID_COLUMNS[index].name = GRID_COLUMNS[index].key;
+		}
+	}
 	
 	function createNodeSortKey(node) {
 		var key;
@@ -110,10 +189,13 @@ YUI.add('ss-smugmug-gallery-list-view', function(Y, NAME) {
 		_grid : null,
 		_nodeTree : null,
 		
-		_controls: null,
+		_filterOptionsContainer: null,
+		_columnOptionsContainer: null,
 
 		_filters: {},
 		_filterGroups: ["PrivacyLevel", "Type"],
+		
+		_columns: false,
 
 		CONTENT_TEMPLATE : null,
 		
@@ -149,7 +231,7 @@ YUI.add('ss-smugmug-gallery-list-view', function(Y, NAME) {
 				
 				grid.push(treeRoot.nodeData);
 			} else {
-				//We don't consider a missing homepage to create orphans under it
+				//We don't consider a missing homepage to create orphans under it (because we change the homepage's children into siblings)
 				if (treeRoot.nodeData.Depth > 0) {
 					orphaned = true;
 				}
@@ -173,6 +255,7 @@ YUI.add('ss-smugmug-gallery-list-view', function(Y, NAME) {
 				return 0;
 			});
 			
+			//No leading / at start of gallery path:
 			if (treeRoot.nodeData.Depth > 0) {
 				path += "/";
 			}
@@ -188,6 +271,11 @@ YUI.add('ss-smugmug-gallery-list-view', function(Y, NAME) {
 			this._nodeTree = this.get("galleryList").get("nodeTree");
 			
 			this._loadFilterOptions();
+			this._loadColumnOptions();
+			
+			if (!this._columns) {
+				this._loadColumnDefaults();
+			}
 		},
 
 		/**
@@ -208,15 +296,9 @@ YUI.add('ss-smugmug-gallery-list-view', function(Y, NAME) {
 			for (var index in options) {
 				var 
 					option = options[index],
-					li = Y.Node.create("<li></li>"),
-					checkbox = Y.Node.create('<input type="checkbox" name="' + Y.Escape.html(name) + '" value="' + Y.Escape.html(option.value) + '" ' + (option.checked ? 'checked' : '') + '/>'),
-					labelElem = Y.Node.create("<label></label>");
-								
-				labelElem.append(checkbox);
-								
-				labelElem.append("&nbsp;" + Y.Escape.html(option.label));
-				
-				li.append(labelElem);
+					li = Y.Node.create('<li><label><input type="checkbox" name="' + Y.Escape.html(name) + '" value="' + Y.Escape.html(option.value) + '" ' + (option.checked ? 'checked' : '') + '/>&nbsp;' 
+						+ Y.Escape.html(option.label) + '</label></li>');
+					
 				ul.append(li);
 			}
 			
@@ -226,20 +308,24 @@ YUI.add('ss-smugmug-gallery-list-view', function(Y, NAME) {
 		},
 		
 		_renderFilterOptions: function(controls) {
-			controls.append("<h2>Pages to include</h2>");
+			var container = Y.Node.create('<div class="ss-smugmug-gallery-list-filters"></div>');
 			
-			controls.append(this._renderFilterGroup("PrivacyLevel", "Privacy", [
+			container.append("<h2>Pages to include</h2>");
+			
+			container.append(this._renderFilterGroup("PrivacyLevel", "Privacy", [
 				{value: Constants.Privacy.PUBLIC, label: Constants.PRIVACY_NAMES[Constants.Privacy.PUBLIC], checked: true},
 				{value: Constants.Privacy.UNLISTED, label: Constants.PRIVACY_NAMES[Constants.Privacy.UNLISTED], checked: true},
 				{value: Constants.Privacy.PRIVATE, label: Constants.PRIVACY_NAMES[Constants.Privacy.PRIVATE], checked: true}
 			]));
 
-			controls.append(this._renderFilterGroup("Type", "Page type", [
+			container.append(this._renderFilterGroup("Type", "Page type", [
   				{value: Constants.NodeType.ROOT, label: Constants.NODE_TYPE_NAMES[Constants.NodeType.ROOT], checked: true},
 				{value: Constants.NodeType.FOLDER, label: Constants.NODE_TYPE_NAMES[Constants.NodeType.FOLDER], checked: true},
 				{value: Constants.NodeType.GALLERY, label: Constants.NODE_TYPE_NAMES[Constants.NodeType.GALLERY], checked: true},
 				{value: Constants.NodeType.PAGE, label: Constants.NODE_TYPE_NAMES[Constants.NodeType.PAGE], checked: true},
 			]));
+			
+			return container;
 		},
 		
 		_getFilterOptionsFromUI: function() {
@@ -248,7 +334,7 @@ YUI.add('ss-smugmug-gallery-list-view', function(Y, NAME) {
 			for (var index in this._filterGroups) {
 				var 
 					filterGroup = this._filterGroups[index],
-					options = this._controls.all("input[name='" + filterGroup + "']:checked");
+					options = this._filterOptionsContainer.all("input[name='" + filterGroup + "']:checked");
 			
 				this._filters[filterGroup] = {};
 			
@@ -266,7 +352,7 @@ YUI.add('ss-smugmug-gallery-list-view', function(Y, NAME) {
 			for (var index in this._filterGroups) {
 				var 
 					filterGroup = this._filterGroups[index],
-					options = this._controls.all("input[name='" + filterGroup + "']");
+					options = this._filterOptionsContainer.all("input[name='" + filterGroup + "']");
 				
 				//If we've customised anything in this filter group, just tick those that we selected
 				if (this._filters[filterGroup]) {
@@ -294,37 +380,144 @@ YUI.add('ss-smugmug-gallery-list-view', function(Y, NAME) {
 			}
 		},
 
+		_renderColumnOptions: function(controls) {
+			var container = Y.Node.create('<div class="ss-smugmug-gallery-list-columns"></div>');
+			
+			container.append("<h2>Columns to include</h2>");
+			
+			var ul = Y.Node.create('<ul class="list-unstyled"></ul>');
+			
+			for (var index in GRID_COLUMNS) {
+				var 
+					column = GRID_COLUMNS[index],
+					
+					li = Y.Node.create('<li><label><input type="checkbox" name="column" value="' + Y.Escape.html(column.name) + '" ' + (column.showByDefault ? 'checked' : '') + ' />&nbsp;' 
+						+ Y.Escape.html(column.label) + '</label></li>');
+				
+				ul.append(li);
+			}
+			
+			container.append(ul);
+			
+			return container;
+		},
+		
+		_getColumnOptionsFromUI: function() {
+			var 
+				that = this,
+				options = this._columnOptionsContainer.all("input:checked");
+		
+			this._columns = {};
+		
+			options.each(function() {
+				that._columns[this.get('value')] = true;
+			});
+			
+			//If there was an unload-moment for this control, this would be better placed there!
+			this._saveColumnOptions();
+			this.syncUI();
+		},
+		
+		_putColumnOptionsToUI: function() {			
+			var 
+				options = this._columnOptionsContainer.all("input");
+				
+			options.set('checked', false);
+
+			for (var columnName in this._columns) {
+				options.filter("[value='" + columnName + "']").set('checked', true);
+			}
+		},		
+		
+		_saveColumnOptions: function() {
+			window.localStorage["galleryList.columns"] = Y.JSON.stringify(this._columns);
+		},
+
+		_loadColumnOptions: function() {
+			try {
+				this._columns = Y.JSON.parse(window.localStorage["galleryList.columns"]);
+			} catch (e) {
+				this._columns = false;
+			}
+		},	
+		
+		/**
+		 * Apply the user column filters to GRID_COLUMNS and return an array of those that match.
+		 */
+		_getSelectedColumns: function() {
+			var result = [];
+			
+			for (var index in GRID_COLUMNS) {
+				var column = GRID_COLUMNS[index];
+				
+				if (this._columns[column.name]) {
+					result.push(column);
+				}
+			}
+			
+			return result;
+		},
+		
+		/**
+		 * Load the default column filters.
+		 */
+		_loadColumnDefaults: function() {
+			this._columns = {};
+			
+			for (var columnName in GRID_COLUMNS) {
+				var 
+					column = GRID_COLUMNS[columnName];
+				
+				if (column.showByDefault) {
+					this._columns[column.name] = true;
+				}
+			}
+		},
+
 		renderUI : function() {
 			var container = this.get("contentBox");
 			
 			container.get('children').remove();
 			
-			this._controls = Y.Node.create("<div class='ss-smugmug-gallery-list-controls'></div>");
+			var controlsContainer = Y.Node.create("<div class='ss-smugmug-gallery-list-controls'></div>");
 			
-			this._renderFilterOptions(this._controls);
+			this._filterOptionsContainer = this._renderFilterOptions(controlsContainer);
+			this._columnOptionsContainer = this._renderColumnOptions(controlsContainer);
 						
-			container.append(this._controls);
+			controlsContainer.append(this._filterOptionsContainer);
+			controlsContainer.append(this._columnOptionsContainer);
+			
+			container.append(controlsContainer);
 			
 			this.set('gridContainer', Y.Node.create("<div class='ss-smugmug-gallery-list-grid'></div>"));
 			container.append(this.get('gridContainer'));
 
 			this._putFilterOptionsToUI();
+			this._putColumnOptionsToUI();
 		},
 		
 		bindUI: function() {
-			//Filter checkboxes
-			this._controls.all("input").on({change: Y.bind(this._getFilterOptionsFromUI, this)});
+			this._filterOptionsContainer.on({change: Y.bind(this._getFilterOptionsFromUI, this)});
+			this._columnOptionsContainer.on({change: Y.bind(this._getColumnOptionsFromUI, this)});
 		},
 		
 		syncUI: function() {
-			var data = this._recursiveBuildGrid([], this._nodeTree, "", false);
+			var 
+				selectedColumns = this._getSelectedColumns(),
+				data;
+			
+			if (selectedColumns.length == 0) {
+				data = [];
+			} else {
+				data = this._recursiveBuildGrid([], this._nodeTree, "", false);
+			}
 			
 			if (this._grid) {
 				this._grid.destroy();
 			}
 			
 			this._grid = new Y.DataTable({
-				columns: GRID_COLUMNS,
+				columns: selectedColumns,
 				data: data
 			});
 						
