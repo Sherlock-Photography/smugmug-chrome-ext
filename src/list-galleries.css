@@ -34,3 +34,8 @@ h1 {
 .yui3-datatable-col-Permalink input {
 	max-width:10em;
 }
+
+#output-csv-format {
+	white-space: pre;
+	word-wrap: normal;
+}

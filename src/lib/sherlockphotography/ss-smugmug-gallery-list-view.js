@@ -45,6 +45,10 @@ YUI.add('ss-smugmug-gallery-list-view', function(Y, NAME) {
 	            	
 	            	return '<a class="node-depth-' + depth + '" target="_blank" href="' + Y.Escape.html(cell.record.get('Url')) + '">' + 
 	            		'<span class="' + className + '"></span>&nbsp;' + Y.Escape.html(name) + '</a>';
+	            },
+	            
+	            formatterCSV: function(cell) {
+	            	return cell.record.get('Depth') == 0 ? 'Homepage' : cell.record.get('Path');
 	            }
             },
             {
@@ -54,6 +58,10 @@ YUI.add('ss-smugmug-gallery-list-view', function(Y, NAME) {
             	allowHTML: true,
         		formatter: function(cell) {
         			return '<input type="text" name="" value="' + Y.Escape.html(cell.value) + '" />'; 
+        		},
+            
+        		formatterCSV: function(cell) {
+        			return cell.value;
         		}
             },
             {
@@ -64,6 +72,10 @@ YUI.add('ss-smugmug-gallery-list-view', function(Y, NAME) {
             	allowHTML: true,
         		formatter: function(cell) {
         			return '<input type="text" name="" value="' + Y.Escape.html(cell.value) + '" />'; 
+        		},
+        		
+        		formatterCSV: function(cell) {
+        			return cell.value;
         		}
             },
             {
@@ -196,7 +208,7 @@ YUI.add('ss-smugmug-gallery-list-view', function(Y, NAME) {
 		/**
 		 * Recursively add rows to the grid from the tree of nodes rooted at treeRoot 
 		 */
-		_recursiveBuildGrid: function(grid, treeRoot, path, orphaned) {
+		_recursiveBuildGrid: function(grid, treeRoot, orphaned) {
 			if (!treeRoot)
 				return; //Empty root
 
@@ -211,14 +223,12 @@ YUI.add('ss-smugmug-gallery-list-view', function(Y, NAME) {
 					break;
 				}
 			}
-			
-			path += treeRoot.nodeData.Name;
-			
+						
 			if (include) {
 				/* If we're an orphan, our display name has to show the complete path from the root so people know what this node is */
 				treeRoot.nodeData.Orphaned = orphaned;
 				if (orphaned) {
-					treeRoot.nodeData.GridDisplayName = path;  
+					treeRoot.nodeData.GridDisplayName = treeRoot.nodeData.Path;  
 				} else {
 					treeRoot.nodeData.GridDisplayName = treeRoot.nodeData.Name;
 				}
@@ -248,14 +258,9 @@ YUI.add('ss-smugmug-gallery-list-view', function(Y, NAME) {
 				
 				return 0;
 			});
-			
-			//No leading / at start of gallery path:
-			if (treeRoot.nodeData.Depth > 0) {
-				path += "/";
-			}
-			
+						
 			for (var index in children) {
-				this._recursiveBuildGrid(grid, children[index], path, orphaned);
+				this._recursiveBuildGrid(grid, children[index], orphaned);
 			}
 			
 			return grid;
@@ -443,7 +448,7 @@ YUI.add('ss-smugmug-gallery-list-view', function(Y, NAME) {
 		/**
 		 * Apply the user column filters to GRID_COLUMNS and return an array of those that match.
 		 */
-		_getSelectedColumns: function() {
+		getSelectedColumnDefinitions: function() {
 			var result = [];
 			
 			for (var index in GRID_COLUMNS) {
@@ -502,7 +507,7 @@ YUI.add('ss-smugmug-gallery-list-view', function(Y, NAME) {
 		
 		syncUI: function() {
 			var 
-				selectedColumns = this._getSelectedColumns();
+				selectedColumns = this.getSelectedColumnDefinitions();
 			
 			//Avoid rebuilding _data if it hasn't been invalidated by changing row filters
 			if (this._data == null) {
@@ -529,7 +534,7 @@ YUI.add('ss-smugmug-gallery-list-view', function(Y, NAME) {
 			}
 		}
 	}, {
-		ATTRS : {	
+		ATTRS : {
 			gridContainer: {
 				value: null
 			},
@@ -538,9 +543,15 @@ YUI.add('ss-smugmug-gallery-list-view', function(Y, NAME) {
 				value: null,
 				writeOnce: "initOnly"
 			},
+			
+			selectedNodes: {
+				getter: function() {
+					return this._data;
+				}				
+			}
 		}
 	});
-
+	
 	Y.namespace("SherlockPhotography").SmugmugGalleryListView = SmugmugGalleryListView;
 }, '0.0.1', {
 	requires : [ 'base', 'widget', 'escape', 'timers', 'datatable', 'datatable-sort', 'ss-smugmug-constants', 'datatype-date-format', 'json-stringify', 'json-parse', 'model-list' ]

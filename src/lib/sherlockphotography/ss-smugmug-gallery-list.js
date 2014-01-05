@@ -7,6 +7,20 @@ YUI.add('ss-smugmug-gallery-list', function(Y, NAME) {
 		return str.replace(/[\-\[\]\/\{\}\(\)\*\+\?\.\\\^\$\|]/g, "\\$&");
 	}
 
+	//Found a good specification of CSV as used by Office here: http://www.creativyst.com/Doc/Articles/CSV/CSV01.htm
+	function escapeCSV(str) {
+		if (typeof str === 'undefined') 
+			return "";
+		
+		str = str + "";
+		
+		//Only quote the string if needed (if it contains commas, leading or trailing whitespace, or double-quotes):
+		if (str && str.match(/[\n,"]|^\s|\s$/)) {
+			return '"' + str.replace(/"/g, '""') + '"';
+		}
+		return str;
+	}
+
 	var SmugmugGalleryList = Y.Base.create(
 		NAME,
 		Y.Base,
@@ -29,10 +43,10 @@ YUI.add('ss-smugmug-gallery-list', function(Y, NAME) {
 				this.fire('update');
 			},
 
-			_recurseAugmentNodes: function(treeRoot) {
+			_recurseAugmentNodes: function(treeRoot, path) {
 				if (treeRoot.nodeData) {
 					var 
-						customDomain = this.get('customDomain')
+						customDomain = this.get('customDomain'),
 						nickName = this.get('smugmugNickname');
 					
 					//Switch the gallery URL to our custom domain name if we can
@@ -43,15 +57,24 @@ YUI.add('ss-smugmug-gallery-list', function(Y, NAME) {
 					treeRoot.nodeData.Permalink = Y.SherlockPhotography.SmugmugTools.createGalleryPermalink(treeRoot.nodeData);
 				}
 				
+				path += treeRoot.nodeData.Name;
+				
+				treeRoot.nodeData.Path = path;				
+				
+				//No leading / at start of gallery path:
+				if (treeRoot.nodeData.Depth > 0) {
+					path += "/";
+				}
+
 				for (var index in treeRoot.children) {
-					this._recurseAugmentNodes(treeRoot.children[index]);
+					this._recurseAugmentNodes(treeRoot.children[index], path);
 				}				
 			},
 			
 			/* Add some derived information to each node to make the data more comprehensible to consumers */
 			_stageAugmentNodes: function() {
 				if (this._nodeTree)
-					this._recurseAugmentNodes(this._nodeTree);
+					this._recurseAugmentNodes(this._nodeTree, "");
 				
 				this._stageCompleted(true);
 			},
@@ -150,6 +173,64 @@ YUI.add('ss-smugmug-gallery-list', function(Y, NAME) {
 			}
 		},
 		{
+			/**
+			 * Render the nodes in the modellist 'nodes' as CSV, selecting the columns in the array 'columns' (same format
+			 * as DataTable's column definitons).
+			 * 
+			 * @param nodes
+			 * @param columns
+			 * @returns
+			 */
+			renderAsCSV: function(nodes, columns) {
+				var 
+					output = [],
+					line,
+					index;
+				
+				//Render headers:
+				line = [];
+				for (index = 0; index < columns.length; index++) {
+					var column = columns[index];
+					
+					line.push(escapeCSV(column.label));
+				}
+				output.push(line.join(","));
+				
+				//Render data:
+				nodes.each(function(node) {
+					line = [];
+					
+					for (index = 0; index < columns.length; index++) {
+						var 
+							column = columns[index],
+							value = node.get(column.key),
+							cell,
+							rendered;
+						
+						if (column.formatter || column.formatterCSV) {
+							cell = {
+								value: value,
+								record: node
+							};
+							
+							if (column.formatterCSV) {
+								rendered = column.formatterCSV(cell);
+							} else { 
+								rendered = column.formatter(cell);
+							}
+						} else {
+							rendered = value;
+						}
+						
+						line.push(escapeCSV(rendered));
+					}
+					
+					output.push(line.join(","));
+				}, this);
+				
+				return output.join("\n");
+			},
+			
 			ATTRS : {
 				smugmugNickname: {
 					writeOnly: 'initOnly'

@@ -1,3 +1,9 @@
+//Bootstrap's event monitoring is a super CPU cycle hog when rebuilding the table (determined by profiling). 4x more expensive than us rebuilding the table!
+//So knock it off:
+$(document).off('.data-api');
+
+$("#dlg-export-list").modal();
+
 YUI().use(['node', 'json', 'io', 'event-resize', 'querystring-parse-simple', 'ss-event-log-widget', 'ss-smugmug-gallery-list', 'ss-smugmug-gallery-list-view',
            'ss-progress-bar', 'node-event-simulate', 'event-valuechange'], function(Y) {
 	var
@@ -52,9 +58,17 @@ YUI().use(['node', 'json', 'io', 'event-resize', 'querystring-parse-simple', 'ss
 			});
 	
 			Y.one('#btn-list-save').on('click', function(e) {
-				e.preventDefault();
+				Y.one('#output-csv-format').set('text', Y.SherlockPhotography.SmugmugGalleryList.renderAsCSV(galleryListView.get('selectedNodes'), galleryListView.getSelectedColumnDefinitions()));
 				
-				backup.saveBackupToDisk();		
+				$("#dlg-export-list").modal('show');
+				e.preventDefault();
+			});
+			
+			Y.one('#btn-export-csv').on('click', function(e) {
+				var blob = new Blob([Y.one('#output-csv-format').get('text')], {type: "text/csv;charset=utf-8"});
+				saveAs(blob, 'Gallery list ' + nickname + ' ' + Y.Date.format(new Date(), {format:"%Y-%m-%d %H%M%S"}) + ".csv");
+				
+				e.preventDefault();
 			});
 			
 			Y.all(".smugmug-site-address").set('text', galleryList.get('smugmugDomain'));
