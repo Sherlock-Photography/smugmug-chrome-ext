@@ -9,6 +9,14 @@ document.addEventListener('DOMContentLoaded', function() {
 				
 				return false;
 			};
+			
+			document.getElementById("list-galleries").onclick = function() {
+				chrome.tabs.create({
+					url: 'list-galleries.html?nickname=' + encodeURIComponent(siteDetail.nickname) + (siteDetail.loggedInUser && siteDetail.loggedInUser.homepage ? "&customDomain=" + encodeURIComponent(siteDetail.loggedInUser.homepage.replace("http://", "")) : "")
+				});
+				
+				return false;
+			};
 
 			var payPalButtons = document.getElementById("paypal-buynow");
 
