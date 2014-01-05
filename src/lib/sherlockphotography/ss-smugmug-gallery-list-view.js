@@ -93,10 +93,7 @@ YUI.add('ss-smugmug-gallery-list-view', function(Y, NAME) {
             	formatter: function(cell) {
 	            	var result = Constants.PRIVACY_NAMES[cell.value];
 	            	
-	            	if (result)
-	            		return result;
-	            	
-	            	return "(unknown)";
+	            	return result ? result : "(unknown)";
 	            }
             },
             {
@@ -104,9 +101,7 @@ YUI.add('ss-smugmug-gallery-list-view', function(Y, NAME) {
             	label: "Passworded",
             	showByDefault: false,
             	formatter: function(cell) {
-            		if (cell.value) 
-            			return "Passworded";
-            		return "";
+            		return cell.value ? "Passworded" : "";
 	            }
             },
             {
@@ -119,9 +114,7 @@ YUI.add('ss-smugmug-gallery-list-view', function(Y, NAME) {
             	label: "Empty",
             	showByDefault: false,
             	formatter: function(cell) {
-            		if (cell.value === false) 
-            			return "Empty";
-            		return "";
+            		return cell.value === false ? "Empty" : "";
 	            }
             },            
             {
@@ -195,6 +188,7 @@ YUI.add('ss-smugmug-gallery-list-view', function(Y, NAME) {
 		_filters: {},
 		_filterGroups: ["PrivacyLevel", "Type"],
 		
+		_data: null,
 		_columns: false,
 
 		CONTENT_TEMPLATE : null,
@@ -277,6 +271,10 @@ YUI.add('ss-smugmug-gallery-list-view', function(Y, NAME) {
 				this._loadColumnDefaults();
 			}
 		},
+		
+		_invalidateDataModel: function() {
+			this._data = null;
+		},
 
 		/**
 		 * Render a group of filter checkboxes
@@ -345,6 +343,7 @@ YUI.add('ss-smugmug-gallery-list-view', function(Y, NAME) {
 			
 			//If there was an unload-moment for this control, this would be better placed there!
 			this._saveFilterOptions();
+			this._invalidateDataModel();
 			this.syncUI();
 		},
 		
@@ -503,13 +502,15 @@ YUI.add('ss-smugmug-gallery-list-view', function(Y, NAME) {
 		
 		syncUI: function() {
 			var 
-				selectedColumns = this._getSelectedColumns(),
-				data;
+				selectedColumns = this._getSelectedColumns();
 			
-			if (selectedColumns.length == 0) {
-				data = [];
-			} else {
-				data = this._recursiveBuildGrid([], this._nodeTree, "", false);
+			//Avoid rebuilding _data if it hasn't been invalidated by changing row filters
+			if (this._data == null) {
+				if (selectedColumns.length == 0) {
+					this._data = [];
+				} else {
+					this._data = new Y.ModelList({items: this._recursiveBuildGrid([], this._nodeTree, "", false)});
+				}
 			}
 			
 			if (this._grid) {
@@ -518,12 +519,12 @@ YUI.add('ss-smugmug-gallery-list-view', function(Y, NAME) {
 			
 			this._grid = new Y.DataTable({
 				columns: selectedColumns,
-				data: data
+				data: this._data
 			});
 						
 			this._grid.render(this.get('gridContainer'));
 			
-			if (data.length == 0) {
+			if (this._data.length == 0) {
 				this._grid.showMessage('No pages matched your filters.');
 			}
 		}
@@ -542,5 +543,5 @@ YUI.add('ss-smugmug-gallery-list-view', function(Y, NAME) {
 
 	Y.namespace("SherlockPhotography").SmugmugGalleryListView = SmugmugGalleryListView;
 }, '0.0.1', {
-	requires : [ 'base', 'widget', 'escape', 'timers', 'datatable', 'datatable-sort', 'ss-smugmug-constants', 'datatype-date-format', 'json-stringify', 'json-parse' ]
+	requires : [ 'base', 'widget', 'escape', 'timers', 'datatable', 'datatable-sort', 'ss-smugmug-constants', 'datatype-date-format', 'json-stringify', 'json-parse', 'model-list' ]
 });
