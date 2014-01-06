@@ -231,6 +231,97 @@ YUI.add('ss-smugmug-gallery-list', function(Y, NAME) {
 				return output.join("\n");
 			},
 			
+			/**
+			 * Render the nodes in the modellist 'nodes' as CSV, selecting the columns in the array 'columns' (same format
+			 * as DataTable's column definitons).
+			 * 
+			 * @param nodes
+			 * @param columns
+			 * @returns
+			 */
+			renderAsHTML: function(nodes) {
+				var 
+					output = [],
+					indent = 0,
+					depth = -1,
+					SPACES_PER_TAB = 2,
+					
+					outputLine = function(line, indentDelta) {
+						if (indentDelta < 0)
+							indent += indentDelta;
+						
+						output.push(Array(indent * SPACES_PER_TAB + 1).join(" ") + line); //Thank you based StackOverflow http://stackoverflow.com/questions/1877475/repeat-character-n-times
+						
+						if (indentDelta > 0)
+							indent += indentDelta;
+					},
+					
+					//Adapted from YUI's Escape.html to avoid escaping characters like / which we don't need to escape and look super ugly in the output
+					myEscape = function(text) {
+						var HTML_CHARS = {
+					        '&': '&amp;',
+					        '<': '&lt;',
+					        '>': '&gt;',
+					        '"': '&quot;'
+					    };
+
+						return (text + '').replace(/[&<>"]/g, function(match) { 
+							return HTML_CHARS[match]; 
+						});
+					};
+				
+				outputLine('<dl class="ss-sitemap">', +1);
+				
+				nodes.each(function(node, index) {
+					var nodeDepth = node.get('Depth');
+					
+					//Exclude the homepage node
+					if (nodeDepth == 0) {
+						return;
+					}
+					
+					//Children of the homepage move to top level:
+					nodeDepth--;
+					
+					//Orphaned nodes move to the top level (since their parents are missing their original depth is meaningless)
+					if (node.get('Orphaned')) {
+						nodeDepth = 0;
+					}
+					
+					//Finish off the previous node
+					while (nodeDepth <= depth) {
+						outputLine("</dl>", -1);
+						outputLine("</dd>", -1);
+						
+						depth--;
+					}
+					
+					depth++;
+
+					outputLine("<dd>", +1);
+					outputLine("<dl>", +1);
+					outputLine("<dt>", +1);
+					outputLine('<a href="' + myEscape(node.get('Url')) + '">' + myEscape(node.get('Name')) + "</a>", 0);
+					outputLine("</dt>", -1);
+				}, this);
+				
+				while (depth >= 0) {
+					outputLine("</dl>", -1);
+					outputLine("</dd>", -1);
+					
+					depth--;
+				}
+				
+				outputLine('</dl>', -1);
+				
+				output = output.join("\n");
+				
+				//Replace <dl>s that have just a <dt> and no <dd>s with the content of the <dt> (tidy up the HTML).
+				output = output.replace(/^(\s*)<dl>\n\s*<dt>\n\s*(.+?)\n\s*<\/dt>\s*<\/dl>/gm, "$1$2");
+								
+				return output;
+			},			
+			
 			ATTRS : {
 				smugmugNickname: {
 					writeOnly: 'initOnly'

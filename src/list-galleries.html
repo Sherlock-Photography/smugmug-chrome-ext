@@ -62,24 +62,39 @@
 <div id="gallery-list"></div>
 
 <div class="modal fade" id="dlg-export-list" tabindex="-1" role="dialog" aria-hidden="true">
-  <div class="modal-dialog">
-    <div class="modal-content">
-      <div class="modal-header">
-        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
-        <h4 class="modal-title">Save gallery list</h4>
-      </div>
-      <div class="modal-body">
-        <p>
-        	CSV-format data can be imported into applications like Microsoft Excel.
-        </p>
-        <pre class="pre-scrollable" id="output-csv-format"></pre>
-        <button type="button" id="btn-export-csv" class="btn btn-default btn-primary"><span class="glyphicon glyphicon-floppy-disk"></span> Save to disk...</button>
-      </div>
-      <div class="modal-footer">
-        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
-      </div>
-    </div>
-  </div>
+	<div class="modal-dialog">
+		<div class="modal-content">
+			<div class="modal-header">
+				<button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+				<h4 class="modal-title">Save gallery list</h4>
+			</div>
+			<div class="modal-body">
+				<ul class="nav nav-tabs" id="tabs-export">
+					<li><a href="#tab-csv">CSV</a></li>
+					<li><a href="#tab-html">HTML</a></li>
+				</ul>
+				<div class="tab-content">
+					<div class="tab-pane active" id="tab-csv">
+						<p>
+							CSV-format data can be imported into applications like Microsoft Excel.
+						</p>
+						<pre class="pre-scrollable" id="output-csv-format"></pre>
+						<button type="button" id="btn-export-csv" class="btn btn-default btn-primary"><span class="glyphicon glyphicon-floppy-disk"></span> Save CSV to disk</button>
+					</div>
+					<div class="tab-pane" id="tab-html">
+						<p>
+							You can place this HTML code into an HTML Content Block in SmugMug's customiser.
+						</p>
+						<pre class="pre-scrollable" id="output-html-format"></pre>
+						<button type="button" id="btn-export-html" class="btn btn-default btn-primary"><span class="glyphicon glyphicon-floppy-disk"></span> Save HTML to disk</button>
+					</div>
+				</div>      
+			</div>
+			<div class="modal-footer">
+				<button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+			</div>
+		</div>
+	</div>
 </div>
 
 </body>

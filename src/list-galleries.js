@@ -1,9 +1,3 @@
-//Bootstrap's event monitoring is a super CPU cycle hog when rebuilding the table (determined by profiling). 4x more expensive than us rebuilding the table!
-//So knock it off:
-$(document).off('.data-api');
-
-$("#dlg-export-list").modal();
-
 YUI().use(['node', 'json', 'io', 'event-resize', 'querystring-parse-simple', 'ss-event-log-widget', 'ss-smugmug-gallery-list', 'ss-smugmug-gallery-list-view',
            'ss-progress-bar', 'node-event-simulate', 'event-valuechange'], function(Y) {
 	var
@@ -30,6 +24,18 @@ YUI().use(['node', 'json', 'io', 'event-resize', 'querystring-parse-simple', 'ss
 	
 	Y.on({
 		domready: function () {
+			//Bootstrap's event monitoring is a super CPU cycle hog when rebuilding the table (determined by profiling). 4x more expensive than us rebuilding the table!
+			//So knock it off:
+			$(document).off('.data-api');
+
+			$("#dlg-export-list").modal({
+				show: false
+			});
+			$("#tabs-export a").click(function(e) {
+				e.preventDefault();
+				$(this).tab('show');
+			});			
+			
 			eventLog.render('#eventLog');
 		
 			galleryList.on({
@@ -59,6 +65,7 @@ YUI().use(['node', 'json', 'io', 'event-resize', 'querystring-parse-simple', 'ss
 	
 			Y.one('#btn-list-save').on('click', function(e) {
 				Y.one('#output-csv-format').set('text', Y.SherlockPhotography.SmugmugGalleryList.renderAsCSV(galleryListView.get('selectedNodes'), galleryListView.getSelectedColumnDefinitions()));
+				Y.one('#output-html-format').set('text', Y.SherlockPhotography.SmugmugGalleryList.renderAsHTML(galleryListView.get('selectedNodes'), galleryListView.getSelectedColumnDefinitions()));
 				
 				$("#dlg-export-list").modal('show');
 				e.preventDefault();
