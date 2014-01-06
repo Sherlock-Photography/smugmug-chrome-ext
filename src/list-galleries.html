@@ -7,9 +7,10 @@
 
 <link rel="stylesheet" type="text/css" href="lib/yui/yui.css">
 
+<link rel="stylesheet" type="text/css" href="lib/codemirror/codemirror.css">
+
 <link rel="stylesheet" type="text/css" href="lib/sherlockphotography/ss-event-log-widget.css">
 <link rel="stylesheet" type="text/css" href="lib/sherlockphotography/ss-progress-bar.css">
-
 <link rel="stylesheet" type="text/css" href="lib/sherlockphotography/ss-smugmug-gallery-list.css">
 
 <link rel="stylesheet" type="text/css" href="list-galleries.css">
@@ -18,6 +19,12 @@
 
 <script type="text/javascript" src="lib/jquery/jquery.min.js"></script>
 <script type="text/javascript" src="lib/bootstrap/js/bootstrap.js"></script>
+
+<script type="text/javascript" src="lib/codemirror/codemirror.js"></script>
+<script type="text/javascript" src="lib/codemirror/mode/xml/xml.js"></script>
+<script type="text/javascript" src="lib/codemirror/mode/css/css.js"></script>
+<script type="text/javascript" src="lib/codemirror/mode/javascript/javascript.js"></script>
+<script type="text/javascript" src="lib/codemirror/mode/htmlmixed/htmlmixed.js"></script>
  
 <!-- 
 <script type="text/javascript" src="lib/yui/yui1-raw.js"></script>
@@ -55,7 +62,7 @@
 
 <div id="control-buttons" class="form-inline">
 	<button type="button" class="btn btn-default" id="btn-list-save" class="form-control" disabled="disabled">
-		<span class="glyphicon glyphicon-floppy-disk"></span> Save list...
+		<span class="glyphicon glyphicon-export"></span> Export list...
 	</button>
 </div>
 
@@ -70,7 +77,7 @@
 			</div>
 			<div class="modal-body">
 				<ul class="nav nav-tabs" id="tabs-export">
-					<li><a href="#tab-csv">CSV</a></li>
+					<li class="active"><a href="#tab-csv">CSV</a></li>
 					<li><a href="#tab-html">HTML</a></li>
 				</ul>
 				<div class="tab-content">
@@ -78,15 +85,20 @@
 						<p>
 							CSV-format data can be imported into applications like Microsoft Excel.
 						</p>
-						<pre class="pre-scrollable" id="output-csv-format"></pre>
-						<button type="button" id="btn-export-csv" class="btn btn-default btn-primary"><span class="glyphicon glyphicon-floppy-disk"></span> Save CSV to disk</button>
+						<div id="output-csv" class="panel panel-default"></div>
+						<button type="button" id="btn-save-csv" class="btn btn-default btn-primary"><span class="glyphicon glyphicon-floppy-disk"></span> Save to disk</button>
 					</div>
 					<div class="tab-pane" id="tab-html">
 						<p>
 							You can place this HTML code into an HTML Content Block in SmugMug's customiser.
 						</p>
-						<pre class="pre-scrollable" id="output-html-format"></pre>
-						<button type="button" id="btn-export-html" class="btn btn-default btn-primary"><span class="glyphicon glyphicon-floppy-disk"></span> Save HTML to disk</button>
+						<div class="alert alert-danger" id="tab-html-private-warning" style="display:none">
+							This list includes some Unlisted or Private galleries. If you publish this to visitors, they'll be able
+							to see links to those galleries and visit them. If that isn't what you want, please return to the main screen and 
+							untick "Unlisted" and "Private" at the top left to exclude those galleries from the list.
+						</div>
+						<div id="output-html" class="panel panel-default"></div>
+						<button type="button" id="btn-save-html" class="btn btn-default btn-primary"><span class="glyphicon glyphicon-floppy-disk"></span> Save to disk</button>
 					</div>
 				</div>      
 			</div>

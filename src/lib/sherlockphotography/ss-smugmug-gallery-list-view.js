@@ -448,7 +448,7 @@ YUI.add('ss-smugmug-gallery-list-view', function(Y, NAME) {
 		/**
 		 * Apply the user column filters to GRID_COLUMNS and return an array of those that match.
 		 */
-		getSelectedColumnDefinitions: function() {
+		_getSelectedColumnDefinitions: function() {
 			var result = [];
 			
 			for (var index in GRID_COLUMNS) {
@@ -507,7 +507,7 @@ YUI.add('ss-smugmug-gallery-list-view', function(Y, NAME) {
 		
 		syncUI: function() {
 			var 
-				selectedColumns = this.getSelectedColumnDefinitions();
+				selectedColumns = this._getSelectedColumnDefinitions();
 			
 			//Avoid rebuilding _data if it hasn't been invalidated by changing row filters
 			if (this._data == null) {
@@ -548,6 +548,10 @@ YUI.add('ss-smugmug-gallery-list-view', function(Y, NAME) {
 				getter: function() {
 					return this._data;
 				}				
+			},
+			
+			selectedColumns: {
+				getter: '_getSelectedColumnDefinitions'
 			}
 		}
 	});

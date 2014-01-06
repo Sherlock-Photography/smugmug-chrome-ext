@@ -174,6 +174,26 @@ YUI.add('ss-smugmug-gallery-list', function(Y, NAME) {
 		},
 		{
 			/**
+			 * Check if a ModelList of nodes contains any Unlisted or Private ones.
+			 */
+			nodelistContainsUnlistedOrPrivatePages: function(nodeList) {
+				var result = false;
+				
+				nodeList.each(function(node) {
+					var privacy = node.get('PrivacyLevel');
+					
+					if (privacy == Constants.Privacy.UNLISTED || privacy == Constants.Privacy.PRIVATE) {
+						result = true;
+						
+						//Does .each() support early termination? Nobody knows...
+						return false;
+					}
+				});
+				
+				return result;
+			},
+			
+			/**
 			 * Render the nodes in the modellist 'nodes' as CSV, selecting the columns in the array 'columns' (same format
 			 * as DataTable's column definitons).
 			 * 

@@ -39,3 +39,19 @@ h1 {
 	white-space: pre;
 	word-wrap: normal;
 }
+
+#tabs-export {
+	margin-bottom:12px;
+}
+
+@media screen and (min-width: 768px) {
+	.modal-dialog {
+		width:90%;
+		max-width:70em;
+	}
+}
+
+.modal-dialog .panel {
+	/* Don't allow panel-content to overlap nice rounded corners */
+	overflow:hidden;
+}

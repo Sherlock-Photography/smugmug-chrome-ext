@@ -63,20 +63,67 @@ YUI().use(['node', 'json', 'io', 'event-resize', 'querystring-parse-simple', 'ss
 				}
 			});
 	
+			var 
+				outputCSV = Y.one('#output-csv'),
+				outputHTML = Y.one('#output-html');
+
 			Y.one('#btn-list-save').on('click', function(e) {
-				Y.one('#output-csv-format').set('text', Y.SherlockPhotography.SmugmugGalleryList.renderAsCSV(galleryListView.get('selectedNodes'), galleryListView.getSelectedColumnDefinitions()));
-				Y.one('#output-html-format').set('text', Y.SherlockPhotography.SmugmugGalleryList.renderAsHTML(galleryListView.get('selectedNodes'), galleryListView.getSelectedColumnDefinitions()));
+				var 
+					selectedNodes = galleryListView.get('selectedNodes'),
+					selectedColumns = galleryListView.get('selectedColumns');
+				
+				outputCSV.get('childNodes').remove();
+				outputHTML.get('childNodes').remove();
+				
+				var 
+					cmCSV = CodeMirror(outputCSV.getDOMNode(), {
+						value: Y.SherlockPhotography.SmugmugGalleryList.renderAsCSV(selectedNodes, selectedColumns),
+						mode: 'text/plain',
+						readOnly: false,
+						lineWrapping: false
+					}),
+					cmHTML = CodeMirror(outputHTML.getDOMNode(), {
+						value: Y.SherlockPhotography.SmugmugGalleryList.renderAsHTML(selectedNodes, selectedColumns),
+						mode: 'text/html',
+						readOnly: false,
+						lineWrapping: false
+					});
+								
+				if (Y.SherlockPhotography.SmugmugGalleryList.nodelistContainsUnlistedOrPrivatePages(selectedNodes)) {
+					Y.one('#tab-html-private-warning').setStyle('display', 'block');
+				} else {
+					Y.one('#tab-html-private-warning').setStyle('display', 'none');
+				}
 				
 				$("#dlg-export-list").modal('show');
+				
+				$("#dlg-export-list").on('shown.bs.modal', function() {
+					cmCSV.refresh();
+					cmHTML.refresh();
+				});
+
+				$("#tabs-export a").on('shown.bs.tab', function() {
+					cmCSV.refresh();
+					cmHTML.refresh();
+				});
+
 				e.preventDefault();
 			});
 			
-			Y.one('#btn-export-csv').on('click', function(e) {
-				var blob = new Blob([Y.one('#output-csv-format').get('text')], {type: "text/csv;charset=utf-8"});
+			Y.one('#btn-save-csv').on('click', function(e) {
+				var blob = new Blob([outputCSV.get('text')], {type: "text/csv;charset=utf-8"});
 				saveAs(blob, 'Gallery list ' + nickname + ' ' + Y.Date.format(new Date(), {format:"%Y-%m-%d %H%M%S"}) + ".csv");
 				
 				e.preventDefault();
 			});
+			
+			Y.one('#btn-save-html').on('click', function(e) {
+				var blob = new Blob([outputHTML.get('text')], {type: "text/html;charset=utf-8"});
+				saveAs(blob, 'Gallery list ' + nickname + ' ' + Y.Date.format(new Date(), {format:"%Y-%m-%d %H%M%S"}) + ".html");
+				
+				e.preventDefault();
+			});
+			
 			
 			Y.all(".smugmug-site-address").set('text', galleryList.get('smugmugDomain'));
 			
