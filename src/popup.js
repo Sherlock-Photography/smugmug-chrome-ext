@@ -32,7 +32,6 @@ document.addEventListener('DOMContentLoaded', function() {
 					return false;
 				};
 				
-				document.getElementById("permalink").parentNode.style.display = "block";
 				document.getElementById("just-this-page").style.display = "block";
 			} else {
 				payPalButtons.parentNode.className = 'disabled';
