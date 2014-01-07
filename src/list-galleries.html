@@ -86,19 +86,56 @@
 							CSV-format data can be imported into applications like Microsoft Excel.
 						</p>
 						<div id="output-csv" class="panel panel-default"></div>
-						<button type="button" id="btn-save-csv" class="btn btn-default btn-primary"><span class="glyphicon glyphicon-floppy-disk"></span> Save to disk</button>
+						<p>
+							<button type="button" id="btn-save-csv" class="btn btn-default btn-primary"><span class="glyphicon glyphicon-floppy-disk"></span> Save to disk</button>
+						</p>
 					</div>
 					<div class="tab-pane" id="tab-html">
 						<p>
 							You can place this HTML code into an HTML Content Block in SmugMug's customiser.
 						</p>
 						<div class="alert alert-danger" id="tab-html-private-warning" style="display:none">
-							This list includes some Unlisted or Private galleries. If you publish this to visitors, they'll be able
+							<strong>This list includes some Unlisted or Private galleries.</strong> If you publish this to visitors, they'll be able
 							to see links to those galleries and visit them. If that isn't what you want, please return to the main screen and 
 							untick "Unlisted" and "Private" at the top left to exclude those galleries from the list.
 						</div>
 						<div id="output-html" class="panel panel-default"></div>
-						<button type="button" id="btn-save-html" class="btn btn-default btn-primary"><span class="glyphicon glyphicon-floppy-disk"></span> Save to disk</button>
+						<p>
+							<button type="button" id="btn-save-html" class="btn btn-default btn-primary"><span class="glyphicon glyphicon-floppy-disk"></span> Save to disk</button>
+						</p>
+						
+						<p>Add this code to the CSS tab of your HTML Content Block to turn the links into a nicely indented, 2-column list:</p> 
+						<div id="example-css" class="panel panel-default">
+							<textarea>/* Format a Sherlock Photography style sitemap into an indented, 2-column list */
+.ss-sitemap {
+	font-size:17px;
+	line-height:1.5;
+}
+@media only screen and (min-width: 1024px) {
+	.ss-sitemap {
+		-webkit-column-count:2;
+		-moz-column-count:2;
+		column-count:2;
+	}
+}
+/* Top-level categories */
+.ss-sitemap > dd {
+	-webkit-column-break-inside:avoid; /* Webkit has a non-standard name for this property */
+	-moz-break-inside:avoid;	
+	break-inside:avoid;
+	display:block;
+	margin-bottom:1em;
+}
+/* Second-level categories and below: */
+.ss-sitemap dd dd {
+	margin-left:1em;
+	font-size:95%;
+}
+/* Leave a little space under each submenu: */
+.ss-sitemap dl {
+	margin-bottom:0.5em;
+}</textarea>
+						</div>						
 					</div>
 				</div>      
 			</div>

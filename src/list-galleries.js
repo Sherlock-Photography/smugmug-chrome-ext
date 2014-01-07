@@ -62,10 +62,16 @@ YUI().use(['node', 'json', 'io', 'event-resize', 'querystring-parse-simple', 'ss
 					}
 				}
 			});
-	
+			
 			var 
 				outputCSV = Y.one('#output-csv'),
-				outputHTML = Y.one('#output-html');
+				outputHTML = Y.one('#output-html'),
+				
+				cmExampleCSS = CodeMirror.fromTextArea(Y.one('#example-css textarea').getDOMNode(), {
+					mode: 'text/css',
+					readOnly: false,
+					lineWrapping: false
+				});
 
 			Y.one('#btn-list-save').on('click', function(e) {
 				var 
@@ -100,11 +106,13 @@ YUI().use(['node', 'json', 'io', 'event-resize', 'querystring-parse-simple', 'ss
 				$("#dlg-export-list").on('shown.bs.modal', function() {
 					cmCSV.refresh();
 					cmHTML.refresh();
+					cmExampleCSS.refresh();
 				});
 
 				$("#tabs-export a").on('shown.bs.tab', function() {
 					cmCSV.refresh();
 					cmHTML.refresh();
+					cmExampleCSS.refresh();
 				});
 
 				e.preventDefault();
