@@ -18,10 +18,10 @@ document.addEventListener('DOMContentLoaded', function() {
 				return false;
 			};
 
-			var payPalButtons = document.getElementById("paypal-buynow");
-
 			// Is this a gallery page?
 			if (siteDetail.pageDetails && siteDetail.pageDetails.userNode && siteDetail.pageDetails.userNode.RemoteKey) {
+				var payPalButtons = document.getElementById("paypal-buynow");
+				
 				payPalButtons.onclick = function() {
 					chrome.tabs.create({
 						url: 'paypal.html?nickname=' + encodeURIComponent(siteDetail.nickname)
@@ -32,13 +32,21 @@ document.addEventListener('DOMContentLoaded', function() {
 					return false;
 				};
 				
-				document.getElementById("just-this-page").style.display = "block";
-			} else {
-				payPalButtons.parentNode.className = 'disabled';
+				var bulkCollect = document.getElementById("bulk-collect");
+				
+				bulkCollect.onclick = function() {
+					var domain = 'http://' + siteDetail.nickname + '.smugmug.com';
 
-				payPalButtons.onclick = function() {
+					chrome.tabs.create({
+						url: domain + '/photos/picker.mg?tool=collect&AlbumID=' + encodeURIComponent(siteDetail.pageDetails.userNode.RemoteID)
+							+ '&AlbumKey=' + encodeURIComponent(siteDetail.pageDetails.userNode.RemoteKey)
+							+ '&url='+ encodeURIComponent(domain + siteDetail.pageDetails.userNode.UrlPath)
+					});
+					
 					return false;
-				};
+				};				
+				
+				document.getElementById("just-this-page").style.display = "block";
 			}
 		});
 	});
