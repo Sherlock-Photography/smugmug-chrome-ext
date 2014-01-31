@@ -5,7 +5,8 @@ YUI().use(['node', 'json', 'io', 'event-resize', 'querystring-parse-simple', 'ss
 		
 		nickname = query.nickname,
 		albumID = query.albumKey,
-		albumName = query.albumName;
+		albumName = query.albumName,
+		token = query.token;
 	
 	if (!/^[a-zA-Z0-9]+$/.test(albumID) || !/^[a-zA-Z0-9-]+$/.test(nickname)) {
 		alert("Bad arguments, please close this page and try again.");
@@ -213,7 +214,8 @@ YUI().use(['node', 'json', 'io', 'event-resize', 'querystring-parse-simple', 'ss
 						url: 'http://' + smugDomain + image.get('Uris').Image.Uri + '?_method=PATCH',
 						method: 'POST',				
 						data: JSON.stringify({
-							Caption: newCaption
+							Caption: newCaption,
+							_token: token
 						}),
 						headers: {
 							'Accept': 'application/json',
@@ -274,7 +276,8 @@ YUI().use(['node', 'json', 'io', 'event-resize', 'querystring-parse-simple', 'ss
 					url: 'http://' + smugDomain + image.get('Uris').Image.Uri + '?_method=PATCH',
 					method: 'POST',				
 					data: JSON.stringify({
-						Caption: newCaption
+						Caption: newCaption,
+						_token: token
 					}),
 					headers: {
 						'Accept': 'application/json',

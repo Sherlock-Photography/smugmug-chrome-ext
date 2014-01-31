@@ -27,6 +27,7 @@ document.addEventListener('DOMContentLoaded', function() {
 						url: 'paypal.html?nickname=' + encodeURIComponent(siteDetail.nickname)
 							+ '&albumKey=' + encodeURIComponent(siteDetail.pageDetails.userNode.RemoteKey)
 							+ '&albumName=' + encodeURIComponent(siteDetail.pageDetails.userNode.Name)
+							+ '&token=' + encodeURIComponent(siteDetail.pageDetails.csrfToken)
 					});
 					
 					return false;
