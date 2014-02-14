@@ -34,13 +34,13 @@ YUI.add('ss-lightbox-view-collected', function(Y) {
         	image = this.get('image');
         
         if (image) {
-        	var
-	        	imageData = image.toJSON(),
-	        
-	        	bodyNode = this.getStdModNode(Y.WidgetStdMod.BODY),
-	        	collectedDiv = Y.Node.create('<div class="ss-lightbox-image-collection-info sm-lightbox-panel"></div>');
+        	var imageData = image.toJSON();
 	        
 	        if (imageData.Origin == "Smart" || imageData.Origin == "Collected") {
+	        	var
+		        	bodyNode = this.getStdModNode(Y.WidgetStdMod.BODY),
+		        	collectedDiv = Y.Node.create('<div class="ss-lightbox-image-collection-info sm-lightbox-panel"></div>');
+		        	
 	        	if (imageData.PhotoBy.album.name) {
 	        		if (imageData.Origin == 'Smart') {
 	        			collectedDiv.append('From <a target="_blank"></a> by smart rules');
@@ -55,9 +55,9 @@ YUI.add('ss-lightbox-view-collected', function(Y) {
 	        	} else {
 		        	collectedDiv.append("Collected" + (imageData.Origin == "Smart" ? ' here by smart rules': ''));	        		
 	        	}
+
+		        bodyNode.append(collectedDiv);
 	        }
-	        
-	        bodyNode.append(collectedDiv);
         }
     };
 
