@@ -2,13 +2,7 @@ YUI.add('ss-lightbox-view-collected', function(Y) {
 	var 
 		target = Y.SM.Views.Lightbox,
 		Patch = function(){
-		},
-		
-		style = Y.Node.create('<style type="text/css"></style>');
-		
-	style.set('text', '.ss-lightbox-image-collection-info { position:absolute; right:0px; padding:10px 15px; bottom:50px; z-index:4;}'); 
-		
-	Y.one("head").prepend(style);
+		};
 	
 	var origRenderBody = target.prototype._renderBody;
 	

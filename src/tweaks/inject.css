@@ -1,0 +1,39 @@
+/* ss-lightbox-view-collected */
+
+.ss-lightbox-image-collection-info { 
+	position:absolute; 
+	right:0px; 
+	padding:10px 15px; 
+	bottom:50px; 
+	z-index:4;
+}
+
+/* ss-tile-base-view-collected */
+
+.ss-tile-collected .sm-tile-status,
+.ss-tile-smart .sm-tile-status {
+	display: block;
+}
+
+/* Apply our symbols to :before so we don't stomp on SM's :after symbols */
+.ss-tile-collected .sm-tile-status span:before,
+.ss-tile-smart .sm-tile-status span:before {
+	text-transform: uppercase;
+	font-size: 14px;
+	margin-right: 5px;
+}
+
+.ss-tile-collected .sm-tile-status span:before {
+	/* content: '\e00a';  'i' information symbol */
+	content: "Collected";
+}
+
+.ss-tile-smart .sm-tile-status span:before {
+	content: "Smart";
+}
+
+.ss-tile-collected .sm-tile-status span,
+.ss-tile-smart .sm-tile-status span {
+	left:0;
+	right:0;
+}

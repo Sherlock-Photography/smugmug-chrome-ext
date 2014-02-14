@@ -7,6 +7,12 @@ var
 		    condition: {
 		    	trigger: "sm-lightbox-view"
 		    }
+		},
+		"ss-tile-base-view-collected": {
+		    path: "ss-tile-base-view-collected.js",
+		    condition: {
+		    	trigger: "sm-tile-base-view"
+		    }
 		}		
 	};
 
