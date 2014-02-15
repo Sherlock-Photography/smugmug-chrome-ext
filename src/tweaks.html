@@ -1,0 +1,54 @@
+<!doctype html>
+<html>
+<head>
+<title>SmugMug tweaks</title>
+<script type="text/javascript" src="lib/yui/yui1.js"></script>
+<script type="text/javascript" src="lib/yui/yui2.js"></script>
+<script type="text/javascript" src="lib/yui/yui3.js"></script>
+<script type="text/javascript" src="lib/yui/yui4.js"></script>
+
+<script type="text/javascript" src="tweaks.js"></script>
+
+<link href="lib/bootstrap/css/bootstrap.min.css" rel="stylesheet" media="screen">
+
+<style>
+body {
+	min-width: 500px;
+	padding: 20px 20px;
+	padding-top:0;
+}
+
+.buttons {
+	text-align:right;
+}
+</style>
+</head>
+<body>
+
+<h1>SmugMug tweaks</h1>
+<p>These tweaks add features to SmugMug for your eyes only, your customers won't be affected. If SmugMug seems to be malfunctioning, please
+try turning off the tweaks here to make sure that this extension isn't causing the problem!</p>
+
+<dl class="settings list-unstyled">
+	<dt>
+		Collected images
+	</dt>
+	<dd>
+		<div class="checkbox">
+			<label><input type="checkbox" name="collected-lightbox"> Show a "from..." link in the lightbox</label>
+		</div>
+		<div class="checkbox">
+			<label><input type="checkbox" name="collected-thumbnail"> Show "collected" badges on thumbnails in galleries</label>
+		</div>
+	</dd>
+</dl>
+
+<div id="save-alert" class="alert alert-info" style="display:none">You need to reload the page after clicking Ok to see your changes</div>
+
+<div class="buttons">
+	<button id="button-cancel" type="button" class="btn btn-default">Cancel</button>	
+	<button id="button-save" type="button" class="btn btn-default btn-primary">Ok</button>
+</div>
+
+</body>
+</html>

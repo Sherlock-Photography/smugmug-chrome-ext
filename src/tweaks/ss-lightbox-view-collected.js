@@ -24,33 +24,35 @@ YUI.add('ss-lightbox-view-collected', function(Y) {
 	Patch.prototype._renderBody = function() {
         origRenderBody.call(this);
         
-        var
-        	image = this.get('image');
-        
-        if (image) {
-        	var imageData = image.toJSON();
+        if (window.sherlockPhotographySMForChrome.config.enable && window.sherlockPhotographySMForChrome.settings["collected-lightbox"]) {
+	        var
+	        	image = this.get('image');
 	        
-	        if (imageData.Origin == "Smart" || imageData.Origin == "Collected") {
-	        	var
-		        	bodyNode = this.getStdModNode(Y.WidgetStdMod.BODY),
-		        	collectedDiv = Y.Node.create('<div class="ss-lightbox-image-collection-info sm-lightbox-panel"></div>');
-		        	
-	        	if (imageData.PhotoBy.album.name) {
-	        		if (imageData.Origin == 'Smart') {
-	        			collectedDiv.append('From <a target="_blank"></a> by smart rules');
-	        		} else {
-	        			collectedDiv.append('Collected from <a target="_blank"></a>');
-	        		}
-		        	
-		        	var galleryLink = collectedDiv.one('a');
-		        	
-		        	galleryLink.set('href', uncustomiseDomain(imageData.PhotoBy.album.url));
-		        	galleryLink.set('text', imageData.PhotoBy.album.name);
-	        	} else {
-		        	collectedDiv.append("Collected" + (imageData.Origin == "Smart" ? ' here by smart rules': ''));	        		
-	        	}
-
-		        bodyNode.append(collectedDiv);
+	        if (image) {
+	        	var imageData = image.toJSON();
+		        
+		        if (imageData.Origin == "Smart" || imageData.Origin == "Collected") {
+		        	var
+			        	bodyNode = this.getStdModNode(Y.WidgetStdMod.BODY),
+			        	collectedDiv = Y.Node.create('<div class="ss-lightbox-image-collection-info sm-lightbox-panel"></div>');
+			        	
+		        	if (imageData.PhotoBy.album.name) {
+		        		if (imageData.Origin == 'Smart') {
+		        			collectedDiv.append('From <a target="_blank"></a> by smart rules');
+		        		} else {
+		        			collectedDiv.append('Collected from <a target="_blank"></a>');
+		        		}
+			        	
+			        	var galleryLink = collectedDiv.one('a');
+			        	
+			        	galleryLink.set('href', uncustomiseDomain(imageData.PhotoBy.album.url));
+			        	galleryLink.set('text', imageData.PhotoBy.album.name);
+		        	} else {
+			        	collectedDiv.append("Collected" + (imageData.Origin == "Smart" ? ' here by smart rules': ''));	        		
+		        	}
+	
+			        bodyNode.append(collectedDiv);
+		        }
 	        }
         }
     };

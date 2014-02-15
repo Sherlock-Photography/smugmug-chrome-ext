@@ -1,5 +1,12 @@
 //Only show the SmugMug menu if we're the site owner
-if (document.body.className.indexOf('sm-user-owner') > -1) {
+var enable = document.body.className.indexOf('sm-user-owner') > -1;
+
+if (enable) {
+	//Let other scripts in the page know that they are allowed to execute too
+	var injectJS = document.createElement('script');
+	injectJS.text = "window.sherlockPhotographySMForChrome.config.enable = true;";
+	(document.head || document.documentElement).appendChild(injectJS);
+
 	var 
 		found = false,
 		matches;
