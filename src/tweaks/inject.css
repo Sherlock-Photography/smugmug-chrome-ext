@@ -20,6 +20,10 @@
 .ss-tile-smart .sm-tile-status span:before {
 	text-transform: uppercase;
 	font-size: 14px;
+}	
+
+.sm-tile-hidden.ss-tile-collected .sm-tile-status span:before,
+.sm-tile-hidden.ss-tile-smart .sm-tile-status span:before {
 	margin-right: 5px;
 }
 
