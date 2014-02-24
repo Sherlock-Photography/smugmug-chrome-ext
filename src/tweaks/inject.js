@@ -15,7 +15,14 @@
 				    condition: {
 				    	trigger: "sm-tile-base-view"
 				    }
-				}		
+				},
+				"ss-organizer-collected": {
+					path: "ss-organizer-collected.js",
+					requires: "template-micro",
+					condition: {
+						trigger: "sm-organizer"
+					}
+				}
 			};
 		
 		if (!window.YUI_config) {

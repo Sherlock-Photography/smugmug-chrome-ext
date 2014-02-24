@@ -24,7 +24,6 @@
 }
 
 .ss-tile-collected .sm-tile-status span:before {
-	/* content: '\e00a';  'i' information symbol */
 	content: "Collected";
 }
 
@@ -36,4 +35,38 @@
 .ss-tile-smart .sm-tile-status span {
 	left:0;
 	right:0;
+}
+
+/* ss-organizer-collected */
+
+#sm-organizer .sm-organizer-image-overlay span {
+	/* Use a centering strategy that'll work for variable width content */
+	left: 0 !important;
+	right: 0 !important;
+	margin: -16px 0 0 0 !important;
+	width: auto !important;
+	text-align: center;
+}
+
+.ss-tile-collected .sm-organizer-image-overlay span:after,
+.ss-tile-smart .sm-organizer-image-overlay span:after {
+	text-transform: uppercase;
+	font-size: 12px;
+	vertical-align:middle;
+}
+
+.ss-tile-collected .sm-organizer-image-overlay span.sm-fonticon-Hide:after,
+.ss-tile-smart .sm-organizer-image-overlay span.sm-fonticon-Hide:after {
+	margin-left: 5px;
+}
+
+.ss-tile-collected .sm-organizer-image-overlay span:after {
+	content: "Collected";
+}
+.ss-tile-collected .sm-organizer-image-overlay span.sm-fonticon-Hide:after {
+	font-size: 11px;
+}
+
+.ss-tile-smart .sm-organizer-image-overlay span:after {
+	content: "Smart";
 }
