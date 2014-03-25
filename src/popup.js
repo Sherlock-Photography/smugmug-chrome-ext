@@ -32,21 +32,7 @@ document.addEventListener('DOMContentLoaded', function() {
 					
 					return false;
 				};
-				
-				var bulkCollect = document.getElementById("bulk-collect");
-				
-				bulkCollect.onclick = function() {
-					var domain = 'http://' + siteDetail.nickname + '.smugmug.com';
-
-					chrome.tabs.create({
-						url: domain + '/photos/picker.mg?tool=collect&AlbumID=' + encodeURIComponent(siteDetail.pageDetails.userNode.RemoteID)
-							+ '&AlbumKey=' + encodeURIComponent(siteDetail.pageDetails.userNode.RemoteKey)
-							+ '&url='+ encodeURIComponent(domain + siteDetail.pageDetails.userNode.UrlPath)
-					});
-					
-					return false;
-				};				
-				
+								
 				document.getElementById("just-this-page").style.display = "block";
 			}
 		});
