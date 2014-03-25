@@ -56,5 +56,9 @@ if (enable) {
 		});
 		
 		chrome.runtime.sendMessage({method: "showPageAction"});
+		
+		setInterval(function() {
+			chrome.runtime.sendMessage({method: "showPageAction"});
+		}, 1000);
 	}
 }
