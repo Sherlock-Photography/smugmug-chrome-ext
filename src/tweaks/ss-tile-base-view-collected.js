@@ -45,5 +45,15 @@ YUI.add('ss-tile-base-view-collected', function(Y) {
         }
     };
 
-	Y.augment(target, Patch, true);
+	Y.mix(target, Patch, true, null, 1);
+
+	//Y.SM.Views.Tile might already have extended from Y.SM.Views.TileBase.Shared, so we need to patch that too:
+	if (Y.SM.Views.Tile) {
+		Y.mix(Y.SM.Views.Tile, Patch, true, null, 1);
+	}
+	
+	if (Y.SM.Views.Tiles.Layout.Base) {
+		Y.mix(Y.SM.Views.Tiles.Layout.Base, Patch, true, null, 1);
+	}
+	
 });

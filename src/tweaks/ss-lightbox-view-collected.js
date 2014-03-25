@@ -3,9 +3,7 @@ YUI.add('ss-lightbox-view-collected', function(Y) {
 		target = Y.SM.Views.Lightbox,
 		Patch = function(){
 		};
-	
-	var origRenderBody = target.prototype._renderBody;
-	
+		
 	/* 
 	 * Attempt to convert the custom domain name we're viewing to its .smugmug.com equivalent, and return the new URL.
 	 * 
@@ -20,7 +18,9 @@ YUI.add('ss-lightbox-view-collected', function(Y) {
 		
 		return url;
 	}
-		
+
+	var origRenderBody = target.prototype._renderBody;
+	
 	Patch.prototype._renderBody = function() {
         origRenderBody.call(this);
         
