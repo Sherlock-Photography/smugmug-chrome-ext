@@ -66,6 +66,9 @@ YUI().use(['node', 'json', 'io', 'event-resize', 'querystring-parse-simple', 'ss
 			var 
 				outputCSV = Y.one('#output-csv'),
 				outputHTML = Y.one('#output-html'),
+				cmCSV = null,
+				cmHTML = null,
+				selectedNodes = null,
 				
 				cmExampleCSS = CodeMirror.fromTextArea(Y.one('#example-css textarea').getDOMNode(), {
 					mode: 'text/css',
@@ -75,25 +78,25 @@ YUI().use(['node', 'json', 'io', 'event-resize', 'querystring-parse-simple', 'ss
 
 			Y.one('#btn-list-save').on('click', function(e) {
 				var 
-					selectedNodes = galleryListView.get('selectedNodes'),
 					selectedColumns = galleryListView.get('selectedColumns');
-				
+
+				selectedNodes = galleryListView.get('selectedNodes');
+
 				outputCSV.get('childNodes').remove();
 				outputHTML.get('childNodes').remove();
 				
-				var 
-					cmCSV = CodeMirror(outputCSV.getDOMNode(), {
-						value: Y.SherlockPhotography.SmugmugGalleryList.renderAsCSV(selectedNodes, selectedColumns),
-						mode: 'text/plain',
-						readOnly: false,
-						lineWrapping: false
-					}),
-					cmHTML = CodeMirror(outputHTML.getDOMNode(), {
-						value: Y.SherlockPhotography.SmugmugGalleryList.renderAsHTML(selectedNodes, selectedColumns),
-						mode: 'text/html',
-						readOnly: false,
-						lineWrapping: false
-					});
+				cmCSV = CodeMirror(outputCSV.getDOMNode(), {
+					value: Y.SherlockPhotography.SmugmugGalleryList.renderAsCSV(selectedNodes, selectedColumns),
+					mode: 'text/plain',
+					readOnly: false,
+					lineWrapping: false
+				}),
+				cmHTML = CodeMirror(outputHTML.getDOMNode(), {
+					value: Y.SherlockPhotography.SmugmugGalleryList.renderAsHTML(selectedNodes, window.localStorage["galleryList.htmlUsePermalinks"] == "1"),
+					mode: 'text/html',
+					readOnly: false,
+					lineWrapping: false
+				});
 								
 				if (Y.SherlockPhotography.SmugmugGalleryList.nodelistContainsUnlistedOrPrivatePages(selectedNodes)) {
 					Y.one('#tab-html-private-warning').setStyle('display', 'block');
@@ -132,6 +135,13 @@ YUI().use(['node', 'json', 'io', 'event-resize', 'querystring-parse-simple', 'ss
 				e.preventDefault();
 			});
 			
+			Y.one("#chk-use-permalinks").set('checked', window.localStorage["galleryList.htmlUsePermalinks"] == "1");
+			Y.one("#chk-use-permalinks").after('change', function() {
+				window.localStorage["galleryList.htmlUsePermalinks"] = Y.one("#chk-use-permalinks").get('checked') ? "1" : "0";
+				
+				cmHTML.setValue(Y.SherlockPhotography.SmugmugGalleryList.renderAsHTML(selectedNodes, window.localStorage["galleryList.htmlUsePermalinks"] == "1"));
+				cmHTML.refresh();
+			});
 			
 			Y.all(".smugmug-site-address").set('text', galleryList.get('smugmugDomain'));
 			

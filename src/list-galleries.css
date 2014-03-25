@@ -65,3 +65,12 @@ h1 {
 .CodeMirror {
 	height:15em;
 }
+
+.chk-use-permalinks-parent {
+	vertical-align:baseline;
+	margin-left:0.5em;
+}
+
+#dlg-export-list p {
+	margin-top:10px;
+}

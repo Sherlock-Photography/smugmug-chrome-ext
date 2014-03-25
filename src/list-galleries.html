@@ -92,7 +92,7 @@
 					</div>
 					<div class="tab-pane" id="tab-html">
 						<p>
-							You can place this HTML code into an HTML Content Block in SmugMug's customiser.
+							You can place this HTML code into an HTML Content Block in SmugMug's customiser:
 						</p>
 						<div class="alert alert-danger" id="tab-html-private-warning" style="display:none">
 							<strong>This list includes some Unlisted or Private galleries.</strong> If you publish this to visitors, they'll be able
@@ -100,9 +100,15 @@
 							untick "Unlisted" and "Private" at the top left to exclude those galleries from the list.
 						</div>
 						<div id="output-html" class="panel panel-default"></div>
-						<p>
+						<div class="form-inline">
 							<button type="button" id="btn-save-html" class="btn btn-default btn-primary"><span class="glyphicon glyphicon-floppy-disk"></span> Save to disk</button>
-						</p>
+							<div class="chk-use-permalinks-parent checkbox">
+								<label>
+									<input type="checkbox" id="chk-use-permalinks">
+									Use permalinks
+								</label>
+							</div> 
+						</div>
 						
 						<p>Add this code to the CSS tab of your HTML Content Block to turn the links into a nicely indented, 2-column list:</p> 
 						<div id="example-css" class="panel panel-default">

@@ -252,14 +252,14 @@ YUI.add('ss-smugmug-gallery-list', function(Y, NAME) {
 			},
 			
 			/**
-			 * Render the nodes in the modellist 'nodes' as CSV, selecting the columns in the array 'columns' (same format
+			 * Render the nodes in the modellist 'nodes' as HTML, selecting the columns in the array 'columns' (same format
 			 * as DataTable's column definitons).
 			 * 
 			 * @param nodes
 			 * @param columns
 			 * @returns
 			 */
-			renderAsHTML: function(nodes) {
+			renderAsHTML: function(nodes, usePermalinks) {
 				var 
 					output = [],
 					indent = 0,
@@ -321,7 +321,7 @@ YUI.add('ss-smugmug-gallery-list', function(Y, NAME) {
 					outputLine("<dd>", +1);
 					outputLine("<dl>", +1);
 					outputLine("<dt>", +1);
-					outputLine('<a href="' + myEscape(node.get('Url')) + '">' + myEscape(node.get('Name')) + "</a>", 0);
+					outputLine('<a href="' + myEscape(usePermalinks ? node.get('Permalink') : node.get('Url')) + '">' + myEscape(node.get('Name')) + "</a>", 0);
 					outputLine("</dt>", -1);
 				}, this);
 				
