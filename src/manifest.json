@@ -2,8 +2,8 @@
 	"manifest_version" : 2,
 
 	"name" : "Unofficial SmugMug extension for Chrome",
-	"description" : "Extra features for SmugMug site owners.",
-	"version" : "0.3.1",
+	"description" : "Extra features for SmugMug site owners",
+	"version" : "0.3.2",
 	"author" : "Nicholas Sherlock of Sherlock Photography",
 
 	"content_security_policy" : "script-src 'self' 'unsafe-eval'; object-src 'self'",
@@ -27,6 +27,12 @@
 		"scripts" : [ "background.js" ]
 	},
 
+	"icons" : {
+		"19" : "images/icon19.png",
+		"38" : "images/icon38.png",
+		"128" : "images/icon128.png"
+	},
+
 	"page_action" : {
 		"default_icon" : {
 			"19" : "images/icon19.png",
@@ -40,5 +46,5 @@
 		"tweaks/*"
 	],
 	
-	"update_url": "http://chrome.sherlockphotography.org/smugmug/updates.xml"
+	"update_url": "http://clients2.google.com/service/update2/crx"
 }
