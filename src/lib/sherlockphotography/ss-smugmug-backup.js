@@ -27,22 +27,22 @@ YUI.add('ss-smugmug-site-backup', function(Y, NAME) {
 				this._backup.siteSkins = {};
 				
 				var
-					siteSkins = this._backup.siteSkins;
+					siteSkins = this._backup.siteSkins,
 				
-				var queue = new Y.SherlockPhotography.APISmartQueue({
-					processResponse: function(request, response) {
-						for (var index in response.UserSkins) {
-							var skin = response.UserSkins[index];
-							
-							if (skin.IsOwner) {
-								siteSkins[skin.SkinID] = skin;
+					queue = new Y.SherlockPhotography.APISmartQueue({
+						processResponse: function(request, response) {
+							for (var index in response.UserSkins) {
+								var skin = response.UserSkins[index];
+								
+								if (skin.IsOwner) {
+									siteSkins[skin.SkinID] = skin;
+								}
 							}
-						}
-							
-						return true;
-					},
-					responseType: 'json'
-				});
+								
+							return true;
+						},
+						responseType: 'json'
+					});
 				
 				queue.enqueueRequest({
 					url: 'http://' + this.get('smugmugDomain') + '/services/api/json/1.4.0/',
