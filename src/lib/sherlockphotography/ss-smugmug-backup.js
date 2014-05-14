@@ -1,4 +1,9 @@
 YUI.add('ss-smugmug-site-backup', function(Y, NAME) {
+	
+	function removeDomainName(url) {
+		return url.replace(/^https?:\/\/[^/]+/i, '');
+	}
+	
 	var SmugmugSiteBackup = Y.Base.create(
 		NAME,
 		Y.Base,
@@ -289,13 +294,16 @@ YUI.add('ss-smugmug-site-backup', function(Y, NAME) {
 					responseType: 'html'
 				});
 				
+				var newURLPrefix = 'http://' + that.get('smugmugDomain');
+				
 				for (var nodeID in nodes) {
 					var node = nodes[nodeID];
 					
 					//Don't refetch the initData if the system node enumeration already got it for us
 					if (node.nodeData.Url && !node.initData) {
 						queue.enqueueRequest({
-							url: node.nodeData.Url,
+							/* SmugMug can includes the custom domain name in the URL, which we're not allowed to fetch, so normalize that */
+							url: newURLPrefix + removeDomainName(node.nodeData.Url),
 							data: {},
 							node: node 
 						});
@@ -360,9 +368,11 @@ YUI.add('ss-smugmug-site-backup', function(Y, NAME) {
 					responseType: 'html'
 				});
 				
+				var urlPrefix = 'http://' + this.get('smugmugDomain');
+				
 				for (var index in systemURLs) {
 					queue.enqueueRequest({
-						url: 'http://' + this.get('smugmugDomain') + systemURLs[index]
+						url: urlPrefix + systemURLs[index]
 					});
 				}
 				
@@ -371,7 +381,16 @@ YUI.add('ss-smugmug-site-backup', function(Y, NAME) {
 						that._backupStageCompleted(true);
 					},
 					requestFail: function(e) {
-						that._logError("Failed to fetch system page '" + e.request.url + "'");
+						if (e.request.url == urlPrefix + '/404' && e.status == 404) {
+							var parsed = Y.SherlockPhotography.SmugmugTools.extractPageInitData(e.responseText); 
+
+							//Page must be customised to bother storing in backup
+							if (parsed && parsed.userNode && parsed.pageDesignId) {
+								nodes[parsed.userNode.NodeID] = {nodeData: parsed.userNode, initData: that._filterInitDataForBackup(parsed)};
+							}
+						} else {
+							that._logError("Failed to fetch system page '" + e.request.url + "'");
+						}
 					},					
 					progress: function(progress) {
 						logProgress.set('progress', progress);

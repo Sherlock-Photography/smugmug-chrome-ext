@@ -127,7 +127,7 @@ YUI.add('ss-api-smartqueue', function(Y, NAME) {
 							},
 							failure: function(transactionid, response, arguments) {
 								if (!attemptRetry()) {
-									this.fire('requestFail', {request: request, status: response.status, statusText: response.statusText});
+									this.fire('requestFail', {request: request, status: response.status, statusText: response.statusText, responseText: response.responseText});
 								}
 							}
 						},
