@@ -32,8 +32,33 @@ document.addEventListener('DOMContentLoaded', function() {
 					
 					return false;
 				};
+				
+				var bulkEdit = document.getElementById("bulk-edit");
 								
-				document.getElementById("just-this-page").style.display = "block";
+				bulkEdit.onclick = function() {
+					if (true) {
+						var domain = 'http://' + siteDetail.nickname + '.smugmug.com';
+	
+						chrome.tabs.create({
+							url: domain + '/photos/tools.mg?pageType=Album&tool=bulkcaption&AlbumID=' + encodeURIComponent(siteDetail.pageDetails.userNode.RemoteID)
+								+ '&AlbumKey=' + encodeURIComponent(siteDetail.pageDetails.userNode.RemoteKey)
+								+ '&url='+ encodeURIComponent(domain + siteDetail.pageDetails.userNode.UrlPath)
+						});
+						
+						return false;
+					}
+					
+					chrome.tabs.create({
+						url: 'bulk-edit.html?nickname=' + encodeURIComponent(siteDetail.nickname)
+							+ '&albumKey=' + encodeURIComponent(siteDetail.pageDetails.userNode.RemoteKey)
+							+ '&albumName=' + encodeURIComponent(siteDetail.pageDetails.userNode.Name)
+							+ '&token=' + encodeURIComponent(siteDetail.pageDetails.csrfToken)
+					});
+					
+					return false;
+				};
+				
+				document.getElementById("just-this-page").style.display = "block";				
 			}
 		});
 	});
