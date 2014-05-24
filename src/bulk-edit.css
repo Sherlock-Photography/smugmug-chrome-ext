@@ -1,0 +1,139 @@
+h1 {
+	margin-bottom:0.5em;
+}
+
+.yui3-ss-event-log-widget ul {
+	max-height:20em;
+}
+
+.smugmug-images {
+	max-width:95em;
+    border-collapse:separate;
+    border-spacing:0 4px;
+}
+
+.smugmug-images td {
+	vertical-align: top;
+	padding:1em 0.5em;
+}
+.smugmug-images td:first-child {
+	padding-left:1em;
+}
+.smugmug-images td:last-child {
+	padding-right:1em;
+}
+
+.smugmug-images th {
+	padding:0 0.5em;
+}
+.smugmug-images th:first-child {
+	padding-left:1em;
+}
+.smugmug-images th:last-child {
+	padding-right:1em;
+}
+
+.smugmug-images .thumbnail {
+	text-align:center;
+}
+.smugmug-images .thumbnail img {
+	max-width:150px;
+}
+
+.smugmug-image td:first-child {
+	width:183px;
+}
+
+.smugmug-image.selected td {
+	background-color:#eee;
+}
+
+#control-buttons input {
+	max-width: 11em;
+}
+
+p {
+    max-width:55em;
+}
+
+.loading-spinner {
+	margin-right:8px;
+	width:32px;
+	height:32px;
+	background-image:url(spinner.gif);
+	background-repeat:no-repeat;
+	display:inline-block;
+	vertical-align:middle;
+}
+
+.select-button-bar {
+	margin-top:1em;
+	margin-bottom:1em;
+}
+
+#page-sidebar {
+	max-width:14em;
+	position:fixed;
+	top:0;
+	bottom:0;
+	left:0;
+	background-color:#eee;
+	padding:1em;
+}
+#page-body {
+	margin-left:14em;
+	padding:1em;
+	padding-bottom:12em;
+}
+
+#page-sidebar .btn-lg {
+	width:9em;
+}
+
+.dropdown-submenu {
+	position: relative;
+}
+
+.dropdown-submenu>.dropdown-menu {
+	top: 0;
+	left: 100%;
+	margin-top: -6px;
+	margin-left: -1px;
+	-webkit-border-radius: 0 6px 6px 6px;
+	-moz-border-radius: 0 6px 6px 6px;
+	border-radius: 0 6px 6px 6px;
+}
+
+.dropdown-submenu:hover>.dropdown-menu {
+	display: block;
+}
+
+.dropdown-submenu>a:after {
+	display: block;
+	content: " ";
+	float: right;
+	width: 0;
+	height: 0;
+	border-color: transparent;
+	border-style: solid;
+	border-width: 5px 0 5px 5px;
+	border-left-color: #cccccc;
+	margin-top: 5px;
+	margin-right: -10px;
+}
+
+.dropdown-submenu:hover>a:after {
+	border-left-color: #ffffff;
+}
+
+.dropdown-submenu.pull-left {
+	float: none;
+}
+
+.dropdown-submenu.pull-left>.dropdown-menu {
+	left: -100%;
+	margin-left: 10px;
+	-webkit-border-radius: 6px 0 6px 6px;
+	-moz-border-radius: 6px 0 6px 6px;
+	border-radius: 6px 0 6px 6px;
+}

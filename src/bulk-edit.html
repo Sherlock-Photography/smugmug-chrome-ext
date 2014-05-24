@@ -1,0 +1,129 @@
+<!doctype html>
+<html>
+<head>
+<title>Bulk photo editing tool - SmugMug site tools</title>
+
+<link href="lib/bootstrap/css/bootstrap.min.css" rel="stylesheet" media="screen">
+
+<link rel="stylesheet" type="text/css" href="lib/yui/yui.css">
+
+<link rel="stylesheet" type="text/css" href="lib/sherlockphotography/ss-event-log-widget.css">
+<link rel="stylesheet" type="text/css" href="lib/sherlockphotography/ss-progress-bar.css">
+
+<link rel="stylesheet" type="text/css" href="bulk-edit.css">
+
+<script type="text/javascript" src="lib/jquery/jquery.min.js"></script>
+
+<script type="text/javascript" src="lib/bootstrap/js/bootstrap.js"></script>
+
+<script type="text/javascript" src="lib/yui/yui1.js"></script>
+<script type="text/javascript" src="lib/yui/yui2.js"></script>
+<script type="text/javascript" src="lib/yui/yui3.js"></script>
+<script type="text/javascript" src="lib/yui/yui4.js"></script>
+
+<script type="text/javascript" src="lib/gallery/gallery-port/gallery-port.js"></script>
+<script type="text/javascript" src="lib/gallery/gallery-crypto/gallery-crypto-md5.js"></script>
+
+<script type="text/javascript" src="lib/sherlockphotography/ss-api-smartqueue.js"></script>
+<script type="text/javascript" src="lib/sherlockphotography/ss-event-log-widget.js"></script>
+<script type="text/javascript" src="lib/sherlockphotography/ss-progress-bar.js"></script>
+
+<script type="text/javascript" src="bulk-edit.js"></script>
+</head>
+<body>
+	<div id="page-sidebar">
+		<div id="control-buttons">
+			<button class="btn btn-primary btn-lg" id="btn-apply" type="button" disabled="disabled">Save changes</button>
+		</div>
+		
+		<div id="applyEventLog">
+		</div>
+						
+		<div class="select-button-bar">
+			<div class="dropdown">
+				<button type="button" class="btn btn-default btn-lg dropdown-toggle" data-toggle="dropdown">
+					Select photos <span class="caret"></span>
+				</button>
+				<ul class="dropdown-menu" role="menu">
+					<li><a href="#" class="select-all">Select all</a></li>
+					<li><a href="#" class="select-none">Select none</a></li>
+					<li class="divider"></li>
+					<li class="dropdown-submenu">
+						<a href="#">Title</a>
+						<ul class="dropdown-menu">
+							<li><a href="#" class="select-title-empty">Is empty</a></li>
+							<li><a href="#" class="select-title-filled">Is filled</a></li>
+							<li><a href="#" class="select-title-contains">Contains...</a></li>
+							<li><a href="#" class="select-title-not-contains">Doesn't contain...</a></li>
+						</ul>
+					</li>
+					<li class="dropdown-submenu">
+						<a href="#">Caption</a>
+						<ul class="dropdown-menu">
+							<li><a href="#" class="select-caption-empty">Is empty</a></li>
+							<li><a href="#" class="select-caption-filled">Is filled</a></li>
+							<li><a href="#" class="select-caption-contains">Contains...</a></li>
+							<li><a href="#" class="select-caption-not-contains">Doesn't contain...</a></li>
+						</ul>
+					</li>
+					<li class="dropdown-submenu">
+						<a href="#">Keywords</a>
+						<ul class="dropdown-menu">
+							<li><a href="#" class="select-keywords-empty">Is empty</a></li>
+							<li><a href="#" class="select-keywords-filled">Is filled</a></li>
+							<li><a href="#" class="select-keywords-contains">Contains...</a></li>
+							<li><a href="#" class="select-keywords-not-contains">Doesn't contain...</a></li>
+						</ul>
+					</li>
+				</ul>
+			</div>
+		</div>
+		
+		<h3>With selected photos</h3>
+		<div class="form-group">
+			<div class="dropdownf">
+				<select name="photo-target" class="form-control">
+					<option value="title" selected>Edit title</option>
+					<option value="caption">Edit caption</option>
+					<option value="keywords">Edit keywords</option>
+				</select>
+			</div>
+		</div>
+		<div class="form-group">
+			<div class="dropdown">
+				<select name="photo-action" class="form-control">
+					<option value="add" selected>Add text</option>
+					<option value="remove">Remove text</option>
+					<option value="replace">Replace text</option>
+					<option value="set">Set to</option>
+					<option value="erase">Erase</option>
+				</select>
+			</div>
+		</div>
+
+		<div class="form-group">
+			<div class="photo-action-primary-text">
+	    		<label for="photo-action-primary-text">Text</label>
+	    		<input type="text" class="form-control" id="photo-action-primary-text">
+	    	</div>
+	    </div>
+		<div class="form-group">	    	
+			<div class="photo-action-replace-text">
+	    		<label for="photo-action-replace-text">Replace with</label>
+	    		<input type="text" class="form-control" id="photo-action-replace-text">
+	    	</div>
+	    </div>
+	</div>
+	<div id="page-body">
+		<h1>Bulk-edit photo details for gallery <small class="smugmug-gallery-name"></small></h1>
+		
+		<div id="eventLog">
+		</div>
+						
+		<div id="image-selector-spinner" class="alert alert-info"><span class="loading-spinner"></span> Please wait while the photos from this gallery are loaded...</div>
+		
+		<table id="image-selector" class="smugmug-images table">
+		</table>
+	</div>
+</body>
+</html>
