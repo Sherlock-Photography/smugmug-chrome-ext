@@ -39,7 +39,7 @@
 		<div id="applyEventLog">
 		</div>
 						
-		<div class="select-button-bar">
+		<div class="select-button-bar form-group">
 			<div class="dropdown">
 				<button type="button" class="btn btn-default btn-lg dropdown-toggle" data-toggle="dropdown">
 					Select photos <span class="caret"></span>
@@ -69,17 +69,20 @@
 					<li class="dropdown-submenu">
 						<a href="#">Keywords</a>
 						<ul class="dropdown-menu">
-							<li><a href="#" class="select-keywords-empty">Is empty</a></li>
-							<li><a href="#" class="select-keywords-filled">Is filled</a></li>
-							<li><a href="#" class="select-keywords-contains">Contains...</a></li>
+							<li><a href="#" class="select-keywords-empty">Are empty</a></li>
+							<li><a href="#" class="select-keywords-filled">Are filled</a></li>
+							<li><a href="#" class="select-keywords-contains">Contain...</a></li>
 							<li><a href="#" class="select-keywords-not-contains">Doesn't contain...</a></li>
 						</ul>
 					</li>
 				</ul>
 			</div>
 		</div>
+		<div class="form-group photo-select-count">
+			0 of 0 are selected
+		</div>
 		
-		<h3>With selected photos</h3>
+		<h3>With selected</h3>
 		<div class="form-group">
 			<div class="dropdownf">
 				<select name="photo-target" class="form-control">
@@ -101,18 +104,17 @@
 			</div>
 		</div>
 
+		<div class="form-group photo-action-primary-text">
+    		<label for="photo-action-primary-text">Text</label>
+    		<input type="text" class="form-control" id="photo-action-primary-text">
+	    </div>
+		<div class="form-group photo-action-replace-text">	    	
+    		<label for="photo-action-replace-text">Replace with</label>
+    		<input type="text" class="form-control" id="photo-action-replace-text">
+	    </div>
 		<div class="form-group">
-			<div class="photo-action-primary-text">
-	    		<label for="photo-action-primary-text">Text</label>
-	    		<input type="text" class="form-control" id="photo-action-primary-text">
-	    	</div>
-	    </div>
-		<div class="form-group">	    	
-			<div class="photo-action-replace-text">
-	    		<label for="photo-action-replace-text">Replace with</label>
-	    		<input type="text" class="form-control" id="photo-action-replace-text">
-	    	</div>
-	    </div>
+			<button type="button" class="photo-action-apply btn btn-default">Apply changes</button>
+		</div>	    	
 	</div>
 	<div id="page-body">
 		<h1>Bulk-edit photo details for gallery <small class="smugmug-gallery-name"></small></h1>

@@ -19,7 +19,34 @@ YUI().use(['node', 'json', 'io', 'event-resize', 'querystring-parse-simple', 'ss
 		applyEventLog = new Y.SherlockPhotography.EventLogWidget(),
 		imageListContainer = null,
 		imageListSpinner = null,
+		allImages = [],
 		unsavedChanges = false;
+		
+	var SimpleCounter = Y.Base.create(
+		'simpleCounter',
+		Y.Base,
+		[],
+		{
+			increment: function() {
+				this.set('count', this.get('count') + 1);
+			},
+			decrement: function() {
+				this.set('count', this.get('count') - 1);
+			},
+			setValue: function(value) {
+				this.set('count', value);
+			},
+		},
+		{
+			ATTRS: {
+				count: {
+					value: null
+				}
+			}
+		}
+	);
+	
+	var selectedCount = new SimpleCounter();
 			
 	//Sorry, this is the best I can do on Chrome! (it doesn't allow User-Agent to be changed)
 	Y.io.header('X-User-Agent', 'Unofficial SmugMug extension for Chrome v0.1 / I\'m in ur server, mogrifying ur data / n.sherlock@gmail.com');
@@ -33,20 +60,20 @@ YUI().use(['node', 'json', 'io', 'event-resize', 'querystring-parse-simple', 'ss
 	}	
 	
 	function renderImageRow(image) {
-		console.log(image.toJSON());
+		console.log(image);
 		var 
 			rendered = Y.Node.create('<tr class="smugmug-image"></tr>'),
 			
 			imageCell = Y.Node.create('<td><div class="thumbnail">'
-					+ '<a href="#"><img src="' + Y.Escape.html(image.get('ThumbnailUrl')) + '"/></a>'
+					+ '<a href="#"><img src="' + Y.Escape.html(image.ThumbnailUrl) + '"/></a>'
 					+ '<div class="caption">' 
-					+ '<div class="filename">' + Y.Escape.html(image.get('FileName')) + '</div>'
+					+ '<div class="filename">' + Y.Escape.html(image.FileName) + '</div>'
 					/*+ Y.Escape.html(image.get('OriginalWidth')) + "x" + Y.Escape.html(image.get('OriginalHeight'))*/
 					+ '</div></div></td>'),
 			
-			title = Y.Node.create('<td><input type="text" class="form-control photo-title" value="' + Y.Escape.html(image.get('Title')) + '"></td>'),
-			caption = Y.Node.create('<td><textarea rows="6" class="form-control photo-caption">' + Y.Escape.html(image.get('Caption')) + '</textarea></td>'),
-			keywords = Y.Node.create('<td><textarea rows="6" class="form-control photo-keywords">' + Y.Escape.html(image.get('Keywords')) + '</textarea></td>');
+			title = Y.Node.create('<td><input type="text" class="form-control photo-title" value="' + Y.Escape.html(image.Title) + '"></td>'),
+			caption = Y.Node.create('<td><textarea rows="6" class="form-control photo-caption">' + Y.Escape.html(image.Caption) + '</textarea></td>'),
+			keywords = Y.Node.create('<td><textarea rows="6" class="form-control photo-keywords">' + Y.Escape.html(image.Keywords) + '</textarea></td>');
 
 		rendered.append(imageCell);
 		rendered.append(title);
@@ -54,12 +81,6 @@ YUI().use(['node', 'json', 'io', 'event-resize', 'querystring-parse-simple', 'ss
 		rendered.append(keywords);
 		
 		rendered.setData('image', image);
-
-		image.after({
-			CaptionChange: function() {
-//				syncImageUIState(rendered, image);
-			}
-		});
 		
 //		syncImageUIState(rendered, image);
 		
@@ -67,6 +88,7 @@ YUI().use(['node', 'json', 'io', 'event-resize', 'querystring-parse-simple', 'ss
 	}
 	
 	function fetchPhotos() {
+		allImages = [];
 		imageListContainer.get('childNodes').remove();
 		
 		imageListContainer.append('<tr><th>&nbsp;</th><th>Title</th><th>Caption</th><th>Keywords</th></tr>');
@@ -85,10 +107,9 @@ YUI().use(['node', 'json', 'io', 'event-resize', 'querystring-parse-simple', 'ss
 						if (!image.ThumbnailUrl || !image.WebUri || image.Caption === undefined)
 							continue;
 						
-						var
-							model = new Y.Model(image);
+						allImages.push(image);
 						
-						imageListContainer.append(renderImageRow(model));
+						imageListContainer.append(renderImageRow(image));
 					}
 
 					if (response.Pages && response.Pages.NextPage) {
@@ -102,7 +123,7 @@ YUI().use(['node', 'json', 'io', 'event-resize', 'querystring-parse-simple', 'ss
 				return true;
 			},
 			responseType: 'json',
-			delayBetweenRequests: 500
+			delayBetweenRequests: 0
 		});
 		
 		queue.enqueueRequest({
@@ -116,6 +137,7 @@ YUI().use(['node', 'json', 'io', 'event-resize', 'querystring-parse-simple', 'ss
 		queue.on({
 			complete: function() {
 				imageListSpinner.setStyle("display", "none");
+				selectedCount.set('count', 0);
 			},
 			requestFail: function(e) {
 				eventLog.appendLog('error', "Failed to fetch a page, so this gallery listing is incomplete");
@@ -134,7 +156,7 @@ YUI().use(['node', 'json', 'io', 'event-resize', 'querystring-parse-simple', 'ss
 				processResponse: function(request, data) {
 					if (data.Response && data.Response.Image && data.Response.Image.Caption !== undefined) {
 						//Update our model of the caption to the new caption the server ack'ed
-						request.context.set('Caption', data.Response.Image.Caption);
+						request.context.Caption = data.Response.Image.Caption;
 					}
 					
 					return true;
@@ -202,17 +224,17 @@ YUI().use(['node', 'json', 'io', 'event-resize', 'querystring-parse-simple', 'ss
 					image: image
 				};
 		
-			if (image.get('Caption') != caption) {
+			if (image.Caption != caption) {
 				change.Caption = caption;
 				hasChanges = true;
 			}
 			
-			if (image.get('Title') != title) {
+			if (image.Title != title) {
 				change.Title = title;
 				hasChanges = true;
 			}
 			
-			if (image.get('Keywords') != keywords) {
+			if (image.Keywords != keywords) {
 				change.Keywords = keywords;
 				hasChanges = true;
 			}
@@ -226,7 +248,7 @@ YUI().use(['node', 'json', 'io', 'event-resize', 'querystring-parse-simple', 'ss
 	}
 	
 	Y.on({
-		domready: function () {
+		domready: function() {
 			eventLog.render('#eventLog');
 			applyEventLog.render('#applyEventLog');
 
@@ -238,8 +260,10 @@ YUI().use(['node', 'json', 'io', 'event-resize', 'querystring-parse-simple', 'ss
 				
 				if (parent.hasClass('selected')) {
 					parent.removeClass('selected');
+					selectedCount.decrement();
 				} else {
 					parent.addClass('selected');
+					selectedCount.increment();
 				}
 				
 				e.preventDefault();
@@ -265,7 +289,12 @@ YUI().use(['node', 'json', 'io', 'event-resize', 'querystring-parse-simple', 'ss
 			});
 			
 			Y.all(".smugmug-gallery-name").set('text', albumName);
-			
+
+			selectedCount.after('countChange', function() {
+				Y.one(".photo-select-count").set('text', selectedCount.get("count") + " of " + allImages.length + " are selected");
+				Y.one(".photo-select-count").setStyle('visibility', 'visible');
+			});
+
 			fetchPhotos();
 		}
 	});
