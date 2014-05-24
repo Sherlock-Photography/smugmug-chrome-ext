@@ -10,12 +10,6 @@ YUI().use(['node', 'json', 'io', 'event-resize', 'querystring-parse-simple', 'ss
 		
 		smugDomain = nickname + ".smugmug.com";
 
-	var
-		eventLog = new Y.SherlockPhotography.EventLogWidget(),
-		applyEventLog = new Y.SherlockPhotography.EventLogWidget(),
-		imageListContainer = null,
-		imageListSpinner = null;
-
 	if (!/^[a-zA-Z0-9]+$/.test(albumID) || !/^[a-zA-Z0-9-]+$/.test(nickname)) {
 		alert("Bad arguments, please close this page and try again.");
 		return;
@@ -26,6 +20,9 @@ YUI().use(['node', 'json', 'io', 'event-resize', 'querystring-parse-simple', 'ss
 		Y.Base,
 		[],
 		{
+			_eventLog: null,
+			_applyEventLog: null,
+			
 			_renderImageRow: function(image) {
 				console.log(image);
 				var 
@@ -60,7 +57,6 @@ YUI().use(['node', 'json', 'io', 'event-resize', 'querystring-parse-simple', 'ss
 					imageListSpinner = this.get('imageListSpinner');
 				
 				imageListContainer.get('childNodes').remove();
-				
 				imageListContainer.append('<tr><th>&nbsp;</th><th>Title</th><th>Caption</th><th>Keywords</th></tr>');
 				
 				imageListSpinner.setStyle("display", "block");
@@ -97,7 +93,7 @@ YUI().use(['node', 'json', 'io', 'event-resize', 'querystring-parse-simple', 'ss
 				});
 				
 				queue.enqueueRequest({
-					url: 'http://' + smugDomain + '/api/v2/album/' + albumID + '!images',
+					url: 'http://' + smugDomain + '/api/v2/album/' + albumID + '!images?_filter=Uri,ThumbnailUrl,Caption,Keywords,Title,FileName,WebUri',
 					data: {
 						count: 100 /* Page size */
 					},
@@ -112,7 +108,7 @@ YUI().use(['node', 'json', 'io', 'event-resize', 'querystring-parse-simple', 'ss
 						that.set('selectedCount', 0);
 					},
 					requestFail: function(e) {
-						eventLog.appendLog('error', "Failed to fetch a page, so this gallery listing is incomplete");
+						that._eventLog.appendLog('error', "Failed to fetch a page, so this gallery listing is incomplete");
 					},
 					progress: function(progress) {
 					}
@@ -220,6 +216,68 @@ YUI().use(['node', 'json', 'io', 'event-resize', 'querystring-parse-simple', 'ss
 				return changes;
 			},
 			
+			selectAll: function() {
+				this.get('imageListContainer').all('.smugmug-image').addClass('selected');
+				this.set('selectedCount', this.get('images').length);
+			},
+			
+			deselectAll: function() {
+				this.get('imageListContainer').all('.smugmug-image.selected').removeClass('selected');
+				this.set('selectedCount', 0);
+			},
+
+			invertSelection: function() {
+				var 
+					unSelected = this.get('imageListContainer').all('.smugmug-image:not(.selected)'),
+					selected = this.get('imageListContainer').all('.smugmug-image.selected');
+				
+				unSelected.addClass('selected');
+				selected.removeClass('selected');
+				
+				this.set('selectedCount', unSelected.size());
+			},
+
+			selectPhotos:function(field, condition, text) {
+				var 
+					imageNodes = this.get('imageListContainer').all('.smugmug-image').removeClass('selected'),
+					selectCount = 0;
+				
+				imageNodes.each(function() {
+					var 
+						image = this.getData('image'),
+						fieldData = image[field],
+						select = false;
+					
+					if (fieldData !== undefined) {
+						switch (condition) {
+							case 'empty':
+								select = fieldData.trim() == 0;
+							break;
+							case 'filled':
+								select = fieldData.trim() != 0;
+							break;
+							case 'contains':
+								//TODO case-insensitive
+								select = fieldData.indexOf(text) >= 0;
+							break;
+							case 'not-contains':
+								select = fieldData.indexOf(text) == -1;
+							break;
+	
+							default:
+								throw "Bad image search condition";
+						}
+						
+						if (select) {
+							this.addClass('selected');
+							selectCount++;
+						}
+					}
+				});
+				
+				this.set('selectedCount', selectCount);
+			},
+			
 			saveChanges:function() {
 				this.get('applyEventLog').clear();
 				
@@ -262,7 +320,13 @@ YUI().use(['node', 'json', 'io', 'event-resize', 'querystring-parse-simple', 'ss
 				this.after('selectedCountChange', function(e) {
 					Y.one(".photo-select-count").set('text', e.newVal + " of " + that.get('images').length + " are selected");
 					Y.one(".photo-select-count").setStyle('visibility', 'visible');
-				});				
+				});			
+				
+				this._eventLog = new Y.SherlockPhotography.EventLogWidget(),
+				this._applyEventLog = new Y.SherlockPhotography.EventLogWidget();
+
+				this._eventLog.render('#eventLog');
+				this._applyEventLog.render('#applyEventLog');				
 			}
 		},
 		{
@@ -279,12 +343,12 @@ YUI().use(['node', 'json', 'io', 'event-resize', 'querystring-parse-simple', 'ss
 					value: false
 				},
 				
-				eventLog: {
+				eventLogNode: {
 					value: null,
 					setter: Y.one
 				},
 				
-				applyEventLog: {
+				applyEventLogNode: {
 					value: null,
 					setter: Y.one
 				},
@@ -305,13 +369,12 @@ YUI().use(['node', 'json', 'io', 'event-resize', 'querystring-parse-simple', 'ss
 	//Sorry, this is the best I can do on Chrome! (it doesn't allow User-Agent to be changed)
 	Y.io.header('X-User-Agent', 'Unofficial SmugMug extension for Chrome v0.1 / I\'m in ur server, mogrifying ur data / n.sherlock@gmail.com');
 	
-	
 	Y.on({
 		domready: function() {
 			
 			var bulkEditTool = new BulkEditTool({
-				eventLog: "#eventLog",
-				applyEventLog: "#applyEventLog",
+				eventLogNode: "#eventLog",
+				applyEventLogNode: "#applyEventLog",
 				
 				imageListContainer: "#image-selector",
 				imageListSpinner: "#image-selector-spinner",
@@ -324,6 +387,43 @@ YUI().use(['node', 'json', 'io', 'event-resize', 'querystring-parse-simple', 'ss
 					e.preventDefault();
 				}
 			});
+
+			var lastTextSearch = "";
+
+			Y.one(".select-photos-bar").delegate('click', function(e) {
+				var 
+					matches = this.getAttribute('class').match(/^select-([a-zA-Z]+)(?:-(.+))?$/);
+
+				if (matches) {
+					switch (matches[1]) {
+						case 'all':
+							bulkEditTool.selectAll();
+						break;
+						case 'none':
+							bulkEditTool.deselectAll();
+						break;
+						case 'invert':
+							bulkEditTool.invertSelection();
+						break;
+						default:
+							var search = "";
+						
+							if (matches[2] == 'contains' || matches[2] == 'not-contains') {
+								search = prompt("Please enter text to search for", lastTextSearch);
+								
+								if (!search) {
+									return;
+								}
+								
+								lastTextSearch = search;
+							}
+						
+							bulkEditTool.selectPhotos(matches[1], matches[2], search);
+					}
+				}
+				
+				e.preventDefault();
+			}, 'a');
 			
 			Y.all(".smugmug-gallery-name").set('text', albumName);
 

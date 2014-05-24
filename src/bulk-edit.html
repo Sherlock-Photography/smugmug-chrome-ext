@@ -36,85 +36,88 @@
 			<button class="btn btn-primary btn-lg" id="btn-apply" type="button" disabled="disabled">Save changes</button>
 		</div>
 		
-		<div id="applyEventLog">
-		</div>
-						
-		<div class="select-button-bar form-group">
-			<div class="dropdown">
-				<button type="button" class="btn btn-default btn-lg dropdown-toggle" data-toggle="dropdown">
-					Select photos <span class="caret"></span>
-				</button>
-				<ul class="dropdown-menu" role="menu">
-					<li><a href="#" class="select-all">Select all</a></li>
-					<li><a href="#" class="select-none">Select none</a></li>
-					<li class="divider"></li>
-					<li class="dropdown-submenu">
-						<a href="#">Title</a>
-						<ul class="dropdown-menu">
-							<li><a href="#" class="select-title-empty">Is empty</a></li>
-							<li><a href="#" class="select-title-filled">Is filled</a></li>
-							<li><a href="#" class="select-title-contains">Contains...</a></li>
-							<li><a href="#" class="select-title-not-contains">Doesn't contain...</a></li>
-						</ul>
-					</li>
-					<li class="dropdown-submenu">
-						<a href="#">Caption</a>
-						<ul class="dropdown-menu">
-							<li><a href="#" class="select-caption-empty">Is empty</a></li>
-							<li><a href="#" class="select-caption-filled">Is filled</a></li>
-							<li><a href="#" class="select-caption-contains">Contains...</a></li>
-							<li><a href="#" class="select-caption-not-contains">Doesn't contain...</a></li>
-						</ul>
-					</li>
-					<li class="dropdown-submenu">
-						<a href="#">Keywords</a>
-						<ul class="dropdown-menu">
-							<li><a href="#" class="select-keywords-empty">Are empty</a></li>
-							<li><a href="#" class="select-keywords-filled">Are filled</a></li>
-							<li><a href="#" class="select-keywords-contains">Contain...</a></li>
-							<li><a href="#" class="select-keywords-not-contains">Doesn't contain...</a></li>
-						</ul>
-					</li>
-				</ul>
+		<div id="bulk-edit-section">
+			<div id="applyEventLog">
 			</div>
-		</div>
-		<div class="form-group photo-select-count">
-			0 of 0 are selected
-		</div>
-		
-		<h3>With selected</h3>
-		<div class="form-group">
-			<div class="dropdownf">
-				<select name="photo-target" class="form-control">
-					<option value="title" selected>Edit title</option>
-					<option value="caption">Edit caption</option>
-					<option value="keywords">Edit keywords</option>
-				</select>
+							
+			<div class="select-photos-bar form-group">
+				<div class="dropdown">
+					<button type="button" class="btn btn-default btn-lg dropdown-toggle" data-toggle="dropdown">
+						Select photos <span class="caret"></span>
+					</button>
+					<ul class="dropdown-menu" role="menu">
+						<li><a href="#" class="select-all">Select all</a></li>
+						<li><a href="#" class="select-none">Select none</a></li>
+						<li><a href="#" class="select-invert">Invert selection</a></li>
+						<li class="divider"></li>
+						<li class="dropdown-submenu">
+							<a href="#">Title</a>
+							<ul class="dropdown-menu">
+								<li><a href="#" class="select-Title-empty">Is empty</a></li>
+								<li><a href="#" class="select-Title-filled">Is filled</a></li>
+								<li><a href="#" class="select-Title-contains">Contains...</a></li>
+								<li><a href="#" class="select-Title-not-contains">Doesn't contain...</a></li>
+							</ul>
+						</li>
+						<li class="dropdown-submenu">
+							<a href="#">Caption</a>
+							<ul class="dropdown-menu">
+								<li><a href="#" class="select-Caption-empty">Is empty</a></li>
+								<li><a href="#" class="select-Caption-filled">Is filled</a></li>
+								<li><a href="#" class="select-Caption-contains">Contains...</a></li>
+								<li><a href="#" class="select-Caption-not-contains">Doesn't contain...</a></li>
+							</ul>
+						</li>
+						<li class="dropdown-submenu">
+							<a href="#">Keywords</a>
+							<ul class="dropdown-menu">
+								<li><a href="#" class="select-Keywords-empty">Are empty</a></li>
+								<li><a href="#" class="select-Keywords-filled">Are filled</a></li>
+								<li><a href="#" class="select-Keywords-contains">Contain...</a></li>
+								<li><a href="#" class="select-Keywords-not-contains">Don't contain...</a></li>
+							</ul>
+						</li>
+					</ul>
+				</div>
 			</div>
-		</div>
-		<div class="form-group">
-			<div class="dropdown">
-				<select name="photo-action" class="form-control">
-					<option value="add" selected>Add text</option>
-					<option value="remove">Remove text</option>
-					<option value="replace">Replace text</option>
-					<option value="set">Set to</option>
-					<option value="erase">Erase</option>
-				</select>
+			<div class="form-group photo-select-count">
+				0 of 0 are selected
 			</div>
-		</div>
-
-		<div class="form-group photo-action-primary-text">
-    		<label for="photo-action-primary-text">Text</label>
-    		<input type="text" class="form-control" id="photo-action-primary-text">
-	    </div>
-		<div class="form-group photo-action-replace-text">	    	
-    		<label for="photo-action-replace-text">Replace with</label>
-    		<input type="text" class="form-control" id="photo-action-replace-text">
-	    </div>
-		<div class="form-group">
-			<button type="button" class="photo-action-apply btn btn-default">Apply changes</button>
-		</div>	    	
+			
+			<h3>With selected</h3>
+			<div class="form-group">
+				<div class="dropdownf">
+					<select name="photo-target" class="form-control">
+						<option value="title" selected>Edit title</option>
+						<option value="caption">Edit caption</option>
+						<option value="keywords">Edit keywords</option>
+					</select>
+				</div>
+			</div>
+			<div class="form-group">
+				<div class="dropdown">
+					<select name="photo-action" class="form-control">
+						<option value="add" selected>Add text</option>
+						<option value="remove">Remove text</option>
+						<option value="replace">Replace text</option>
+						<option value="set">Set to</option>
+						<option value="erase">Erase</option>
+					</select>
+				</div>
+			</div>
+	
+			<div class="form-group photo-action-primary-text">
+	    		<label for="photo-action-primary-text">Text</label>
+	    		<input type="text" class="form-control" id="photo-action-primary-text">
+		    </div>
+			<div class="form-group photo-action-replace-text">	    	
+	    		<label for="photo-action-replace-text">Replace with</label>
+	    		<input type="text" class="form-control" id="photo-action-replace-text">
+		    </div>
+			<div class="form-group">
+				<button type="button" class="photo-action-apply btn btn-default">Apply changes</button>
+			</div>	
+		</div>  	
 	</div>
 	<div id="page-body">
 		<h1>Bulk-edit photo details for gallery <small class="smugmug-gallery-name"></small></h1>
