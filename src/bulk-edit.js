@@ -1,5 +1,6 @@
 YUI().use(['node', 'json', 'io', 'event-resize', 'querystring-parse-simple', 'ss-event-log-widget',
-           'ss-progress-bar', 'ss-api-smartqueue', 'model', 'event-valuechange', 'node-event-simulate'], function(Y) {
+           'ss-progress-bar', 'ss-api-smartqueue', 'model', 'event-valuechange', 'node-event-simulate',
+           'anim'], function(Y) {
 
 	function preg_quote( str ) {
 	    // http://kevin.vanzonneveld.net
@@ -25,7 +26,9 @@ YUI().use(['node', 'json', 'io', 'event-resize', 'querystring-parse-simple', 'ss
 		albumName = query.albumName,
 		token = query.token,
 		
-		smugDomain = nickname + ".smugmug.com";
+		smugDomain = nickname + ".smugmug.com",
+		
+		STATUS_CHANGE_EYECATCH_DURATION = 0.25;
 
 	if (!/^[a-zA-Z0-9]+$/.test(albumID) || !/^[a-zA-Z0-9-]+$/.test(nickname)) {
 		alert("Bad arguments, please close this page and try again.");
@@ -74,7 +77,7 @@ YUI().use(['node', 'json', 'io', 'event-resize', 'querystring-parse-simple', 'ss
 					imageListSpinner = this.get('imageListSpinner');
 				
 				imageListContainer.get('childNodes').remove();
-				imageListContainer.append('<tr><th>&nbsp;</th><th>Title</th><th>Caption</th><th>Keywords <small>(Separate with semicolons)</small></th></tr>');
+				imageListContainer.append('<tr><th>&nbsp;</th><th>Title</th><th>Caption</th><th>Keywords <small>(separate with semicolons)</small></th></tr>');
 				
 				imageListSpinner.setStyle("display", "block");
 				
@@ -110,7 +113,7 @@ YUI().use(['node', 'json', 'io', 'event-resize', 'querystring-parse-simple', 'ss
 				});
 				
 				queue.enqueueRequest({
-					url: 'http://' + smugDomain + '/api/v2/album/' + albumID + '!images?_filter=Uri,ThumbnailUrl,Caption,Keywords,Title,FileName,WebUri',
+					url: 'http://' + smugDomain + '/api/v2/album/' + albumID + '!images?_filter=Uri,ThumbnailUrl,Caption,Keywords,Title,FileName,WebUri&_shorturis=',
 					data: {
 						count: 100 /* Page size */
 					},
@@ -136,20 +139,21 @@ YUI().use(['node', 'json', 'io', 'event-resize', 'querystring-parse-simple', 'ss
 				
 			_saveChanges: function(changes) {
 				var 
-					logProgress = applyEventLog.appendLog('info', "Saving changes to selected photos..."),
+					logProgress = this._applyEventLog.appendLog('info', "Saving to SmugMug..."),
 					queue = new Y.SherlockPhotography.APISmartQueue({
 						processResponse: function(request, data) {
-							if (data.Response && data.Response.Image && data.Response.Image.Caption !== undefined) {
+							/*if (data.Response && data.Response.Image && data.Response.Image.Caption !== undefined) {
 								//Update our model of the caption to the new caption the server ack'ed
 								request.context.Caption = data.Response.Image.Caption;
-							}
+							}*/
 							
 							return true;
 						},
 						responseType: 'json',
 						retryPosts: true, //Since our requests are idempotent				
-						delayBetweenRequests: 400
+						delayBetweenRequests: 0 //We will let the browser's per-domainname limits do the rate-limiting for us
 					}),
+					errorCount = 0,
 					that = this;
 				
 				for (var index in changes) {
@@ -161,30 +165,37 @@ YUI().use(['node', 'json', 'io', 'event-resize', 'querystring-parse-simple', 'ss
 					
 					// Don't try to send the image object to the server, just the field changes we requested
 					for (var key in change) {
-						if (key != 'image') {
+						if (key != 'image' && key != 'node') {
 							data[key] = change[key];
 						}
 					}
 					
 					queue.enqueueRequest({
-						url: 'http://' + smugDomain + change.image.get('Uris').Image.Uri + '?_method=PATCH',
+						url: 'http://' + smugDomain + change.image.Uris.Image + '?_method=PATCH',
 						method: 'POST',				
 						data: JSON.stringify(data),
 						headers: {
 							'Accept': 'application/json',
 							'Content-Type': 'application/json'
 						},
-						context: image
+						context: change
 					});
 				}
 				
 				queue.on({
 					complete: function() {
-						logProgress.set('message', "Adding PayPal buttons to selected photos... done!");
-						that.set('unsavedChanges', false);
+						if (errorCount > 0) {
+							logProgress.set('message', errorCount + "/" + changes.length + " failed to save\nPlease try again");
+							logProgress.set('progress', null);
+						} else {
+							logProgress.set('message', "Saved " + changes.length + " photos");
+							logProgress.set('progress', null);
+							
+							that.set('unsavedChanges', false);
+						}
 					},
 					requestFail: function(e) {
-						//eventLog._logError("Failed to fetch site themes");
+						errorCount++;
 					},
 					progress: function(progress) {
 						logProgress.set('progress', progress);
@@ -207,7 +218,8 @@ YUI().use(['node', 'json', 'io', 'event-resize', 'querystring-parse-simple', 'ss
 						hasChanges = false,
 					
 						change = {
-							image: image
+							image: image,
+							node: this
 						};
 				
 					if (image.Caption != caption) {
@@ -255,7 +267,13 @@ YUI().use(['node', 'json', 'io', 'event-resize', 'querystring-parse-simple', 'ss
 			},
 			
 			editPhotos: function(target, action, text, replace) {
-				var changeCount = 0;
+				var 
+					changeCount = 0,
+					keywordsEndInSeparator = /([,;]|^)(\s*)$/,
+					endsInWhitespace = /(^|\s)$/,
+					
+					findUserSearchText = new RegExp(preg_quote(text), 'gi'),
+					findUserSearchKeyword = new RegExp('(^|[,;])\\s*' + preg_quote(text) + '\\s*([,;]|$)', 'gi');
 				
 				this.get('imageListContainer').all('.smugmug-image').each(function() {
 					var 
@@ -267,16 +285,18 @@ YUI().use(['node', 'json', 'io', 'event-resize', 'querystring-parse-simple', 'ss
 					switch (action) {
 						case 'add':
 							if (target == 'Keywords') {
-								if (matches = value.match(/([,;]|^)(\s*)$/)) {
-									if (matches[2].length) {
-										value = value + text;
+								if (!value.match(findUserSearchKeyword)) {  
+									if (matches = value.match(keywordsEndInSeparator)) {
+										if (matches[2].length) {
+											value = value + text;
+										} else {
+											value = value + ' ' + text;
+										}
 									} else {
-										value = value + ' ' + text;
+										value = value + '; ' + text;
 									}
-								} else {
-									value = value + '; ' + text;
 								}
-							} else if (value.match(/(^|\s)$/)) {
+							} else if (value.match(endsInWhitespace)) {
 								value = value + text;
 							} else {
 								value = value + ' ' + text;
@@ -284,15 +304,15 @@ YUI().use(['node', 'json', 'io', 'event-resize', 'querystring-parse-simple', 'ss
 						break;
 						case 'remove':
 							if (target == 'Keywords') {
-								//If the removed text forms a complete keyword that has a keyword after it, remove the duplicate separator:
-								value = value.replace(new RegExp('(^|[,;])\\s*' + preg_quote(text) + '\\s*([,;])', 'gi'), '$1');
+								//If the removed text forms a complete keyword, remove it along with the trailing separator for the keyword:								
+								value = value.replace(findUserSearchKeyword, '$1');
 							}
 							
-							//Now remove any partial matches:
-							value = value.replace(new RegExp(preg_quote(text), 'gi'), '');
+							//Now remove any partial matches (since SM's old tool did this):
+							value = value.replace(findUserSearchText, '');
 						break;
 						case 'replace':
-							value = value.replace(new RegExp(preg_quote(text), 'gi'), replace);
+							value = value.replace(findUserSearchText, replace);
 						break;
 						case 'set':
 							value = text;
@@ -340,11 +360,10 @@ YUI().use(['node', 'json', 'io', 'event-resize', 'querystring-parse-simple', 'ss
 								select = fieldData.trim() != 0;
 							break;
 							case 'contains':
-								//TODO case-insensitive
-								select = fieldData.indexOf(text) >= 0;
+								select = fieldData.match(new RegExp(preg_quote(text), 'i')) != null;
 							break;
 							case 'not-contains':
-								select = fieldData.indexOf(text) == -1;
+								select = fieldData.match(new RegExp(preg_quote(text), 'i')) == null;
 							break;
 	
 							default:
@@ -361,14 +380,10 @@ YUI().use(['node', 'json', 'io', 'event-resize', 'querystring-parse-simple', 'ss
 				this.set('selectedCount', selectCount);
 			},
 			
-			saveChanges:function() {
-//				this.get('applyEventLog').clear();
-				
+			saveChanges:function() {				
 				var changes = this._collectImageChanges();
 				
-				console.log(changes);
-				
-				//this._saveChanges(changes);
+				this._saveChanges(changes);
 			},
 			
 			initializer: function(cfg) {
@@ -376,9 +391,9 @@ YUI().use(['node', 'json', 'io', 'event-resize', 'querystring-parse-simple', 'ss
 				
 				this.after('unsavedChangesChange', function(e) {
 					if (e.newVal) {
-						Y.one('#btn-apply').removeAttribute("disabled");
+						that.get('applyButtonNode').removeAttribute("disabled");
 					} else {
-						Y.one('#btn-apply').setAttribute("disabled", "disabled");
+						that.get('applyButtonNode').setAttribute("disabled", "disabled");
 					}					
 				});
 				
@@ -397,7 +412,7 @@ YUI().use(['node', 'json', 'io', 'event-resize', 'querystring-parse-simple', 'ss
 				}, 'a');
 
 				this.get('imageListContainer').delegate('valuechange', function() {
-					this.set('unsavedChanges', true);
+					that.set('unsavedChanges', true);
 				}, 'input, textarea');
 				
 				this.after('selectedCountChange', function(e) {
@@ -431,6 +446,11 @@ YUI().use(['node', 'json', 'io', 'event-resize', 'querystring-parse-simple', 'ss
 					setter: Y.one
 				},
 				
+				applyButtonNode: {
+					value: null,
+					setter: Y.one
+				},
+				
 				applyEventLogNode: {
 					value: null,
 					setter: Y.one
@@ -458,13 +478,18 @@ YUI().use(['node', 'json', 'io', 'event-resize', 'querystring-parse-simple', 'ss
 			var bulkEditTool = new BulkEditTool({
 				eventLogNode: "#eventLog",
 				applyEventLogNode: "#applyEventLog",
+				applyButtonNode: "#btn-apply",
 				
 				imageListContainer: "#image-selector",
 				imageListSpinner: "#image-selector-spinner",
 			});
 			
+			var photoActionStatusNode = Y.one(".photo-action-apply-status");
+			
 			Y.one('#btn-apply').on({
 				click: function(e) {
+					photoActionStatusNode.set('text', '');
+
 					bulkEditTool.saveChanges();
 					
 					e.preventDefault();
@@ -473,15 +498,20 @@ YUI().use(['node', 'json', 'io', 'event-resize', 'querystring-parse-simple', 'ss
 			
 			bulkEditTool.after('selectedCountChange', function(e) {
 				var bulkEditControls = Y.all('.apply-to-selected-panel input, .apply-to-selected-panel select, .apply-to-selected-panel button');
+				
 				if (e.newVal > 0) { 
 					bulkEditControls.removeAttribute('disabled');
 				} else {
 					bulkEditControls.setAttribute('disabled', 'disabled');
 				}
+				
+				photoActionStatusNode.set('text', '');
 			});
 
 			Y.one('.photo-action').after('change', function(e) {
-				var text1title = false, text2title = false;
+				var 
+					photoTarget = Y.one('.photo-target').get('value'),
+					text1title = false, text2title = false;
 				
 				switch (Y.one('.photo-action').get('value')) {
 					case 'replace':
@@ -489,6 +519,12 @@ YUI().use(['node', 'json', 'io', 'event-resize', 'querystring-parse-simple', 'ss
 						text2title = 'Replace with';
 					break;
 					case 'add':
+						if (photoTarget == 'Keywords') {
+							text1title = 'Keyword';
+						} else {
+							text1title = 'Text';
+						} 
+					break;
 					case 'remove':
 					case 'set':
 						text1title = 'Text';
@@ -512,18 +548,38 @@ YUI().use(['node', 'json', 'io', 'event-resize', 'querystring-parse-simple', 'ss
 				}
 			});
 			
-			Y.one('.photo-action').simulate('change');
+			Y.one('.photo-target').after('change', function(e) {
+				switch (Y.one('.photo-target').get('value')) {
+					case 'Keywords':
+						Y.one(".photo-action option[value='add']").set('text', 'Add keyword');
+					break;
+					default:
+						Y.one(".photo-action option[value='add']").set('text', 'Add text');
+				}
+				
+				Y.one('.photo-action').simulate('change');
+			});
+			
+			Y.one('.photo-target').simulate('change');
 			
 			Y.one('.photo-action-apply').on('click', function(e) {
 				var changeCount = 
 					bulkEditTool.editPhotos(Y.one('.photo-target').get('value'), Y.one('.photo-action').get('value'),
 							Y.one('#photo-action-primary-text').get('value'), Y.one('#photo-action-replace-text').get('value'));
+								
+				photoActionStatusNode.setStyle('opacity', 0);
 				
 				if (changeCount > 0) {
-					alert(changeCount + " photos were updated. Don't forget to click the 'save changes' button to save your changes.");
+					photoActionStatusNode.set("text", changeCount + " photos were updated in the preview");
 				} else {
-					alert("No photos were changed!");
+					photoActionStatusNode.set("text", "No photos were changed!");
 				}
+				
+				new Y.Anim({
+					node: photoActionStatusNode,
+					to: {opacity: 1},
+					duration: STATUS_CHANGE_EYECATCH_DURATION
+				}).run();
 				
 				e.preventDefault();
 			});

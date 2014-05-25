@@ -34,12 +34,12 @@
 	<div id="page-sidebar">
 		<div id="control-buttons">
 			<button class="btn btn-primary btn-lg" id="btn-apply" type="button" disabled="disabled">Save changes</button>
+
+			<div id="applyEventLog">
+			</div>			
 		</div>
 		
-		<div id="bulk-edit-section">
-			<div id="applyEventLog">
-			</div>
-							
+		<div id="bulk-edit-section">							
 			<div class="select-photos-bar form-group">
 				<div class="dropdown">
 					<button type="button" class="btn btn-default btn-lg dropdown-toggle" data-toggle="dropdown">
@@ -89,9 +89,9 @@
 				<div class="form-group">
 					<div class="dropdown">
 						<select class="photo-target form-control" disabled>
-							<option value="Title" selected>Edit title</option>
+							<option value="Title">Edit title</option>
 							<option value="Caption">Edit caption</option>
-							<option value="Keywords">Edit keywords</option>
+							<option value="Keywords" selected>Edit keywords</option>
 						</select>
 					</div>
 				</div>
@@ -115,8 +115,10 @@
 		    		<label for="photo-action-replace-text">Replace with</label>
 		    		<input type="text" class="form-control" id="photo-action-replace-text" disabled>
 			    </div>
-				<div class="form-group">
+				<div class="form-group photo-action-apply-bar">
 					<button type="button" class="photo-action-apply btn btn-default" disabled>Apply changes</button>
+				</div>	
+				<div class="form-group photo-action-apply-status">
 				</div>	
 			</div>
 		</div>  	

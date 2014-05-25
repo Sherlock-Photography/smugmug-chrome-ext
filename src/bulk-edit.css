@@ -148,3 +148,24 @@ p {
 	visibility: hidden;
 	text-align: center;
 }
+.photo-action-apply-bar,
+.photo-action-apply-status {
+	text-align:center;
+}
+
+.yui3-ss-progress-bar, .yui3-ss-progress-bar-content {
+	display:block;
+	width:auto;
+	margin:0;
+	margin-top:1em;
+}
+.yui3-ss-event-log-widget li {
+	padding-top:1em;
+	padding-bottom:0;
+	margin-bottom:0;
+}
+.yui3-ss-event-log-widget .message {
+	display:block;
+	text-align:center;
+	white-space: pre-wrap;
+}
