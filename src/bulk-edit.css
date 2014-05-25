@@ -82,8 +82,11 @@ p {
 
 #control-buttons {
 	padding:1em;
-	padding-bottom:4em;
+	padding-bottom:50px;
 	background-color:#eee;
+}
+#control-buttons button {
+	margin-top:20px;
 }
 #bulk-edit-section {
 	padding:1em;

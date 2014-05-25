@@ -1,5 +1,22 @@
 YUI().use(['node', 'json', 'io', 'event-resize', 'querystring-parse-simple', 'ss-event-log-widget',
-           'ss-progress-bar', 'ss-api-smartqueue', 'model', 'event-valuechange'], function(Y) {
+           'ss-progress-bar', 'ss-api-smartqueue', 'model', 'event-valuechange', 'node-event-simulate'], function(Y) {
+
+	function preg_quote( str ) {
+	    // http://kevin.vanzonneveld.net
+	    // +   original by: booeyOH
+	    // +   improved by: Ates Goral (http://magnetiq.com)
+	    // +   improved by: Kevin van Zonneveld (http://kevin.vanzonneveld.net)
+	    // +   bugfixed by: Onno Marsman
+	    // *     example 1: preg_quote("$40");
+	    // *     returns 1: '\$40'
+	    // *     example 2: preg_quote("*RRRING* Hello?");
+	    // *     returns 2: '\*RRRING\* Hello\?'
+	    // *     example 3: preg_quote("\\.+*?[^]$(){}=!<>|:");
+	    // *     returns 3: '\\\.\+\*\?\[\^\]\$\(\)\{\}\=\!\<\>\|\:'
+
+	    return (str+'').replace(/([\\\.\+\*\?\[\^\]\$\(\)\{\}\=\!\<\>\|\:])/g, "\\$1");
+	}
+	
 	var 
 		query = Y.QueryString.parse(location.search.slice(1)),
 		
@@ -24,7 +41,7 @@ YUI().use(['node', 'json', 'io', 'event-resize', 'querystring-parse-simple', 'ss
 			_applyEventLog: null,
 			
 			_renderImageRow: function(image) {
-				console.log(image);
+				//console.log(image);
 				var 
 					rendered = Y.Node.create('<tr class="smugmug-image"></tr>'),
 					
@@ -35,9 +52,9 @@ YUI().use(['node', 'json', 'io', 'event-resize', 'querystring-parse-simple', 'ss
 							/*+ Y.Escape.html(image.get('OriginalWidth')) + "x" + Y.Escape.html(image.get('OriginalHeight'))*/
 							+ '</div></div></td>'),
 					
-					title = Y.Node.create('<td><input type="text" class="form-control photo-title" value="' + Y.Escape.html(image.Title) + '"></td>'),
-					caption = Y.Node.create('<td><textarea rows="6" class="form-control photo-caption">' + Y.Escape.html(image.Caption) + '</textarea></td>'),
-					keywords = Y.Node.create('<td><textarea rows="6" class="form-control photo-keywords">' + Y.Escape.html(image.Keywords) + '</textarea></td>');
+					title = Y.Node.create('<td><input type="text" class="form-control photo-Title" value="' + Y.Escape.html(image.Title) + '"></td>'),
+					caption = Y.Node.create('<td><textarea rows="6" class="form-control photo-Caption">' + Y.Escape.html(image.Caption) + '</textarea></td>'),
+					keywords = Y.Node.create('<td><textarea rows="6" class="form-control photo-Keywords">' + Y.Escape.html(image.Keywords) + '</textarea></td>');
 
 				rendered.append(imageCell);
 				rendered.append(title);
@@ -57,7 +74,7 @@ YUI().use(['node', 'json', 'io', 'event-resize', 'querystring-parse-simple', 'ss
 					imageListSpinner = this.get('imageListSpinner');
 				
 				imageListContainer.get('childNodes').remove();
-				imageListContainer.append('<tr><th>&nbsp;</th><th>Title</th><th>Caption</th><th>Keywords</th></tr>');
+				imageListContainer.append('<tr><th>&nbsp;</th><th>Title</th><th>Caption</th><th>Keywords <small>(Separate with semicolons)</small></th></tr>');
 				
 				imageListSpinner.setStyle("display", "block");
 				
@@ -183,9 +200,9 @@ YUI().use(['node', 'json', 'io', 'event-resize', 'querystring-parse-simple', 'ss
 				Y.all(".smugmug-image").each(function() {
 					var
 						image = this.getData('image'),
-						caption = this.one('.photo-caption').get('value'),
-						title = this.one('.photo-title').get('value'),
-						keywords = this.one('.photo-keywords').get('value');
+						caption = this.one('.photo-Caption').get('value'),
+						title = this.one('.photo-Title').get('value'),
+						keywords = this.one('.photo-Keywords').get('value');
 
 						hasChanges = false,
 					
@@ -236,6 +253,73 @@ YUI().use(['node', 'json', 'io', 'event-resize', 'querystring-parse-simple', 'ss
 				
 				this.set('selectedCount', unSelected.size());
 			},
+			
+			editPhotos: function(target, action, text, replace) {
+				var changeCount = 0;
+				
+				this.get('imageListContainer').all('.smugmug-image').each(function() {
+					var 
+						targetNode = this.one('.photo-' + target),
+						originalValue = targetNode.get('value'),
+						value = targetNode.get('value'),
+						matches;
+					
+					switch (action) {
+						case 'add':
+							if (target == 'Keywords') {
+								if (matches = value.match(/([,;]|^)(\s*)$/)) {
+									if (matches[2].length) {
+										value = value + text;
+									} else {
+										value = value + ' ' + text;
+									}
+								} else {
+									value = value + '; ' + text;
+								}
+							} else if (value.match(/(^|\s)$/)) {
+								value = value + text;
+							} else {
+								value = value + ' ' + text;
+							}
+						break;
+						case 'remove':
+							if (target == 'Keywords') {
+								//If the removed text forms a complete keyword that has a keyword after it, remove the duplicate separator:
+								value = value.replace(new RegExp('(^|[,;])\\s*' + preg_quote(text) + '\\s*([,;])', 'gi'), '$1');
+							}
+							
+							//Now remove any partial matches:
+							value = value.replace(new RegExp(preg_quote(text), 'gi'), '');
+						break;
+						case 'replace':
+							value = value.replace(new RegExp(preg_quote(text), 'gi'), replace);
+						break;
+						case 'set':
+							value = text;
+						break;
+						case 'erase':
+							value = '';
+						break;
+							
+						default:
+							throw "Bad photo action";
+					}
+					
+					originalValue = originalValue.trim();
+					value = value.trim();
+					
+					if (originalValue != value) {
+						targetNode.set('value', value);
+						changeCount++;
+					}
+				});
+				
+				if (changeCount > 0) {
+					this.set('unsavedChanges', true);					
+				}
+				
+				return changeCount;
+			},
 
 			selectPhotos:function(field, condition, text) {
 				var 
@@ -244,8 +328,7 @@ YUI().use(['node', 'json', 'io', 'event-resize', 'querystring-parse-simple', 'ss
 				
 				imageNodes.each(function() {
 					var 
-						image = this.getData('image'),
-						fieldData = image[field],
+						fieldData = this.one('.photo-' + field).get('value'),
 						select = false;
 					
 					if (fieldData !== undefined) {
@@ -279,7 +362,7 @@ YUI().use(['node', 'json', 'io', 'event-resize', 'querystring-parse-simple', 'ss
 			},
 			
 			saveChanges:function() {
-				this.get('applyEventLog').clear();
+//				this.get('applyEventLog').clear();
 				
 				var changes = this._collectImageChanges();
 				
@@ -291,8 +374,8 @@ YUI().use(['node', 'json', 'io', 'event-resize', 'querystring-parse-simple', 'ss
 			initializer: function(cfg) {
 				var that = this;
 				
-				this.after('unsavedChangesChange', function() {
-					if (this.get('unsavedChanges')) {
+				this.after('unsavedChangesChange', function(e) {
+					if (e.newVal) {
 						Y.one('#btn-apply').removeAttribute("disabled");
 					} else {
 						Y.one('#btn-apply').setAttribute("disabled", "disabled");
@@ -387,7 +470,64 @@ YUI().use(['node', 'json', 'io', 'event-resize', 'querystring-parse-simple', 'ss
 					e.preventDefault();
 				}
 			});
+			
+			bulkEditTool.after('selectedCountChange', function(e) {
+				var bulkEditControls = Y.all('.apply-to-selected-panel input, .apply-to-selected-panel select, .apply-to-selected-panel button');
+				if (e.newVal > 0) { 
+					bulkEditControls.removeAttribute('disabled');
+				} else {
+					bulkEditControls.setAttribute('disabled', 'disabled');
+				}
+			});
 
+			Y.one('.photo-action').after('change', function(e) {
+				var text1title = false, text2title = false;
+				
+				switch (Y.one('.photo-action').get('value')) {
+					case 'replace':
+						text1title = 'Find text';
+						text2title = 'Replace with';
+					break;
+					case 'add':
+					case 'remove':
+					case 'set':
+						text1title = 'Text';
+					break;
+					case 'erase':
+					default:
+				}
+				
+				if (text1title) {
+					Y.one('label[for="photo-action-primary-text"]').set('text', text1title);
+					Y.one('.photo-action-primary-text').setStyle('display', 'block');
+				} else {
+					Y.one('.photo-action-primary-text').setStyle('display', 'none');
+				}
+
+				if (text2title) {
+					Y.one('label[for="photo-action-replace-text"]').set('text', text2title);
+					Y.one('.photo-action-replace-text').setStyle('display', 'block');
+				} else {
+					Y.one('.photo-action-replace-text').setStyle('display', 'none');
+				}
+			});
+			
+			Y.one('.photo-action').simulate('change');
+			
+			Y.one('.photo-action-apply').on('click', function(e) {
+				var changeCount = 
+					bulkEditTool.editPhotos(Y.one('.photo-target').get('value'), Y.one('.photo-action').get('value'),
+							Y.one('#photo-action-primary-text').get('value'), Y.one('#photo-action-replace-text').get('value'));
+				
+				if (changeCount > 0) {
+					alert(changeCount + " photos were updated. Don't forget to click the 'save changes' button to save your changes.");
+				} else {
+					alert("No photos were changed!");
+				}
+				
+				e.preventDefault();
+			});
+			
 			var lastTextSearch = "";
 
 			Y.one(".select-photos-bar").delegate('click', function(e) {
