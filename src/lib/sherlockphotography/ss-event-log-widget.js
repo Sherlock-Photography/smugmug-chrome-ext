@@ -35,6 +35,9 @@ YUI.add('ss-event-log-widget', function(Y, NAME) {
 						this._progressBar.set('total', progress.total);
 						this._progressBar.set('completed', progress.completed);
 					}
+				} else if (this._progressBar) {
+					this._progressBar.destroy(true);
+					this._progressBar = null;
 				}
 			},
 			
@@ -80,6 +83,7 @@ YUI.add('ss-event-log-widget', function(Y, NAME) {
 				},
 				type: {},
 				message: {},
+				
 				progress: {
 					value: null
 				}
