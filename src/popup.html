@@ -22,32 +22,59 @@ h2 {
 	line-height: inherit;
 	padding: 5px 15px;
 }
+p {
+	padding: 5px 15px;
+}
+#has-permission,
+#hasnt-permission,
+#please-log-in,
+#please-refresh {
+	display:none;
+}
 </style>
 </head>
 <body>
 
-<div class="list-group" id="just-this-page" style="display: none">
-	<h2>Just this page</h2>
-	<ul class="nav nav-pills nav-stacked">
-		<li><a href="permalink.html" id="permalink">Get a permalink</a></li>
-		<li><a href="#" id="paypal-buynow">Edit PayPal buttons</a></li>
-		<li><a href="#" id="bulk-edit">Bulk-edit photo details</a></li>
-	</ul>
+<div id="has-permission">
+	<div class="list-group" id="just-this-page" style="display: none">
+		<h2>Just this page</h2>
+		<ul class="nav nav-pills nav-stacked">
+			<li><a href="permalink.html" id="permalink">Get a permalink</a></li>
+			<li><a href="#" id="paypal-buynow">Edit PayPal buttons</a></li>
+			<li><a href="#" id="bulk-edit">Bulk-edit photo details</a></li>
+		</ul>
+	</div>
+	
+	<div class="list-group" id="entire-site">
+		<h2>Entire site</h2>
+		<ul class="nav nav-pills nav-stacked">
+			<li><a href="#" id="create-backup">Create/view backup</a></li>
+			<li><a href="#" id="list-galleries">List galleries</a></li>
+			<li><a href="tweaks.html" id="tweaks">SmugMug Tweaks</a></li>
+		</ul>
+	</div>
 </div>
-
-<div class="list-group" id="entire-site">
-	<h2>Entire site</h2>
-	<ul class="nav nav-pills nav-stacked">
-		<li><a href="#" id="create-backup">Create/view backup</a></li>
-		<li><a href="#" id="list-galleries">List galleries</a></li>
-		<li><a href="tweaks.html" id="tweaks">SmugMug Tweaks</a></li>
-	</ul>
+<div id="hasnt-permission">
+	<div class="list-group" id="about">
+		<h2 id="custom-domain-name"></h2>
+		<ul class="nav nav-pills nav-stacked">
+			<li><a href="#" id="request-permission">Enable SmugMug for Chrome for this custom domain name</a></li>
+		</ul>
+	</div>
+</div>
+<div id="please-refresh">
+	<h2>Please refresh the page</h2>
+	<p>You must refresh the page before you can use SM for Chrome on your custom domain name for the first time.
+</div>
+<div id="please-log-in">
+	<h2>Please log in to SmugMug</h2>
+	<p>It looks like you are not currently logged in as the owner of this website. You must log in to your website to use this extension.</p>
 </div>
 
 <div class="list-group" id="about">
 	<h2>About</h2>
 	<ul class="nav nav-pills nav-stacked">
-		<li><a href="http://www.sherlockphotography.org/Customisations/" target="_blank" id="sherlock-photography">Visit Sherlock Photography for more SmugMug customisations!</a></li>
+		<li><a href="http://www.sherlockphotography.org/Customisations/" target="_blank" id="sherlock-photography">Visit Sherlock Photography for more SmugMug customisations</a></li>
 	</ul>
 </div>
 

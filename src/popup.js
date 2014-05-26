@@ -1,65 +1,128 @@
 document.addEventListener('DOMContentLoaded', function() {
-	
 	chrome.tabs.query({active: true, currentWindow: true}, function(tabs) {
-		chrome.tabs.sendMessage(tabs[0].id, {method:"getSiteDetail"}, function(siteDetail) {
-			document.getElementById("create-backup").onclick = function() {
-				chrome.tabs.create({
-					url: 'backup.html?nickname=' + encodeURIComponent(siteDetail.nickname)
-				});
-				
-				return false;
-			};
+		var tab = tabs[0];
+		
+		//We can read the tab URL due to having the 'activetab' permission:
+		if (tab.url) {
+			var 
+				hasPermission = false,
+				domainName = tab.url.match(/^http:\/\/([^/]+)\//);
 			
-			document.getElementById("list-galleries").onclick = function() {
-				chrome.tabs.create({
-					url: 'list-galleries.html?nickname=' + encodeURIComponent(siteDetail.nickname) + (siteDetail.loggedInUser && siteDetail.loggedInUser.homepage ? "&customDomain=" + encodeURIComponent(siteDetail.loggedInUser.homepage.replace("http://", "")) : "")
-				});
+			function setup_popup() {
+				if (!hasPermission) {
+					document.getElementById("hasnt-permission").style.display = "block";					
+					document.getElementById("custom-domain-name").textContent = domainName[1]; 
+				}
 				
-				return false;
-			};
-
-			// Is this a gallery page?
-			if (siteDetail.pageDetails && siteDetail.pageDetails.userNode && siteDetail.pageDetails.userNode.RemoteKey) {
-				var payPalButtons = document.getElementById("paypal-buynow");
-				
-				payPalButtons.onclick = function() {
-					chrome.tabs.create({
-						url: 'paypal.html?nickname=' + encodeURIComponent(siteDetail.nickname)
-							+ '&albumKey=' + encodeURIComponent(siteDetail.pageDetails.userNode.RemoteKey)
-							+ '&albumName=' + encodeURIComponent(siteDetail.pageDetails.userNode.Name)
-							+ '&token=' + encodeURIComponent(siteDetail.pageDetails.csrfToken)
-					});
-					
-					return false;
-				};
-				
-				var bulkEdit = document.getElementById("bulk-edit");
-								
-				bulkEdit.onclick = function() {
-					if (true) {
-						var domain = 'http://' + siteDetail.nickname + '.smugmug.com';
-	
-						chrome.tabs.create({
-							url: domain + '/photos/tools.mg?pageType=Album&tool=bulkcaption&AlbumID=' + encodeURIComponent(siteDetail.pageDetails.userNode.RemoteID)
-								+ '&AlbumKey=' + encodeURIComponent(siteDetail.pageDetails.userNode.RemoteKey)
-								+ '&url='+ encodeURIComponent(domain + siteDetail.pageDetails.userNode.UrlPath)
-						});
+				chrome.tabs.sendMessage(tab.id, {method:"getSiteDetail"}, function(siteDetail) {
+					if (hasPermission && siteDetail === undefined) {
+						document.getElementById("please-refresh").style.display = "block";
+					} else if (hasPermission && (!siteDetail.loggedIn || !siteDetail.loggedInUser || !siteDetail.loggedInUser.isOwner)) {
+						document.getElementById("please-log-in").style.display = "block";
+					} else {
+						document.getElementById("create-backup").onclick = function() {
+							chrome.tabs.create({
+								url: 'backup.html?nickname=' + encodeURIComponent(siteDetail.nickname)
+							});
+							
+							return false;
+						};
 						
-						return false;
-					}
-					
-					chrome.tabs.create({
-						url: 'bulk-edit.html?nickname=' + encodeURIComponent(siteDetail.nickname)
-							+ '&albumKey=' + encodeURIComponent(siteDetail.pageDetails.userNode.RemoteKey)
-							+ '&albumName=' + encodeURIComponent(siteDetail.pageDetails.userNode.Name)
-							+ '&token=' + encodeURIComponent(siteDetail.pageDetails.csrfToken)
-					});
-					
-					return false;
-				};
+						document.getElementById("list-galleries").onclick = function() {
+							chrome.tabs.create({
+								url: 'list-galleries.html?nickname=' + encodeURIComponent(siteDetail.nickname) + (siteDetail.loggedInUser && siteDetail.loggedInUser.homepage ? "&customDomain=" + encodeURIComponent(siteDetail.loggedInUser.homepage.replace("http://", "")) : "")
+							});
+							
+							return false;
+						};
+
+						// Is this a gallery page?
+						if (siteDetail && siteDetail.pageDetails && siteDetail.pageDetails.userNode && siteDetail.pageDetails.userNode.RemoteKey) {
+							var payPalButtons = document.getElementById("paypal-buynow");
+							
+							payPalButtons.onclick = function() {
+								chrome.tabs.create({
+									url: 'paypal.html?nickname=' + encodeURIComponent(siteDetail.nickname)
+										+ '&albumKey=' + encodeURIComponent(siteDetail.pageDetails.userNode.RemoteKey)
+										+ '&albumName=' + encodeURIComponent(siteDetail.pageDetails.userNode.Name)
+										+ '&token=' + encodeURIComponent(siteDetail.pageDetails.csrfToken)
+								});
+								
+								return false;
+							};
+							
+							var bulkEdit = document.getElementById("bulk-edit");
+											
+							bulkEdit.onclick = function(e) {
+								if (true) {
+									chrome.tabs.create({
+										url: 'http://' + domainName[1] + '/photos/tools.mg?pageType=Album&tool=bulkcaption&AlbumID=' + encodeURIComponent(siteDetail.pageDetails.userNode.RemoteID)
+											+ '&AlbumKey=' + encodeURIComponent(siteDetail.pageDetails.userNode.RemoteKey)
+											+ '&url='+ encodeURIComponent(tab.url)
+									});
+									
+									return false;
+								}
+								
+								chrome.tabs.create({
+									url: 'bulk-edit.html?nickname=' + encodeURIComponent(siteDetail.nickname)
+										+ '&albumKey=' + encodeURIComponent(siteDetail.pageDetails.userNode.RemoteKey)
+										+ '&albumName=' + encodeURIComponent(siteDetail.pageDetails.userNode.Name)
+										+ '&token=' + encodeURIComponent(siteDetail.pageDetails.csrfToken)
+								});
+								
+								return false;
+							};
+							
+							document.getElementById("just-this-page").style.display = "block";
+						}
+
+						if (hasPermission) {
+							document.getElementById("has-permission").style.display = "block";
+						} else {
+							var requestPermission = document.getElementById("request-permission");
+							
+							requestPermission.onclick = function(e) {
+								chrome.permissions.request({
+									origins: [domainName[0]]
+								}, function(granted) {
+									/* 
+									 * If the user had to interact with the "give permission" dialog, then this popup will be closed.
+									 * 
+									 * If the user had previously enabled the site, the popup will stay open and we can reload to let them
+									 * start using it:
+									 */ 
+									if (granted) {
+										location.reload();
+									}
+								});				
 				
-				document.getElementById("just-this-page").style.display = "block";				
+								e.preventDefault();
+				
+								return false;
+							};
+						}						
+					}
+				});
 			}
-		});
+			
+			//We always have permission for *.smugmug.com domains
+			if (tab.url.match(/^http:\/\/(?:www\.)?([^.]+)\.smugmug\.com\//)) {
+				hasPermission = true;
+				
+				setup_popup();
+			} else {
+				//Assume we're on a custom domain name, so check that we have permission for it
+				
+				chrome.permissions.contains({
+					permissions: [],
+					origins: [domainName[0]]
+				}, function(result) {
+					hasPermission = result;
+					
+					setup_popup();
+				});
+			}
+		}
 	});
 });

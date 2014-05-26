@@ -1,50 +1,56 @@
-//Only show the SmugMug menu if we're the site owner
-var enable = document.body.className.indexOf('sm-user-owner') > -1;
-
-if (enable) {
-	//Let other scripts in the page know that they are allowed to execute too
-	var injectJS = document.createElement('script');
-	injectJS.text = "window.sherlockPhotographySMForChrome.config.enable = true;";
-	(document.head || document.documentElement).appendChild(injectJS);
-
-	var 
-		found = false,
-		matches;
+// Don't re-inject
+if (!window.ssSmugmugForChromeAtIdle) {
+	window.ssSmugmugForChromeAtIdle = true;
 	
-	if ((matches = location.href.match(/^http:\/\/(?:www\.)?([^.]+)\.smugmug\.com\//))) {
+	//Only enable tweaks if we're the site owner (we'll also use this as a not-a-smugmug-site test)
+	var 
+		enable = document.body.className.indexOf('sm-user-owner') > -1;
+
+	if (enable) {
+		//Let our YUI scripts in the page know that they are allowed to execute too
+		var injectJS = document.createElement('script');
+		injectJS.text = "window.sherlockPhotographySMForChrome.config.enable = true;";
+		(document.head || document.documentElement).appendChild(injectJS);
+		
 		var 
 			siteDetailMessage = {
-				nickname: matches[1],
+				nickname: false,
+				loggedIn: true,
 				loggedInUser: false,
+				pageOwner: false,
 				pageDetails: false
 			},
-			loggedInUser = false, pageDetails = false,
 			scriptTags = document.getElementsByTagName('script');
-
+		
 		for (var i in scriptTags) {
 			var 
 				script = scriptTags[i],
-				matches;
+				matches,
+				code;
 			
-			//Super rough, but should work:
-			if (!siteDetailMessage.loggedInUser && (matches = script.innerHTML.match(/SM\.env\.loggedInUser=({[^\n}]+});/))) {
-				try {
-					siteDetailMessage.loggedInUser = JSON.parse(matches[1]);
-				} catch (e) {
-					//Not critical that we have this information
+			if (!script.src && (code = script.innerHTML)) {
+				//Super rough, but should work:
+				if (!siteDetailMessage.loggedInUser && (matches = code.match(/SM\.env\.loggedInUser=({[^\n}]+});/))) {
+					try {
+						siteDetailMessage.loggedInUser = JSON.parse(matches[1]);
+					} catch (e) {
+						//Not critical that we have this information
+					}
 				}
-			} else {
-				matches = script.innerHTML.match(/^\s*Y\.SM\.Page\.init\(([^\n]+)\);$/m);
-				
-				if (matches) {
+				if (!siteDetailMessage.pageOwner && (matches = code.match(/SM\.env\.pageOwner=({[^\n}]+});/))) {
+					try {
+						siteDetailMessage.pageOwner = JSON.parse(matches[1]);
+						siteDetailMessage.nickname = siteDetailMessage.pageOwner.nickName; 
+					} catch (e) {
+					}
+				}
+			
+				if ((matches = code.match(/^\s*Y\.SM\.Page\.init\(([^\n]+)\);$/m))) {
 					try {
 						siteDetailMessage.pageDetails = JSON.parse(matches[1]);
 					} catch (e) {
 						continue;
 					}
-			
-					//This should come last in the page, so our search is done
-					break;
 				}
 			}
 		}
@@ -54,11 +60,11 @@ if (enable) {
 				sendResponse(siteDetailMessage);
 			}
 		});
-		
-		chrome.runtime.sendMessage({method: "showPageAction"});
-		
-		setInterval(function() {
-			chrome.runtime.sendMessage({method: "showPageAction"});
-		}, 1000);
+	} else {
+		chrome.extension.onMessage.addListener(function(message, sender, sendResponse) {
+			if (message.method == 'getSiteDetail') {  
+				sendResponse({loggedIn: false});
+			}
+		});
 	}
 }
