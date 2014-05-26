@@ -48,10 +48,6 @@ h1 {
 	background-color:#eee;
 }
 
-#control-buttons input {
-	max-width: 11em;
-}
-
 p {
     max-width:55em;
 }
@@ -67,33 +63,21 @@ p {
 }
 
 #page-sidebar {
-	max-width:14em;
+	max-width:16em;
 	position:fixed;
 	top:0;
 	bottom:0;
 	left:0;
-	background-color:#ddd;
+	background-color:#eee;
 }
 #page-body {
-	margin-left:14em;
+	margin-left:16em;
 	padding:1em;
 	padding-bottom:12em;
 }
 
-#control-buttons {
-	padding:1em;
-	padding-bottom:50px;
-	background-color:#eee;
-}
-#control-buttons button {
-	margin-top:20px;
-}
-#bulk-edit-section {
-	padding:1em;
-}
-
 #page-sidebar .btn-lg {
-	width:9em;
+	width:100%;
 }
 
 .dropdown-submenu {
@@ -168,4 +152,40 @@ p {
 	display:block;
 	text-align:center;
 	white-space: pre-wrap;
+}
+
+.dropdown button {
+	width:100%;
+	display:block;
+}
+
+.control-button-panel input {
+	max-width: 11em;
+}
+.photo-action-filter-text {
+	display:none;
+}
+.photo-action-panel,
+.select-photos-panel,
+.control-button-panel {
+	padding:1em;
+}
+
+.control-button-panel {
+}
+.control-button-panel button {
+	margin-top:20px;
+}
+
+.select-photos-panel {
+	text-align:center;
+}
+
+.photo-action-panel h3 {
+	margin-top:0;
+}
+
+#page-sidebar h3 {
+	text-align:center;
+	font-size:20px;
 }

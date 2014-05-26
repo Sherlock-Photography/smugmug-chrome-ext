@@ -126,6 +126,8 @@ YUI().use(['node', 'json', 'io', 'event-resize', 'querystring-parse-simple', 'ss
 						
 						that.set('images', images);
 						that.set('selectedCount', 0);
+						
+						that.fire('ready');
 					},
 					requestFail: function(e) {
 						that._eventLog.appendLog('error', "Failed to fetch a page, so this gallery listing is incomplete");
@@ -138,6 +140,8 @@ YUI().use(['node', 'json', 'io', 'event-resize', 'querystring-parse-simple', 'ss
 			},
 				
 			_saveChanges: function(changes) {
+				this._applyEventLog.clear();
+				
 				var 
 					logProgress = this._applyEventLog.appendLog('info', "Saving to SmugMug..."),
 					queue = new Y.SherlockPhotography.APISmartQueue({
@@ -190,6 +194,22 @@ YUI().use(['node', 'json', 'io', 'event-resize', 'querystring-parse-simple', 'ss
 						} else {
 							logProgress.set('message', "Saved " + changes.length + " photos");
 							logProgress.set('progress', null);
+							
+							setTimeout(function() {
+								console.log(logProgress);
+								
+								var anim = new Y.Anim({
+									node: logProgress.get('element'),
+									to: {opacity: 0},
+									duration: STATUS_CHANGE_EYECATCH_DURATION
+								});
+								
+								anim.on('end', function() {
+									logProgress.destroy(true);
+								});
+								
+								anim.run();
+							}, 2000);
 							
 							that.set('unsavedChanges', false);
 						}
@@ -341,10 +361,10 @@ YUI().use(['node', 'json', 'io', 'event-resize', 'querystring-parse-simple', 'ss
 				return changeCount;
 			},
 
-			selectPhotos:function(field, condition, text) {
+			findPhotos:function(field, condition, text) {
 				var 
-					imageNodes = this.get('imageListContainer').all('.smugmug-image').removeClass('selected'),
-					selectCount = 0;
+					imageNodes = this.get('imageListContainer').all('.smugmug-image'),
+					selected = [];
 				
 				imageNodes.each(function() {
 					var 
@@ -371,13 +391,12 @@ YUI().use(['node', 'json', 'io', 'event-resize', 'querystring-parse-simple', 'ss
 						}
 						
 						if (select) {
-							this.addClass('selected');
-							selectCount++;
+							selected.push(this);
 						}
 					}
 				});
 				
-				this.set('selectedCount', selectCount);
+				return selected;
 			},
 			
 			saveChanges:function() {				
@@ -497,14 +516,6 @@ YUI().use(['node', 'json', 'io', 'event-resize', 'querystring-parse-simple', 'ss
 			});
 			
 			bulkEditTool.after('selectedCountChange', function(e) {
-				var bulkEditControls = Y.all('.apply-to-selected-panel input, .apply-to-selected-panel select, .apply-to-selected-panel button');
-				
-				if (e.newVal > 0) { 
-					bulkEditControls.removeAttribute('disabled');
-				} else {
-					bulkEditControls.setAttribute('disabled', 'disabled');
-				}
-				
 				photoActionStatusNode.set('text', '');
 			});
 
@@ -519,6 +530,7 @@ YUI().use(['node', 'json', 'io', 'event-resize', 'querystring-parse-simple', 'ss
 						text2title = 'Replace with';
 					break;
 					case 'add':
+					case 'set':						
 						if (photoTarget == 'Keywords') {
 							text1title = 'Keyword';
 						} else {
@@ -526,8 +538,7 @@ YUI().use(['node', 'json', 'io', 'event-resize', 'querystring-parse-simple', 'ss
 						} 
 					break;
 					case 'remove':
-					case 'set':
-						text1title = 'Text';
+						text1title = 'Find text';
 					break;
 					case 'erase':
 					default:
@@ -549,12 +560,26 @@ YUI().use(['node', 'json', 'io', 'event-resize', 'querystring-parse-simple', 'ss
 			});
 			
 			Y.one('.photo-target').after('change', function(e) {
-				switch (Y.one('.photo-target').get('value')) {
+				var target = Y.one('.photo-target').get('value');
+				
+				switch (target) {
 					case 'Keywords':
 						Y.one(".photo-action option[value='add']").set('text', 'Add keyword');
 					break;
 					default:
 						Y.one(".photo-action option[value='add']").set('text', 'Add text');
+				}
+				
+				if (target == 'Keywords') {
+					Y.one('.photo-filter option[value="empty"]').set('text', target + " are empty");
+					Y.one('.photo-filter option[value="filled"]').set('text', target + " are filled");
+					Y.one('.photo-filter option[value="contains"]').set('text', target + " contain...");
+					Y.one('.photo-filter option[value="not-contains"]').set('text', target + " don't contain...");
+				} else {
+					Y.one('.photo-filter option[value="empty"]').set('text', target + " is empty");
+					Y.one('.photo-filter option[value="filled"]').set('text', target + " is filled");
+					Y.one('.photo-filter option[value="contains"]').set('text', target + " contains...");
+					Y.one('.photo-filter option[value="not-contains"]').set('text', target + " doesn't contain...");					
 				}
 				
 				Y.one('.photo-action').simulate('change');
@@ -584,38 +609,29 @@ YUI().use(['node', 'json', 'io', 'event-resize', 'querystring-parse-simple', 'ss
 				e.preventDefault();
 			});
 			
-			var lastTextSearch = "";
+			Y.one('#select-all').on('click', function(e) {
+				bulkEditTool.selectAll();
+				e.preventDefault();
+			});
+			
+			Y.one('#select-none').on('click', function(e) {
+				bulkEditTool.deselectAll();
+				e.preventDefault();
+			});
 
-			Y.one(".select-photos-bar").delegate('click', function(e) {
-				var 
-					matches = this.getAttribute('class').match(/^select-([a-zA-Z]+)(?:-(.+))?$/);
+			Y.one('#select-invert').on('click', function(e) {
+				bulkEditTool.invertSelection();
+				e.preventDefault();
+			});
 
-				if (matches) {
-					switch (matches[1]) {
-						case 'all':
-							bulkEditTool.selectAll();
-						break;
-						case 'none':
-							bulkEditTool.deselectAll();
-						break;
-						case 'invert':
-							bulkEditTool.invertSelection();
-						break;
-						default:
-							var search = "";
-						
-							if (matches[2] == 'contains' || matches[2] == 'not-contains') {
-								search = prompt("Please enter text to search for", lastTextSearch);
-								
-								if (!search) {
-									return;
-								}
-								
-								lastTextSearch = search;
-							}
-						
-							bulkEditTool.selectPhotos(matches[1], matches[2], search);
-					}
+			Y.one(".photo-filter").on('change', function(e) {
+				var
+					filter = e.newVal;
+				
+				if (filter == "contains" || filter == "not-contains") {
+					Y.one('.photo-action-filter-text').setStyle('display', 'block');
+				} else {
+					Y.one('.photo-action-filter-text').setStyle('display', 'none');					
 				}
 				
 				e.preventDefault();
@@ -623,6 +639,10 @@ YUI().use(['node', 'json', 'io', 'event-resize', 'querystring-parse-simple', 'ss
 			
 			Y.all(".smugmug-gallery-name").set('text', albumName);
 
+			bulkEditTool.on('ready', function() {
+				Y.one('.photo-action-apply').removeAttribute('disabled');
+			});
+			
 			bulkEditTool.fetchPhotos();
 		}
 	});
