@@ -130,7 +130,7 @@ YUI().use(['node', 'json', 'io', 'event-resize', 'querystring-parse-simple', 'ss
 						imageListSpinner.setStyle("display", "none");
 						
 						that.set('images', images);
-						that.set('selectedCount', 0);
+						that._set('selectedCount', 0);
 						
 						that.fire('ready');
 					},
@@ -202,8 +202,6 @@ YUI().use(['node', 'json', 'io', 'event-resize', 'querystring-parse-simple', 'ss
 				
 				queue.on({
 					complete: function() {
-						this._set('saving', false);
-						
 						if (errorCount > 0) {
 							logProgress.destroy(true);
 							
@@ -232,6 +230,8 @@ YUI().use(['node', 'json', 'io', 'event-resize', 'querystring-parse-simple', 'ss
 							
 							that._set('unsavedChanges', false);
 						}
+						
+						that._set('saving', false);						
 					},
 					requestFail: function(e) {
 						errorCount++;
@@ -296,12 +296,12 @@ YUI().use(['node', 'json', 'io', 'event-resize', 'querystring-parse-simple', 'ss
 				var photos = this.getAllPhotos();
 				
 				photos.addClass('selected');
-				this.set('selectedCount', photos.size());
+				this._set('selectedCount', photos.size());
 			},
 			
 			deselectAll: function() {
 				this.getSelectedPhotos().removeClass('selected');
-				this.set('selectedCount', 0);
+				this._set('selectedCount', 0);
 			},
 
 			invertSelection: function() {
@@ -312,7 +312,7 @@ YUI().use(['node', 'json', 'io', 'event-resize', 'querystring-parse-simple', 'ss
 				unSelected.addClass('selected');
 				selected.removeClass('selected');
 				
-				this.set('selectedCount', unSelected.size());
+				this._set('selectedCount', unSelected.size());
 			},
 			
 			/**
@@ -322,6 +322,7 @@ YUI().use(['node', 'json', 'io', 'event-resize', 'querystring-parse-simple', 'ss
 			 */
 			bulkEditPhotos: function(photos, fieldName, action, text, replace) {
 				var 
+					that = this,
 					changeCount = 0,
 					keywordsEndInSeparator = /([,;]|^)(\s*)$/,
 					endsInWhitespace = /(^|\s)$/,
@@ -393,7 +394,7 @@ YUI().use(['node', 'json', 'io', 'event-resize', 'querystring-parse-simple', 'ss
 				});
 				
 				if (changeCount > 0) {
-					this._set('unsavedChanges', true);					
+					that._set('unsavedChanges', true);					
 				}
 				
 				return changeCount;
@@ -461,10 +462,10 @@ YUI().use(['node', 'json', 'io', 'event-resize', 'querystring-parse-simple', 'ss
 					
 					if (parent.hasClass('selected')) {
 						parent.removeClass('selected');
-						that.set('selectedCount', that.get('selectedCount') - 1);
+						that._set('selectedCount', that.get('selectedCount') - 1);
 					} else {
 						parent.addClass('selected');
-						that.set('selectedCount', that.get('selectedCount') + 1);
+						that._set('selectedCount', that.get('selectedCount') + 1);
 					}
 					
 					e.preventDefault();
@@ -497,41 +498,34 @@ YUI().use(['node', 'json', 'io', 'event-resize', 'querystring-parse-simple', 'ss
 				images: {
 					value: null
 				},
-				
 				selectedCount: {
-					value: null
+					value: null,
+					readOnly: true
 				},
-				
 				unsavedChanges: {
 					value: false,
 					readOnly: true
 				},
-				
 				saving: {
 					value: false,
 					readOnly: true
 				},
-				
 				eventLogNode: {
 					value: null,
 					setter: Y.one
 				},
-				
 				saveButton: {
 					value: null,
 					setter: Y.one
 				},
-				
 				applyEventLogNode: {
 					value: null,
 					setter: Y.one
 				},
-
 				imageListContainer: {
 					value: null,
 					setter: Y.one
 				},
-				
 				imageListSpinner: {
 					value: null,
 					setter: Y.one
@@ -710,6 +704,14 @@ YUI().use(['node', 'json', 'io', 'event-resize', 'querystring-parse-simple', 'ss
 					
 						ready: function() {
 							that._applyButton.removeAttribute('disabled');
+						},
+						
+						savingChange: function(e) {
+							if (e.newVal) {
+								that._applyButton.setAttribute('disabled', 'disabled');
+							} else {
+								that._applyButton.removeAttribute('disabled');
+							}
 						}
 					});
 					
