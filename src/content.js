@@ -3,10 +3,7 @@ if (!window.ssSmugmugForChromeAtIdle) {
 	window.ssSmugmugForChromeAtIdle = true;
 	
 	//Only enable the extension menu if we're the site owner (we'll also use this as a not-a-smugmug-site test)
-	var 
-		enable = document.body.className.indexOf('sm-user-owner') > -1;
-
-	if (enable) {
+	if (document.body.className.indexOf('sm-user-owner') > -1) {
 		var 
 			siteDetailMessage = {
 				nickname: false,
