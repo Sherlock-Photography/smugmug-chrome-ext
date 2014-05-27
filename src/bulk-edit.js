@@ -149,12 +149,20 @@ YUI().use(['node', 'json', 'io', 'event-resize', 'querystring-parse-simple', 'ss
 				
 				var 
 					logProgress = this._applyEventLog.appendLog('info', "Saving to SmugMug..."),
+					
 					queue = new Y.SherlockPhotography.APISmartQueue({
 						processResponse: function(request, data) {
-							/*if (data.Response && data.Response.Image && data.Response.Image.Caption !== undefined) {
-								//Update our model of the caption to the new caption the server ack'ed
-								request.context.Caption = data.Response.Image.Caption;
-							}*/
+							if (data.Response && data.Response.Image) {
+								var ackedImage = data.Response.Image;
+								
+								//Update our local model of the image with the data the server ack'ed
+								for (var fieldName in request.context) {
+									if (fieldName != 'image' && fieldName != 'node' && ackedImage[fieldName] !== undefined) {
+										request.context.image[fieldName] = ackedImage[fieldName];
+										request.context.node.one(".photo-" + fieldName).set('value', ackedImage[fieldName]);
+									}
+								}
+							}
 							
 							return true;
 						},
@@ -197,7 +205,11 @@ YUI().use(['node', 'json', 'io', 'event-resize', 'querystring-parse-simple', 'ss
 							logProgress.set('message', errorCount + "/" + changes.length + " failed to save\nPlease try again");
 							logProgress.set('progress', null);
 						} else {
-							logProgress.set('message', "Saved " + changes.length + " photos");
+							if (changes.length == 0)
+								logProgress.set('message', "Saved photos");
+							else
+								logProgress.set('message', "Saved " + changes.length + " photos");
+							
 							logProgress.set('progress', null);
 							
 							setTimeout(function() {
