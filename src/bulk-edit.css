@@ -142,7 +142,7 @@ p {
 	display:block;
 	width:auto;
 	margin:0;
-	margin-top:1em;
+	margin-top:0.5em;
 }
 .yui3-ss-event-log-widget li {
 	padding-top:1em;
@@ -163,10 +163,7 @@ p {
 .control-button-panel input {
 	max-width: 11em;
 }
-.photo-action-filter-text {
-	display:none;
-}
-.photo-action-panel,
+.bulk-action-panel,
 .select-photos-panel,
 .control-button-panel {
 	padding:0.5em 1em;
@@ -180,14 +177,27 @@ p {
 }
 
 .select-photos-panel {
+	padding-top:0;
 	text-align:center;
 }
 
-.photo-action-panel h3 {
+.bulk-action-panel h3 {
 	margin-top:0;
 }
 
 #page-sidebar h3 {
 	text-align:center;
 	font-size:20px;
+}
+
+.yui3-ss-event-log-widget ul {
+	margin-bottom:0;
+}
+.yui3-ss-event-log-widget li {
+	margin-top:1em;
+	padding-top:0;
+}
+
+#applyEventLog {
+	min-height:5em;
 }

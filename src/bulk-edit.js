@@ -145,6 +145,7 @@ YUI().use(['node', 'json', 'io', 'event-resize', 'querystring-parse-simple', 'ss
 			},
 				
 			_saveChanges: function(changes) {
+				this._set('saving', true);
 				this._applyEventLog.clear();
 				
 				var 
@@ -201,20 +202,21 @@ YUI().use(['node', 'json', 'io', 'event-resize', 'querystring-parse-simple', 'ss
 				
 				queue.on({
 					complete: function() {
+						this._set('saving', false);
+						
 						if (errorCount > 0) {
-							logProgress.set('message', errorCount + "/" + changes.length + " failed to save\nPlease try again");
-							logProgress.set('progress', null);
+							logProgress.destroy(true);
+							
+							that._applyEventLog.appendLog('error', errorCount + "/" + changes.length + " failed to save\nPlease try again");
 						} else {
 							if (changes.length == 0)
 								logProgress.set('message', "Saved photos");
 							else
-								logProgress.set('message', "Saved " + changes.length + " photos");
+								logProgress.set('message', "Saved " + changes.length + (changes.length == 1 ? " photo" : " photos"));
 							
 							logProgress.set('progress', null);
 							
 							setTimeout(function() {
-								console.log(logProgress);
-								
 								var anim = new Y.Anim({
 									node: logProgress.get('element'),
 									to: {opacity: 0},
@@ -222,13 +224,13 @@ YUI().use(['node', 'json', 'io', 'event-resize', 'querystring-parse-simple', 'ss
 								});
 								
 								anim.on('end', function() {
-									logProgress.destroy(true);
+									logProgress.destroy();
 								});
 								
 								anim.run();
 							}, 5000);
 							
-							that.set('unsavedChanges', false);
+							that._set('unsavedChanges', false);
 						}
 					},
 					requestFail: function(e) {
@@ -240,6 +242,14 @@ YUI().use(['node', 'json', 'io', 'event-resize', 'querystring-parse-simple', 'ss
 				});
 			
 				queue.run();
+			},
+			
+			_updateSaveButtonState: function() {
+				if (this.get('saving') || !this.get('unsavedChanges')) { 
+					this.get('saveButton').setAttribute("disabled", "disabled");
+				} else {
+					this.get('saveButton').removeAttribute("disabled");
+				}					
 			},
 			
 			_collectImageChanges:function() {
@@ -383,7 +393,7 @@ YUI().use(['node', 'json', 'io', 'event-resize', 'querystring-parse-simple', 'ss
 				});
 				
 				if (changeCount > 0) {
-					this.set('unsavedChanges', true);					
+					this._set('unsavedChanges', true);					
 				}
 				
 				return changeCount;
@@ -444,13 +454,7 @@ YUI().use(['node', 'json', 'io', 'event-resize', 'querystring-parse-simple', 'ss
 			initializer: function(cfg) {
 				var that = this;
 				
-				this.after('unsavedChangesChange', function(e) {
-					if (e.newVal) {
-						that.get('applyButtonNode').removeAttribute("disabled");
-					} else {
-						that.get('applyButtonNode').setAttribute("disabled", "disabled");
-					}					
-				});
+				this.after(['unsavedChangesChange', 'savingChange'], Y.bind(this._updateSaveButtonState, this));
 				
 				this.get('imageListContainer').delegate('click', function(e) {
 					var parent = this.ancestor('.smugmug-image');
@@ -467,13 +471,19 @@ YUI().use(['node', 'json', 'io', 'event-resize', 'querystring-parse-simple', 'ss
 				}, 'a');
 
 				this.get('imageListContainer').delegate('valuechange', function() {
-					that.set('unsavedChanges', true);
+					that._set('unsavedChanges', true);
 				}, 'input, textarea');
 				
 				this.after('selectedCountChange', function(e) {
 					Y.one(".photo-select-count").set('text', e.newVal + " of " + that.get('images').length + " are selected");
 					Y.one(".photo-select-count").setStyle('visibility', 'visible');
-				});			
+				});
+				
+				this.get('saveButton').on('click', function(e) {
+					that.saveChanges();
+					
+					e.preventDefault();
+				});				
 				
 				this._eventLog = new Y.SherlockPhotography.EventLogWidget(),
 				this._applyEventLog = new Y.SherlockPhotography.EventLogWidget();
@@ -493,7 +503,13 @@ YUI().use(['node', 'json', 'io', 'event-resize', 'querystring-parse-simple', 'ss
 				},
 				
 				unsavedChanges: {
-					value: false
+					value: false,
+					readOnly: true
+				},
+				
+				saving: {
+					value: false,
+					readOnly: true
 				},
 				
 				eventLogNode: {
@@ -501,7 +517,7 @@ YUI().use(['node', 'json', 'io', 'event-resize', 'querystring-parse-simple', 'ss
 					setter: Y.one
 				},
 				
-				applyButtonNode: {
+				saveButton: {
 					value: null,
 					setter: Y.one
 				},
@@ -524,157 +540,232 @@ YUI().use(['node', 'json', 'io', 'event-resize', 'querystring-parse-simple', 'ss
 		}
 	);
 
+	var BulkActionUI = Y.Base.create(
+			'bulkActionUI',
+			Y.Base,
+			[],
+			{
+				_statusNode: null,
+				_actionNode: null,
+				_targetNode: null,
+				_filterNode: null,
+				_applyButton: null,
+				
+				_primaryTextNode: null,
+				_replaceTextNode: null,
+				
+				_clearStatus: function() {
+					this._statusNode.set('text', '');
+				},
+				
+				_actionChanged:function() {
+					var 
+						fieldName = this._targetNode.get('value'),
+						text1title = false, text2title = false;
+					
+					switch (this._actionNode.get('value')) {
+						case 'replace':
+							text1title = 'Find text';
+							text2title = 'Replace with';
+						break;
+						case 'add':
+						case 'set':						
+							if (fieldName == 'Keywords') {
+								text1title = 'Keyword';
+							} else {
+								text1title = 'Text';
+							} 
+						break;
+						case 'remove':
+							text1title = 'Text to remove';
+						break;
+						case 'erase':
+						default:
+					}
+					
+					if (text1title) {
+						this._primaryTextNode.previous('label').set('text', text1title);
+						this._primaryTextNode.get('parentNode').setStyle('display', 'block');
+					} else {
+						this._primaryTextNode.get('parentNode').setStyle('display', 'none');
+					}
+
+					if (text2title) {
+						this._replaceTextNode.previous('label').set('text', text2title);
+						this._replaceTextNode.get('parentNode').setStyle('display', 'block');
+					} else {
+						this._replaceTextNode.get('parentNode').setStyle('display', 'none');
+					}
+					
+					this.fire('userBumped');						
+				},
+				
+				_targetChanged: function(e) {
+					var 
+						target = this._targetNode.get('value');
+					
+					switch (target) {
+						case 'Keywords':
+							this._actionNode.one("option[value='add']").set('text', 'Add keyword');
+						break;
+						default:
+							this._actionNode.one("option[value='add']").set('text', 'Add text');
+					}
+					
+					if (target == 'Keywords') {
+						this._filterNode.one('option[value="empty"]').set('text', target + " are empty");
+						this._filterNode.one('option[value="filled"]').set('text', target + " are filled");
+						this._filterNode.one('option[value="contains"]').set('text', target + " contain...");
+						this._filterNode.one('option[value="not-contains"]').set('text', target + " don't contain...");
+					} else {
+						this._filterNode.one('option[value="empty"]').set('text', target + " is empty");
+						this._filterNode.one('option[value="filled"]').set('text', target + " is filled");
+						this._filterNode.one('option[value="contains"]').set('text', target + " contains...");
+						this._filterNode.one('option[value="not-contains"]').set('text', target + " doesn't contain...");					
+					}
+					
+					this._actionNode.simulate('change');
+					
+					this.fire('userBumped');						
+				},			
+				
+				_filterChanged: function(e) {
+					var 
+						filter = this._filterNode.get('value'), 
+						showFilterText = (filter == 'contains' || filter == 'not-contains');
+					
+					this.get('uiNode').one(".photo-action-filter-text").get('parentNode').setStyle('display', showFilterText ? 'block' : 'none');
+					
+					this.fire('userBumped');
+				},
+				
+				applyBulkEdit: function(e) {
+					var 
+						fieldName = this._targetNode.get('value'),
+						filter = this._filterNode.get('value'),
+						photos,
+						source = this.get('imageSource'),
+						changeCount;
+					
+					switch (filter) {
+						case 'all':
+							photos = source.getAllPhotos();
+						break;
+						case 'selected':
+							photos = source.getSelectedPhotos();
+						break;
+						default:
+							photos = source.findPhotos(fieldName, filter, this.get('filterText'));
+					}
+					
+					changeCount = source.bulkEditPhotos(photos, fieldName, this._actionNode.get('value'), 
+						this._primaryTextNode.get('value'), this._replaceTextNode.get('value'));
+					
+					if (changeCount > 0) {
+						this._statusNode.set("text", changeCount + (changeCount == 1 ? " photo was " : " photos were " ) + "edited");
+					} else {
+						this._statusNode.set("text", "No photos were changed!");
+					}
+					
+					this._statusNode.setStyle('opacity', 0);
+					
+					new Y.Anim({
+						node: this._statusNode,
+						to: {opacity: 1},
+						duration: STATUS_CHANGE_EYECATCH_DURATION
+					}).run();
+					
+					e.preventDefault();
+				},
+				
+				initializer: function(cfg) {
+					var 
+						that = this,
+						ui = this.get('uiNode');
+					
+					this._targetNode = ui.one(".photo-target"),
+					this._actionNode = ui.one(".photo-action"),
+					this._filterNode = ui.one(".photo-filter"),
+
+					this._applyButton = ui.one(".photo-action-apply"),
+					this._statusNode = ui.one(".photo-action-apply-status"),
+					
+					this._primaryTextNode = ui.one('.photo-action-primary-text'),
+					this._replaceTextNode = ui.one('.photo-action-replace-text'),
+
+					this._actionNode.after('change', Y.bind(this._actionChanged, this));
+					
+					this._targetNode.after('change', Y.bind(this._targetChanged, this));
+					this._targetNode.simulate('change');
+					
+					this._filterNode.after('change', Y.bind(this._filterChanged, this));					
+					this._filterNode.simulate('change');
+					
+					this._applyButton.on('click', Y.bind(this.applyBulkEdit, this));				
+					
+					this.get('imageSource').after({					
+						selectedCountChange: function() {
+							that.fire('userBumped');
+						},
+					
+						ready: function() {
+							that._applyButton.removeAttribute('disabled');
+						}
+					});
+					
+					/**
+					 * When the user edits the control, we don't want to continue saying how many images were edited
+					 * in the last apply, since it's irrelevant to their new edit session.
+					 */
+					this.on('userBumped', Y.bind(this._clearStatus, this));
+				}
+			},
+			{
+				ATTRS: {
+					imageSource: {
+						value: null,
+						writeOnce: 'initOnly'
+					},
+					
+					uiNode: {
+						value: null,
+						writeOnce: 'initOnly',
+						setter: Y.one
+					},
+					
+					filterText: {
+						value: null,
+						getter: function() {
+							return this.get('uiNode').one(".photo-action-filter-text").get('value');
+						}
+					}
+				}
+			}
+		);
+	
+	
 	//Sorry, this is the best I can do on Chrome! (it doesn't allow User-Agent to be changed)
 	Y.io.header('X-User-Agent', 'Unofficial SmugMug extension for Chrome v0.1 / I\'m in ur server, mogrifying ur data / n.sherlock@gmail.com');
 	
 	Y.on({
 		domready: function() {
 			
-			var bulkEditTool = new BulkEditTool({
-				eventLogNode: "#eventLog",
-				applyEventLogNode: "#applyEventLog",
-				applyButtonNode: "#btn-apply",
-				
-				imageListContainer: "#image-selector",
-				imageListSpinner: "#image-selector-spinner",
-			});
-			
-			var 
-				photoActionStatusNode = Y.one(".photo-action-apply-status"),
-				photoAction = Y.one('.photo-action');
-				photoActionTarget = Y.one('.photo-target'),
-				photoActionFilter = Y.one('.photo-filter');
-			
-			Y.one('#btn-apply').on({
-				click: function(e) {
-					photoActionStatusNode.set('text', '');
-
-					bulkEditTool.saveChanges();
+			var
+				bulkEditTool = new BulkEditTool({
+					eventLogNode: "#eventLog",
+					applyEventLogNode: "#applyEventLog",
+					saveButton: "#btn-save-changes",
 					
-					e.preventDefault();
-				}
-			});
-			
-			bulkEditTool.after('selectedCountChange', function(e) {
-				photoActionStatusNode.set('text', '');
-			});
-
-			photoAction.after('change', function(e) {
-				var 
-					photoTarget = photoActionTarget.get('value'),
-					text1title = false, text2title = false;
+					imageListContainer: "#image-selector",
+					imageListSpinner: "#image-selector-spinner",
+				}),
 				
-				switch (photoAction.get('value')) {
-					case 'replace':
-						text1title = 'Find text';
-						text2title = 'Replace with';
-					break;
-					case 'add':
-					case 'set':						
-						if (photoTarget == 'Keywords') {
-							text1title = 'Keyword';
-						} else {
-							text1title = 'Text';
-						} 
-					break;
-					case 'remove':
-						text1title = 'Text to remove';
-					break;
-					case 'erase':
-					default:
-				}
-				
-				if (text1title) {
-					Y.one('label[for="photo-action-primary-text"]').set('text', text1title);
-					Y.one('.photo-action-primary-text').setStyle('display', 'block');
-				} else {
-					Y.one('.photo-action-primary-text').setStyle('display', 'none');
-				}
-
-				if (text2title) {
-					Y.one('label[for="photo-action-replace-text"]').set('text', text2title);
-					Y.one('.photo-action-replace-text').setStyle('display', 'block');
-				} else {
-					Y.one('.photo-action-replace-text').setStyle('display', 'none');
-				}
-			});
-			
-			photoActionTarget.after('change', function(e) {
-				var target = photoActionTarget.get('value');
-				
-				switch (target) {
-					case 'Keywords':
-						Y.one(".photo-action option[value='add']").set('text', 'Add keyword');
-					break;
-					default:
-						Y.one(".photo-action option[value='add']").set('text', 'Add text');
-				}
-				
-				if (target == 'Keywords') {
-					Y.one('.photo-filter option[value="empty"]').set('text', target + " are empty");
-					Y.one('.photo-filter option[value="filled"]').set('text', target + " are filled");
-					Y.one('.photo-filter option[value="contains"]').set('text', target + " contain...");
-					Y.one('.photo-filter option[value="not-contains"]').set('text', target + " don't contain...");
-				} else {
-					Y.one('.photo-filter option[value="empty"]').set('text', target + " is empty");
-					Y.one('.photo-filter option[value="filled"]').set('text', target + " is filled");
-					Y.one('.photo-filter option[value="contains"]').set('text', target + " contains...");
-					Y.one('.photo-filter option[value="not-contains"]').set('text', target + " doesn't contain...");					
-				}
-				
-				photoAction.simulate('change');
-			});
-			
-			photoActionTarget.simulate('change');
-			
-			photoActionFilter.after('change', function(e) {
-				var 
-					filter = photoActionFilter.get('value'), 
-					showFilterText = (filter == 'contains' || filter == 'not-contains');
-				
-				Y.one(".photo-action-filter-text").setStyle('display', showFilterText ? 'block' : 'none');
-			});
-			
-			photoActionFilter.simulate('change');
-			
-			Y.one('.photo-action-apply').on('click', function(e) {
-				var 
-					fieldName = photoActionTarget.get('value'),
-					filter = Y.one('.photo-filter').get('value'),
-					photos,
-					changeCount;
-				
-				switch (filter) {
-					case 'all':
-						photos = bulkEditTool.getAllPhotos();
-					break;
-					case 'selected':
-						photos = bulkEditTool.getSelectedPhotos();
-					break;
-					default:
-						photos = bulkEditTool.findPhotos(fieldName, filter, Y.one("#photo-action-filter-text").get('value'));
-				}
-				
-				changeCount = bulkEditTool.bulkEditPhotos(photos, fieldName, photoAction.get('value'), 
-					Y.one('#photo-action-primary-text').get('value'), Y.one('#photo-action-replace-text').get('value'));
-								
-				photoActionStatusNode.setStyle('opacity', 0);
-				
-				if (changeCount > 0) {
-					photoActionStatusNode.set("text", changeCount + (changeCount == 1 ? " photo was " : " photos were " ) + "updated in the preview");
-				} else {
-					photoActionStatusNode.set("text", "No photos were changed!");
-				}
-				
-				new Y.Anim({
-					node: photoActionStatusNode,
-					to: {opacity: 1},
-					duration: STATUS_CHANGE_EYECATCH_DURATION
-				}).run();
-				
-				e.preventDefault();
-			});
-			
+				bulkActionUI = new BulkActionUI({
+					imageSource: bulkEditTool,
+					
+					uiNode: '.bulk-action-panel'
+				});
+						
 			Y.one('#select-all').on('click', function(e) {
 				bulkEditTool.selectAll();
 				e.preventDefault();
@@ -691,10 +782,6 @@ YUI().use(['node', 'json', 'io', 'event-resize', 'querystring-parse-simple', 'ss
 			});
 			
 			Y.all(".smugmug-gallery-name").set('text', albumName);
-
-			bulkEditTool.on('ready', function() {
-				Y.one('.photo-action-apply').removeAttribute('disabled');
-			});
 			
 			bulkEditTool.fetchPhotos();
 		}
