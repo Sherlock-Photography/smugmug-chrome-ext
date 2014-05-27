@@ -10,7 +10,7 @@ YUI.add('ss-tile-base-view-collected', function(Y) {
 		Patch.prototype._setupRenderConfig = function(tile) {
 	        origSetupRenderConfig.call(this, tile);
 	
-	        if (window.sherlockPhotographySMForChrome.config.enable && window.sherlockPhotographySMForChrome.settings["collected-thumbnail"] && this.get('showStatus')) {
+	        if (window.sherlockPhotographySMForChrome && document.body.className.indexOf('sm-user-owner') > -1 && window.sherlockPhotographySMForChrome.settings["collected-thumbnail"] && this.get('showStatus')) {
 		        var imageModel = null;
 		        
 		        if (tile instanceof Y.SM.Models.Image) {

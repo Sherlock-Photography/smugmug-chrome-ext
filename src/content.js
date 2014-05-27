@@ -2,16 +2,11 @@
 if (!window.ssSmugmugForChromeAtIdle) {
 	window.ssSmugmugForChromeAtIdle = true;
 	
-	//Only enable tweaks if we're the site owner (we'll also use this as a not-a-smugmug-site test)
+	//Only enable the extension menu if we're the site owner (we'll also use this as a not-a-smugmug-site test)
 	var 
 		enable = document.body.className.indexOf('sm-user-owner') > -1;
 
 	if (enable) {
-		//Let our YUI scripts in the page know that they are allowed to execute too
-		var injectJS = document.createElement('script');
-		injectJS.text = "window.sherlockPhotographySMForChrome.config.enable = true;";
-		(document.head || document.documentElement).appendChild(injectJS);
-		
 		var 
 			siteDetailMessage = {
 				nickname: false,

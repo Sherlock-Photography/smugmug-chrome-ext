@@ -25,7 +25,7 @@ YUI.add('ss-lightbox-view-collected', function(Y) {
 		Patch.prototype._renderBody = function() {
 	        origRenderBody.call(this);
 	        
-	        if (window.sherlockPhotographySMForChrome.config.enable && window.sherlockPhotographySMForChrome.settings["collected-lightbox"]) {
+	        if (window.sherlockPhotographySMForChrome && document.body.className.indexOf('sm-user-owner') > -1 && window.sherlockPhotographySMForChrome.settings["collected-lightbox"]) {
 		        var
 		        	image = this.get('image');
 		        

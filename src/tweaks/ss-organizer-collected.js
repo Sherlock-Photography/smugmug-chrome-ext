@@ -54,7 +54,7 @@ YUI.add('ss-organizer-collected', function(Y) {
 			);
 		
 		Patch.prototype._renderImageTile = function(tile) {
-	        if (window.sherlockPhotographySMForChrome.config.enable && window.sherlockPhotographySMForChrome.settings["collected-organiser"]
+	        if (window.sherlockPhotographySMForChrome && document.body.className.indexOf('sm-user-owner') > -1 && window.sherlockPhotographySMForChrome.settings["collected-organiser"]
 	        	&& tile.data.Status !== 'Preprocess' && !tile.data.IsArchive) {
 	        	
 	        	var

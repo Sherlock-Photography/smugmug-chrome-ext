@@ -15,12 +15,11 @@ if (!window.ssSmugmugForChromeAtStart) {
 	var 
 		data = {
 			config: {
-				path: chrome.extension.getURL("tweaks/"),
-				enable: false /* We'll decide whether to enable the extension once the DOM loads and we know if the user owns the site */
+				path: chrome.extension.getURL("tweaks/")
 			},
 			settings: {} 
 		};
-	
+		
 	tweakJSData.text = "window.sherlockPhotographySMForChrome = " + JSON.stringify(data) + ";";
 	
 	var startPoint = parent.firstChild;
@@ -46,7 +45,7 @@ if (!window.ssSmugmugForChromeAtStart) {
 		var tweakJSSettings = document.createElement('script');
 		
 		tweakJSSettings.text = "window.sherlockPhotographySMForChrome.settings = " + JSON.stringify(localData['tweaks.settings'] || {}) + ";";
-	
+			
 		parent.appendChild(tweakJSSettings);
 	});
 }
