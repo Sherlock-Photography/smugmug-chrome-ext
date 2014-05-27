@@ -82,7 +82,7 @@ YUI.add('ss-api-smartqueue', function(Y, NAME) {
 				/* 
 				 * If asked to simulate failures, and we decide this request is failed, don't even make the request to the server.
 				 */ 
-				if (this.get('simulateFail') && Math.random() < 0.75) {
+				if (this.get('simulateFail') && Math.random() < this.get('simulateFail')) {
 					if (!attemptRetry()) {
 						this.fire('requestFail', {request: request, status: 500, statusText: "Fake error message"});
 					}
@@ -180,7 +180,7 @@ YUI.add('ss-api-smartqueue', function(Y, NAME) {
 					value: 'json'
 				},
 				
-				/* 
+				/**
 				 * Only suitable for debugging, as this causes successful responses received to be cached indefinitely, and makes
 				 * no attempt to avoid filling up LocalStorage.
 				 */
@@ -188,7 +188,11 @@ YUI.add('ss-api-smartqueue', function(Y, NAME) {
 					value: false
 				},
 				
-				//This option simulates failed AJAX requests to test error-handling
+				/**
+				 * This option simulates failed AJAX requests to test error-handling.
+				 * 
+				 * Set to false to disable failure simulation, or enter a failure probability 0.0 < x <= 1.0 to enable simulation.
+				 */
 				simulateFail: {
 					value: false
 				},
