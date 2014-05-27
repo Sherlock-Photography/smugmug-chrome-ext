@@ -67,11 +67,11 @@ p {
 	position:fixed;
 	top:0;
 	bottom:0;
-	left:0;
+	right:0;
 	background-color:#eee;
 }
 #page-body {
-	margin-left:16em;
+	margin-right:16em;
 	padding:1em;
 	padding-bottom:12em;
 }
@@ -172,6 +172,7 @@ p {
 }
 
 .control-button-panel {
+	padding-bottom:0;
 }
 .control-button-panel button {
 	margin-top:20px;

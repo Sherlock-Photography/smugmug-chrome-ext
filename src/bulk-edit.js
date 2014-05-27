@@ -28,7 +28,7 @@ YUI().use(['node', 'json', 'io', 'event-resize', 'querystring-parse-simple', 'ss
 		
 		smugDomain = nickname + ".smugmug.com",
 		
-		STATUS_CHANGE_EYECATCH_DURATION = 0.25;
+		STATUS_CHANGE_EYECATCH_DURATION = 0.33;
 
 	if (!/^[a-zA-Z0-9]+$/.test(albumID) || !/^[a-zA-Z0-9-]+$/.test(nickname)) {
 		alert("Bad arguments, please close this page and try again.");
@@ -74,7 +74,8 @@ YUI().use(['node', 'json', 'io', 'event-resize', 'querystring-parse-simple', 'ss
 					that = this,
 					images = [],
 					imageListContainer = this.get('imageListContainer'),
-					imageListSpinner = this.get('imageListSpinner');
+					imageListSpinner = this.get('imageListSpinner'),
+					failures = 0;
 				
 				imageListContainer.get('childNodes').remove();
 				imageListContainer.append('<tr><th>&nbsp;</th><th>Title</th><th>Caption</th><th>Keywords <small>(separate with semicolons)</small></th></tr>');
@@ -122,6 +123,10 @@ YUI().use(['node', 'json', 'io', 'event-resize', 'querystring-parse-simple', 'ss
 				
 				queue.on({
 					complete: function() {
+						if (failures > 0) {
+							that._eventLog.appendLog('error', "Failed to fetch a page of photos, so this gallery listing is incomplete. Press refresh to try again.");
+						}
+
 						imageListSpinner.setStyle("display", "none");
 						
 						that.set('images', images);
@@ -130,7 +135,7 @@ YUI().use(['node', 'json', 'io', 'event-resize', 'querystring-parse-simple', 'ss
 						that.fire('ready');
 					},
 					requestFail: function(e) {
-						that._eventLog.appendLog('error', "Failed to fetch a page, so this gallery listing is incomplete");
+						failures++;
 					},
 					progress: function(progress) {
 					}
@@ -155,7 +160,7 @@ YUI().use(['node', 'json', 'io', 'event-resize', 'querystring-parse-simple', 'ss
 						},
 						responseType: 'json',
 						retryPosts: true, //Since our requests are idempotent				
-						delayBetweenRequests: 0 //We will let the browser's per-domainname limits do the rate-limiting for us
+						delayBetweenRequests: 0 //We will let the browser's per-domain name limits do the rate-limiting for us
 					}),
 					errorCount = 0,
 					that = this;
@@ -209,7 +214,7 @@ YUI().use(['node', 'json', 'io', 'event-resize', 'querystring-parse-simple', 'ss
 								});
 								
 								anim.run();
-							}, 2000);
+							}, 5000);
 							
 							that.set('unsavedChanges', false);
 						}
