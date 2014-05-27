@@ -22,7 +22,7 @@ YUI.add('ss-event-log-widget', function(Y, NAME) {
 				return 'log-' + classname;
 			},
 			
-			_uiSetProgress: function() {
+			_uiSyncProgress: function() {
 				var progress = this.get('progress');
 				
 				if (progress) {
@@ -41,7 +41,7 @@ YUI.add('ss-event-log-widget', function(Y, NAME) {
 				}
 			},
 			
-			_uiSetMessage: function() {
+			_uiSyncMessage: function() {
 				this.get('element').one('> .message').set('text', this.get('message'));
 			},
 			
@@ -50,22 +50,18 @@ YUI.add('ss-event-log-widget', function(Y, NAME) {
 
 				this.set('element', element);
 
-				this._uiSetMessage();
-				this._uiSetProgress();
+				this._uiSyncMessage();
+				this._uiSyncProgress();
 				
 				return element;
 			},
 									
 			initializer: function(cfg) {
-				var self = this;
-				
 				this.after({
-					progressChange: function(e) {
-						self._uiSetProgress();
-					},
-					messageChange: function(e) {
-						self._uiSetMessage();
-					},					
+					progressChange: Y.bind(this._uiSyncProgress, this),
+					
+					messageChange: Y.bind(this._uiSyncMessage, this),
+					
 					elementChange: function(e) {
 						if (e.prevVal) {
 							e.prevVal.replace(e.newVal);
@@ -74,6 +70,10 @@ YUI.add('ss-event-log-widget', function(Y, NAME) {
 				});
 				
 				this.render();
+			},
+			
+			destructor: function() {
+				this.get('element').remove(true);
 			}
 		},
 		{
