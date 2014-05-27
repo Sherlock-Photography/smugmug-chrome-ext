@@ -1,6 +1,6 @@
 YUI().use(['node', 'json', 'io', 'event-resize', 'querystring-parse-simple', 'ss-event-log-widget',
            'ss-progress-bar', 'ss-api-smartqueue', 'model', 'event-valuechange', 'node-event-simulate',
-           'anim'], function(Y) {
+           'anim', 'ss-csrf-manager'], function(Y) {
 
 	function preg_quote( str ) {
 	    // http://kevin.vanzonneveld.net
@@ -24,7 +24,6 @@ YUI().use(['node', 'json', 'io', 'event-resize', 'querystring-parse-simple', 'ss
 		nickname = query.nickname,
 		albumID = query.albumKey,
 		albumName = query.albumName,
-		token = query.token,
 		
 		smugDomain = nickname + ".smugmug.com",
 		
@@ -178,7 +177,7 @@ YUI().use(['node', 'json', 'io', 'event-resize', 'querystring-parse-simple', 'ss
 					var 
 						change = changes[index],
 						data = {
-							_token: token
+							_token: Y.SherlockPhotography.CSRFManager.get('token')
 						};
 					
 					// Don't try to send the image object to the server, just the field changes we requested
@@ -785,7 +784,13 @@ YUI().use(['node', 'json', 'io', 'event-resize', 'querystring-parse-simple', 'ss
 			
 			Y.all(".smugmug-gallery-name").set('text', albumName);
 			
-			bulkEditTool.fetchPhotos();
+			Y.SherlockPhotography.CSRFManager.start(smugDomain, function(token) {
+				if (token) {
+					bulkEditTool.fetchPhotos();	
+				} else {
+					alert("Failed to connect to your SmugMug site! Please press refresh to try again.");
+				}
+			})
 		}
 	});
 });
