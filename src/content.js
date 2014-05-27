@@ -25,14 +25,14 @@ if (!window.ssSmugmugForChromeAtIdle) {
 			
 			if (!script.src && (code = script.innerHTML)) {
 				//Super rough, but should work:
-				if (!siteDetailMessage.loggedInUser && (matches = code.match(/SM\.env\.loggedInUser=({[^\n}]+});/))) {
+				if (!siteDetailMessage.loggedInUser && (matches = code.match(/SM\.env\.loggedInUser\s*=\s*({[^\n}]+});/))) {
 					try {
 						siteDetailMessage.loggedInUser = JSON.parse(matches[1]);
 					} catch (e) {
 						//Not critical that we have this information
 					}
 				}
-				if (!siteDetailMessage.pageOwner && (matches = code.match(/SM\.env\.pageOwner=({[^\n}]+});/))) {
+				if (!siteDetailMessage.pageOwner && (matches = code.match(/SM\.env\.pageOwner\s*=\s*({[^\n}]+});/))) {
 					try {
 						siteDetailMessage.pageOwner = JSON.parse(matches[1]);
 						siteDetailMessage.nickname = siteDetailMessage.pageOwner.nickName; 
