@@ -283,12 +283,14 @@ YUI().use(['node', 'json', 'io', 'event-resize', 'querystring-parse-simple', 'ss
 			},
 			
 			selectAll: function() {
-				this.get('imageListContainer').all('.smugmug-image').addClass('selected');
-				this.set('selectedCount', this.get('images').length);
+				var photos = this.getAllPhotos();
+				
+				photos.addClass('selected');
+				this.set('selectedCount', photos.size());
 			},
 			
 			deselectAll: function() {
-				this.get('imageListContainer').all('.smugmug-image.selected').removeClass('selected');
+				this.getSelectedPhotos().removeClass('selected');
 				this.set('selectedCount', 0);
 			},
 
@@ -303,7 +305,12 @@ YUI().use(['node', 'json', 'io', 'event-resize', 'querystring-parse-simple', 'ss
 				this.set('selectedCount', unSelected.size());
 			},
 			
-			editPhotos: function(target, action, text, replace) {
+			/**
+			 * Apply the bulk edit defined by action/text/replace on the `fieldName` field of the given array of photo nodes.
+			 * 
+			 * photos: You can pass NodeLists of photos from getAllPhotos(), getSelectedPhotos(), or findPhotos(). Or pass null and all photos will be edited. 
+			 */
+			bulkEditPhotos: function(photos, fieldName, action, text, replace) {
 				var 
 					changeCount = 0,
 					keywordsEndInSeparator = /([,;]|^)(\s*)$/,
@@ -312,16 +319,20 @@ YUI().use(['node', 'json', 'io', 'event-resize', 'querystring-parse-simple', 'ss
 					findUserSearchText = new RegExp(preg_quote(text), 'gi'),
 					findUserSearchKeyword = new RegExp('(^|[,;])\\s*' + preg_quote(text) + '\\s*([,;]|$)', 'gi');
 				
-				this.get('imageListContainer').all('.smugmug-image').each(function() {
+				if (photos == null) {
+					photos = this.getAllPhotos();
+				}
+				
+				photos.each(function(photo) {
 					var 
-						targetNode = this.one('.photo-' + target),
+						targetNode = photo.one('.photo-' + fieldName),
 						originalValue = targetNode.get('value'),
 						value = targetNode.get('value'),
 						matches;
 					
 					switch (action) {
 						case 'add':
-							if (target == 'Keywords') {
+							if (fieldName == 'Keywords') {
 								if (!value.match(findUserSearchKeyword)) {  
 									if (matches = value.match(keywordsEndInSeparator)) {
 										if (matches[2].length) {
@@ -340,7 +351,7 @@ YUI().use(['node', 'json', 'io', 'event-resize', 'querystring-parse-simple', 'ss
 							}
 						break;
 						case 'remove':
-							if (target == 'Keywords') {
+							if (fieldName == 'Keywords') {
 								//If the removed text forms a complete keyword, remove it along with the trailing separator for the keyword:								
 								value = value.replace(findUserSearchKeyword, '$1');
 							}
@@ -377,10 +388,18 @@ YUI().use(['node', 'json', 'io', 'event-resize', 'querystring-parse-simple', 'ss
 				
 				return changeCount;
 			},
+			
+			getAllPhotos:function() {
+				return this.get('imageListContainer').all('.smugmug-image');
+			},
+
+			getSelectedPhotos:function() {
+				return this.get('imageListContainer').all('.smugmug-image.selected');
+			},
 
 			findPhotos:function(field, condition, text) {
 				var 
-					imageNodes = this.get('imageListContainer').all('.smugmug-image'),
+					imageNodes = this.getAllPhotos(),
 					selected = [];
 				
 				imageNodes.each(function() {
@@ -391,10 +410,10 @@ YUI().use(['node', 'json', 'io', 'event-resize', 'querystring-parse-simple', 'ss
 					if (fieldData !== undefined) {
 						switch (condition) {
 							case 'empty':
-								select = fieldData.trim() == 0;
+								select = fieldData.trim().length == 0;
 							break;
 							case 'filled':
-								select = fieldData.trim() != 0;
+								select = fieldData.trim().length != 0;
 							break;
 							case 'contains':
 								select = fieldData.match(new RegExp(preg_quote(text), 'i')) != null;
@@ -413,7 +432,7 @@ YUI().use(['node', 'json', 'io', 'event-resize', 'querystring-parse-simple', 'ss
 					}
 				});
 				
-				return selected;
+				return new Y.NodeList(selected);
 			},
 			
 			saveChanges:function() {				
@@ -520,7 +539,11 @@ YUI().use(['node', 'json', 'io', 'event-resize', 'querystring-parse-simple', 'ss
 				imageListSpinner: "#image-selector-spinner",
 			});
 			
-			var photoActionStatusNode = Y.one(".photo-action-apply-status");
+			var 
+				photoActionStatusNode = Y.one(".photo-action-apply-status"),
+				photoAction = Y.one('.photo-action');
+				photoActionTarget = Y.one('.photo-target'),
+				photoActionFilter = Y.one('.photo-filter');
 			
 			Y.one('#btn-apply').on({
 				click: function(e) {
@@ -536,12 +559,12 @@ YUI().use(['node', 'json', 'io', 'event-resize', 'querystring-parse-simple', 'ss
 				photoActionStatusNode.set('text', '');
 			});
 
-			Y.one('.photo-action').after('change', function(e) {
+			photoAction.after('change', function(e) {
 				var 
-					photoTarget = Y.one('.photo-target').get('value'),
+					photoTarget = photoActionTarget.get('value'),
 					text1title = false, text2title = false;
 				
-				switch (Y.one('.photo-action').get('value')) {
+				switch (photoAction.get('value')) {
 					case 'replace':
 						text1title = 'Find text';
 						text2title = 'Replace with';
@@ -555,7 +578,7 @@ YUI().use(['node', 'json', 'io', 'event-resize', 'querystring-parse-simple', 'ss
 						} 
 					break;
 					case 'remove':
-						text1title = 'Find text';
+						text1title = 'Text to remove';
 					break;
 					case 'erase':
 					default:
@@ -576,8 +599,8 @@ YUI().use(['node', 'json', 'io', 'event-resize', 'querystring-parse-simple', 'ss
 				}
 			});
 			
-			Y.one('.photo-target').after('change', function(e) {
-				var target = Y.one('.photo-target').get('value');
+			photoActionTarget.after('change', function(e) {
+				var target = photoActionTarget.get('value');
 				
 				switch (target) {
 					case 'Keywords':
@@ -599,20 +622,46 @@ YUI().use(['node', 'json', 'io', 'event-resize', 'querystring-parse-simple', 'ss
 					Y.one('.photo-filter option[value="not-contains"]').set('text', target + " doesn't contain...");					
 				}
 				
-				Y.one('.photo-action').simulate('change');
+				photoAction.simulate('change');
 			});
 			
-			Y.one('.photo-target').simulate('change');
+			photoActionTarget.simulate('change');
+			
+			photoActionFilter.after('change', function(e) {
+				var 
+					filter = photoActionFilter.get('value'), 
+					showFilterText = (filter == 'contains' || filter == 'not-contains');
+				
+				Y.one(".photo-action-filter-text").setStyle('display', showFilterText ? 'block' : 'none');
+			});
+			
+			photoActionFilter.simulate('change');
 			
 			Y.one('.photo-action-apply').on('click', function(e) {
-				var changeCount = 
-					bulkEditTool.editPhotos(Y.one('.photo-target').get('value'), Y.one('.photo-action').get('value'),
-							Y.one('#photo-action-primary-text').get('value'), Y.one('#photo-action-replace-text').get('value'));
+				var 
+					fieldName = photoActionTarget.get('value'),
+					filter = Y.one('.photo-filter').get('value'),
+					photos,
+					changeCount;
+				
+				switch (filter) {
+					case 'all':
+						photos = bulkEditTool.getAllPhotos();
+					break;
+					case 'selected':
+						photos = bulkEditTool.getSelectedPhotos();
+					break;
+					default:
+						photos = bulkEditTool.findPhotos(fieldName, filter, Y.one("#photo-action-filter-text").get('value'));
+				}
+				
+				changeCount = bulkEditTool.bulkEditPhotos(photos, fieldName, photoAction.get('value'), 
+					Y.one('#photo-action-primary-text').get('value'), Y.one('#photo-action-replace-text').get('value'));
 								
 				photoActionStatusNode.setStyle('opacity', 0);
 				
 				if (changeCount > 0) {
-					photoActionStatusNode.set("text", changeCount + " photos were updated in the preview");
+					photoActionStatusNode.set("text", changeCount + (changeCount == 1 ? " photo was " : " photos were " ) + "updated in the preview");
 				} else {
 					photoActionStatusNode.set("text", "No photos were changed!");
 				}
@@ -640,19 +689,6 @@ YUI().use(['node', 'json', 'io', 'event-resize', 'querystring-parse-simple', 'ss
 				bulkEditTool.invertSelection();
 				e.preventDefault();
 			});
-
-			Y.one(".photo-filter").on('change', function(e) {
-				var
-					filter = e.newVal;
-				
-				if (filter == "contains" || filter == "not-contains") {
-					Y.one('.photo-action-filter-text').setStyle('display', 'block');
-				} else {
-					Y.one('.photo-action-filter-text').setStyle('display', 'none');					
-				}
-				
-				e.preventDefault();
-			}, 'a');
 			
 			Y.all(".smugmug-gallery-name").set('text', albumName);
 

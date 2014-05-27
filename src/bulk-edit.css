@@ -63,7 +63,8 @@ p {
 }
 
 #page-sidebar {
-	max-width:16em;
+	min-width:17em;
+	max-width:18em;
 	position:fixed;
 	top:0;
 	bottom:0;
@@ -71,7 +72,7 @@ p {
 	background-color:#eee;
 }
 #page-body {
-	margin-right:16em;
+	margin-right:18em;
 	padding:1em;
 	padding-bottom:12em;
 }
@@ -168,7 +169,7 @@ p {
 .photo-action-panel,
 .select-photos-panel,
 .control-button-panel {
-	padding:1em;
+	padding:0.5em 1em;
 }
 
 .control-button-panel {
