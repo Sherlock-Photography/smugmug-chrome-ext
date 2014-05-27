@@ -457,18 +457,21 @@ YUI().use(['node', 'json', 'io', 'event-resize', 'querystring-parse-simple', 'ss
 				this.after(['unsavedChangesChange', 'savingChange'], Y.bind(this._updateSaveButtonState, this));
 				
 				this.get('imageListContainer').delegate('click', function(e) {
-					var parent = this.ancestor('.smugmug-image');
-					
-					if (parent.hasClass('selected')) {
-						parent.removeClass('selected');
-						that._set('selectedCount', that.get('selectedCount') - 1);
-					} else {
-						parent.addClass('selected');
-						that._set('selectedCount', that.get('selectedCount') + 1);
+					if (!(e.target.get('tagName') in {INPUT:0, TEXTAREA:0})) {
+						var image = this.hasClass('smugmug-image') ? this : this.ancestor('.smugmug-image');
+						
+						if (image.hasClass('selected')) {
+							image.removeClass('selected');
+							that._set('selectedCount', that.get('selectedCount') - 1);
+						} else {
+							image.addClass('selected');
+							that._set('selectedCount', that.get('selectedCount') + 1);
+						}
+						
+						e.preventDefault();
+						e.stopPropagation();
 					}
-					
-					e.preventDefault();
-				}, 'a');
+				}, 'a, tr, td');
 
 				this.get('imageListContainer').delegate('valuechange', function() {
 					that._set('unsavedChanges', true);
