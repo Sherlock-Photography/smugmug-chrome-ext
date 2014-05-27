@@ -1,14 +1,13 @@
 document.addEventListener('DOMContentLoaded', function() {
 	chrome.tabs.query({active: true, currentWindow: true}, function(tabs) {
-		var tab = tabs[0];
+		var tab;
 		
 		//We can read the tab URL due to having the 'activetab' permission:
-		if (tab.url) {
+		if (tabs && tabs.length > 0 && (tab = tabs[0]) && tab.url) {
 			var 
-				hasPermission = false,
 				domainName = tab.url.match(/^http:\/\/([^/]+)\//);
 			
-			function setup_popup() {
+			function setup_popup(hasPermission) {
 				if (!hasPermission) {
 					document.getElementById("hasnt-permission").style.display = "block";					
 					document.getElementById("custom-domain-name").textContent = domainName[1]; 
@@ -106,22 +105,22 @@ document.addEventListener('DOMContentLoaded', function() {
 				});
 			}
 			
-			//We always have permission for *.smugmug.com domains
-			if (tab.url.match(/^http:\/\/(?:www\.)?([^.]+)\.smugmug\.com\//)) {
-				hasPermission = true;
-				
-				setup_popup();
-			} else {
-				//Assume we're on a custom domain name, so check that we have permission for it
-				
-				chrome.permissions.contains({
-					permissions: [],
-					origins: [domainName[0]]
-				}, function(result) {
-					hasPermission = result;
+			if (domainName) {
+				//We always have permission for *.smugmug.com domains
+				if (tab.url.match(/^http:\/\/(?:www\.)?([^.]+)\.smugmug\.com\//)) {
+					setup_popup(true);
+				} else {
+					//Assume we're on a custom domain name, so check that we have permission for it
 					
-					setup_popup();
-				});
+					chrome.permissions.contains({
+						permissions: [],
+						origins: [domainName[0]]
+					}, function(result) {
+						setup_popup(result);
+					});
+				}
+			} else {
+				//Not even an http:// URL. Just show the "about me" section
 			}
 		}
 	});
