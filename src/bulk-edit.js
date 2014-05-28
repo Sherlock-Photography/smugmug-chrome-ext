@@ -77,7 +77,7 @@ YUI().use(['node', 'json', 'io', 'event-resize', 'querystring-parse-simple', 'ss
 					failures = 0;
 				
 				imageListContainer.get('childNodes').remove();
-				imageListContainer.append('<tr><th>&nbsp;</th><th>Title</th><th>Caption</th><th>Keywords <small>(separate with semicolons)</small></th></tr>');
+				imageListContainer.append('<tr><th>&nbsp;</th><th width="30%">Title</th><th width="35%">Caption</th><th width="25%">Keywords <small>(separate with semicolons)</small></th></tr>');
 				
 				imageListSpinner.setStyle("display", "block");
 				

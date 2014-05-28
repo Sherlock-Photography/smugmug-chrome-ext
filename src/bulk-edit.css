@@ -7,7 +7,6 @@ h1 {
 }
 
 .smugmug-images {
-	max-width:95em;
     border-collapse:separate;
     border-spacing:0 4px;
 }
@@ -200,4 +199,13 @@ p {
 
 #applyEventLog {
 	min-height:5em;
+}
+
+#page-sidebar h3 {
+	margin-top:4px;
+}
+
+.filename {
+	max-width:150px;
+	word-wrap:break-word;
 }
