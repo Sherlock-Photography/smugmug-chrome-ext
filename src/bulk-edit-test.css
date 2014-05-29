@@ -1,0 +1,23 @@
+h1 {
+	margin-bottom:0.5em;
+}
+
+p {
+    max-width:55em;
+}
+
+.test {
+	background:#eee;
+	padding:1em;
+	margin-bottom:0.5em;
+}
+.test.pass {
+	background:#dff0d8;
+}
+.test.fail {
+	background:#f2dede;
+}
+
+.test dd, .test dt {
+	margin-bottom:0.5em;
+}
