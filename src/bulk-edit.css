@@ -11,6 +11,10 @@ h1 {
     border-spacing:0 4px;
 }
 
+.smugmug-images textarea {
+	height:13em;
+}
+
 .smugmug-images td {
 	vertical-align: top;
 	padding:1em 0.5em;
@@ -208,4 +212,28 @@ p {
 .filename {
 	max-width:150px;
 	word-wrap:break-word;
+}
+
+.smugmug-images-compact .thumbnail img {
+	max-width:auto;
+	max-height:100px;
+}
+.smugmug-images-compact .thumbnail .caption {
+	padding-bottom:0;
+} 
+.smugmug-images-compact textarea {
+	height:10em;
+}
+.smugmug-images-compact td {
+	vertical-align: top;
+	padding:0.5em 0.25em;
+}
+.smugmug-images-compact td:first-child {
+	padding-left:0.5em;
+}
+.smugmug-images-compact td:last-child {
+	padding-right:0.5em;
+}
+.smugmug-images-compact .filename {
+	max-width:200px
 }

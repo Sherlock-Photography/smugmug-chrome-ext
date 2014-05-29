@@ -55,8 +55,8 @@ YUI().use(['node', 'json', 'io', 'event-resize', 'querystring-parse-simple', 'ss
 							+ '</div></div></td>'),
 					
 					title = Y.Node.create('<td><input type="text" class="form-control photo-Title" value="' + Y.Escape.html(image.Title) + '"></td>'),
-					caption = Y.Node.create('<td><textarea rows="6" class="form-control photo-Caption">' + Y.Escape.html(image.Caption) + '</textarea></td>'),
-					keywords = Y.Node.create('<td><textarea rows="6" class="form-control photo-Keywords">' + Y.Escape.html(image.Keywords) + '</textarea></td>');
+					caption = Y.Node.create('<td><textarea rows="9" class="form-control photo-Caption">' + Y.Escape.html(image.Caption) + '</textarea></td>'),
+					keywords = Y.Node.create('<td><textarea rows="9" class="form-control photo-Keywords">' + Y.Escape.html(image.Keywords) + '</textarea></td>');
 
 				rendered.append(imageCell);
 				rendered.append(title);
@@ -77,7 +77,7 @@ YUI().use(['node', 'json', 'io', 'event-resize', 'querystring-parse-simple', 'ss
 					failures = 0;
 				
 				imageListContainer.get('childNodes').remove();
-				imageListContainer.append('<tr><th>&nbsp;</th><th width="30%">Title</th><th width="35%">Caption</th><th width="25%">Keywords <small>(separate with semicolons)</small></th></tr>');
+				imageListContainer.append('<tr><th>&nbsp;</th><th width="30%">Title</th><th width="40%">Caption</th><th width="25%">Keywords <small>(separate with semicolons)</small></th></tr>');
 				
 				imageListSpinner.setStyle("display", "block");
 				
@@ -343,7 +343,7 @@ YUI().use(['node', 'json', 'io', 'event-resize', 'querystring-parse-simple', 'ss
 					switch (action) {
 						case 'add':
 							if (fieldName == 'Keywords') {
-								if (!value.match(findUserSearchKeyword)) {  
+								if (!value.match(findUserSearchKeyword)) {
 									if (matches = value.match(keywordsEndInSeparator)) {
 										if (matches[2].length) {
 											value = value + text;
@@ -783,6 +783,23 @@ YUI().use(['node', 'json', 'io', 'event-resize', 'querystring-parse-simple', 'ss
 			Y.one('#select-invert').on('click', function(e) {
 				bulkEditTool.invertSelection();
 				e.preventDefault();
+			});
+			
+			Y.all('.thumbnail-size-controls button').on('click',function(e) {
+				e.currentTarget.siblings().removeClass('active');
+				e.currentTarget.addClass('active');
+			});
+			Y.one('.thumbnail-size-compact').on('click', function() {
+				Y.one("#image-selector").addClass('smugmug-images-compact');
+				Y.one("#image-selector").removeClass('smugmug-images-jumbo');
+			});
+			Y.one('.thumbnail-size-jumbo').on('change', function() {
+				Y.one("#image-selector").addClass('smugmug-images-jumbo');
+				Y.one("#image-selector").removeClass('smugmug-images-compact');
+			});
+			Y.one('.thumbnail-size-normal').on('click', function() {
+				Y.one("#image-selector").removeClass('smugmug-images-compact');
+				Y.one("#image-selector").removeClass('smugmug-images-jumbo');
 			});
 			
 			Y.all(".smugmug-gallery-name").set('text', albumName);
