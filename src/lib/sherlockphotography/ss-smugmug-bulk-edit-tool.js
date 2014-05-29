@@ -310,6 +310,8 @@ YUI.add('ss-smugmug-bulk-edit-tool', function(Y, NAME) {
 				if (changeCount > 0) {
 					this._set('unsavedChanges', true);					
 				}
+				
+				return changeCount;
 			},
 			
 			getAllPhotos:function() {

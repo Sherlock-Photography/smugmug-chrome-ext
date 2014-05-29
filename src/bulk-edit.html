@@ -123,16 +123,38 @@
 		<div id="eventLog">
 		</div>
 
-		<div class="btn-group thumbnail-size-controls">
-			<button type="button" class="btn btn-default thumbnail-size-compact"> Compact</button> 
-			<button type="button" class="btn btn-default thumbnail-size-normal active"> Normal</button> 
-			<button type="button" class="btn btn-default thumbnail-size-jumbo"> Jumbo</button>
+		<div class="thumbnail-size-bar">
+			<label>Thumbnail size</label>
+			
+			<div class="btn-group thumbnail-size-controls">
+				<button type="button" class="btn btn-default thumbnail-size-compact"> Compact</button> 
+				<button type="button" class="btn btn-default thumbnail-size-normal active"> Normal</button> 
+			</div>
 		</div>
 		
 		<div id="image-selector-spinner" class="alert alert-info"><span class="loading-spinner-image"></span> Please wait while the photos from this gallery are loaded...</div>
 		
 		<table id="image-selector" class="smugmug-images table">
 		</table>
+	</div>
+
+	<div class="modal fade" id="dlg-about-beta" tabindex="-1" role="dialog" aria-hidden="true">
+		<div class="modal-dialog">
+			<div class="modal-content">
+				<div class="modal-header">
+					<button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+					<h4 class="modal-title">About this bulk-editing tool</h4>
+				</div>
+				<div class="modal-body">
+					<p>
+						Because this tool is currently in beta, it could still have bugs that could result in losing data from your titles/captions/keywords.
+						Please only "save changes" on galleries which you have uploaded photos dedicated for testing into.</p>
+				</div>
+				<div class="modal-footer">
+					<button type="button" class="btn btn-default btn-primary" data-dismiss="modal">Okay, got it!</button>
+				</div>
+			</div>
+		</div>
 	</div>
 </body>
 </html>

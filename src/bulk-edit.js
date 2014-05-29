@@ -252,7 +252,6 @@ YUI().use(['node', 'json', 'io', 'event-resize', 'querystring-parse-simple', 'ss
 	
 	Y.on({
 		domready: function() {
-			
 			var
 				bulkEditTool = new Y.SherlockPhotography.SmugmugBulkEditTool({
 					smugDomain: smugDomain,
@@ -293,15 +292,15 @@ YUI().use(['node', 'json', 'io', 'event-resize', 'querystring-parse-simple', 'ss
 			});
 			Y.one('.thumbnail-size-compact').on('click', function() {
 				Y.one("#image-selector").addClass('smugmug-images-compact');
-				Y.one("#image-selector").removeClass('smugmug-images-jumbo');
+				//Y.one("#image-selector").removeClass('smugmug-images-jumbo');
 			});
-			Y.one('.thumbnail-size-jumbo').on('change', function() {
+			/*Y.one('.thumbnail-size-jumbo').on('change', function() {
 				Y.one("#image-selector").addClass('smugmug-images-jumbo');
 				Y.one("#image-selector").removeClass('smugmug-images-compact');
-			});
+			});*/
 			Y.one('.thumbnail-size-normal').on('click', function() {
 				Y.one("#image-selector").removeClass('smugmug-images-compact');
-				Y.one("#image-selector").removeClass('smugmug-images-jumbo');
+				//Y.one("#image-selector").removeClass('smugmug-images-jumbo');
 			});
 			
 			Y.all(".smugmug-gallery-name").set('text', albumName);
@@ -312,7 +311,9 @@ YUI().use(['node', 'json', 'io', 'event-resize', 'querystring-parse-simple', 'ss
 				} else {
 					alert("Failed to connect to your SmugMug site! Please press refresh to try again.");
 				}
-			})
+			});
+			
+			$("#dlg-about-beta").modal();
 		}
 	});
 });
