@@ -81,7 +81,7 @@ YUI.add('ss-smugmug-bulk-edit-tool', function(Y, NAME) {
 
 							if (response.Pages && response.Pages.NextPage) {
 								queue.enqueueRequest({
-									url: 'http://' + this.get('smugDomain') + response.Pages.NextPage,
+									url: 'http://' + that.get('smugDomain') + response.Pages.NextPage,
 									headers: {'Accept': 'application/json'},
 								});
 								queue.run();
@@ -169,7 +169,7 @@ YUI.add('ss-smugmug-bulk-edit-tool', function(Y, NAME) {
 					}
 					
 					queue.enqueueRequest({
-						url: 'http://' + this.get('smugDomain') + change.image.Uris.Image + '?_method=PATCH',
+						url: 'http://' + that.get('smugDomain') + change.image.Uris.Image + '?_method=PATCH',
 						method: 'POST',				
 						data: JSON.stringify(data),
 						headers: {
