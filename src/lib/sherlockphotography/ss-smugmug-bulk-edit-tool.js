@@ -473,7 +473,35 @@ YUI.add('ss-smugmug-bulk-edit-tool', function(Y, NAME) {
 						case 'erase':
 							value = '';
 						break;
-							
+						case 'remove-numeric':
+							if (fieldName == 'Keywords') {
+								//Replace keywords which are entirely numbers
+								var 
+									next,
+									iterations = 255;
+								
+								/* 
+								 * We loop because our regex matches the final separator, leaving it unavailable as a match for the first separator
+								 * of the next keyword.
+								 */
+								while (iterations >= 0) {
+									next = value.replace(/(^|[,;])\s*(\d+\s*)+($|[,;])/g, '$1');
+									
+									if (next == value) {
+										break;
+									} else {
+										value = next;
+									}
+									
+									iterations--;
+								}
+							} else {
+								//Erase the string if it is entirely numbers
+								if (value.match(/^\s*(\d+\s*)+$/)) {
+									value = "";
+								}
+							}
+						break;
 						default:
 							throw "Bad photo action";
 					}

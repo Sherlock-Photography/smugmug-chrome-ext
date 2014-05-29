@@ -213,6 +213,54 @@ var tests = [
 	},		
 	
 	{
+		name: "Add to: caption",
+		
+    	Caption: "This is a photo",
+    	
+    	target: "Caption",
+    	action: "add",
+    	primary: "lol",
+    	
+    	expected: "This is a photo lol"
+	},
+	
+	{
+		name: "Add to: title",
+		
+    	Title: "This is a photo",
+    	
+    	target: "Title",
+    	action: "add",
+    	primary: "lol",
+    	
+    	expected: "This is a photo lol"
+	},	
+	
+	{
+		name: "Add to: caption (trailing whitespace)",
+		
+    	Caption: "This is a photo ",
+    	
+    	target: "Caption",
+    	action: "add",
+    	primary: "lol",
+    	
+    	expected: "This is a photo lol"
+	},
+	
+	{
+		name: "Add to: title (trailing whitespace)",
+		
+    	Title: "This is a photo ",
+    	
+    	target: "Title",
+    	action: "add",
+    	primary: "lol",
+    	
+    	expected: "This is a photo lol"
+	},
+	
+	{
 		name: "Remove only keyword",
 		
     	Keywords: "one",
@@ -294,54 +342,72 @@ var tests = [
     	
     	expected: ""
 	},
-	
+
 	{
-		name: "Add to: caption",
+		name: "Remove numeric: Keywords",
 		
-    	Caption: "This is a photo",
-    	
-    	target: "Caption",
-    	action: "add",
-    	primary: "lol",
-    	
-    	expected: "This is a photo lol"
+		Keywords: "hello there; 1234; 5",
+		
+		target: "Keywords",
+		action: "remove-numeric",
+		
+		expected: "hello there;"
 	},
 	
 	{
-		name: "Add to: title",
+		name: "Remove numeric: Keywords",
 		
-    	Title: "This is a photo",
-    	
-    	target: "Title",
-    	action: "add",
-    	primary: "lol",
-    	
-    	expected: "This is a photo lol"
+		Keywords: "1234 5",
+		
+		target: "Keywords",
+		action: "remove-numeric",
+		
+		expected: ""
+	},
+	
+	{
+		name: "Remove numeric: Caption",
+		
+		Caption: "2008",
+		
+		target: "Caption",
+		action: "remove-numeric",
+		
+		expected: ""
 	},	
 	
 	{
-		name: "Add to: caption (trailing whitespace)",
+		name: "Remove numeric: Caption fragment",
 		
-    	Caption: "This is a photo ",
-    	
-    	target: "Caption",
-    	action: "add",
-    	primary: "lol",
-    	
-    	expected: "This is a photo lol"
+		Caption: "In AD 2101 war was beginning",
+		
+		target: "Caption",
+		action: "remove-numeric",
+		
+		expected: "In AD 2101 war was beginning"
 	},
 	
 	{
-		name: "Add to: title (trailing whitespace)",
+		name: "Remove numeric: Title",
 		
-    	Title: "This is a photo ",
-    	
-    	target: "Title",
-    	action: "add",
-    	primary: "lol",
-    	
-    	expected: "This is a photo lol"
-	},		
+		Title: "2008",
+		
+		target: "Title",
+		action: "remove-numeric",
+		
+		expected: ""
+	},	
+	
+	{
+		name: "Remove numeric: Title fragment",
+		
+		Title: "In AD 2101 war was beginning",
+		
+		target: "Title",
+		action: "remove-numeric",
+		
+		expected: "In AD 2101 war was beginning"
+	}		
 ];
 
 YUI().use(['node', 'json', 'querystring-parse-simple', 'ss-event-log-widget',

@@ -73,6 +73,7 @@ YUI().use(['node', 'json', 'io', 'event-resize', 'querystring-parse-simple', 'ss
 						case 'remove':
 							text1title = 'Text to remove';
 						break;
+						case 'remove-numeric':
 						case 'erase':
 						default:
 					}
