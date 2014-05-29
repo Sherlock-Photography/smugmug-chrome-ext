@@ -35,9 +35,14 @@ YUI.add('ss-csrf-manager', function(Y, NAME) {
 						},
 						on: {
 							success: function(transactionid, response, arguments) {
-								var 
-									data = JSON.parse(response.responseText),
+								var newToken = null, data;
+								
+								try {
+									data = JSON.parse(response.responseText);
+									
 									newToken = data.Response.Token.Token;
+								} catch (e) {
+								}
 								
 								if (newToken) {
 									that._set('token', newToken);
