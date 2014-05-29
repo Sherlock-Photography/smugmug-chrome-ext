@@ -410,10 +410,7 @@ var tests = [
 	}		
 ];
 
-YUI().use(['node', 'json', 'querystring-parse-simple', 'ss-event-log-widget',
-           'ss-progress-bar', 'ss-api-smartqueue', 'model', 'event-valuechange', 'node-event-simulate',
-           'ss-smugmug-bulk-edit-tool', 'ss-csrf-manager'], function(Y) {
-
+YUI().use(['node', 'ss-smugmug-bulk-edit-tool'], function(Y) {
 	Y.on({
 		domready: function() {
 			var
