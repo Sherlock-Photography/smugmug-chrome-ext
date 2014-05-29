@@ -415,7 +415,8 @@ YUI.add('ss-smugmug-bulk-edit-tool', function(Y, NAME) {
 					keywordsEndInSeparator = /([,;]|^)(\s*)$/,
 					endsInWhitespace = /(^|\s)$/,
 					
-					findUserSearchText = new RegExp(preg_quote(text), 'gi'),
+					// Keywords are case insensitive, everything else is case sensitive
+					findUserSearchText = new RegExp(preg_quote(text), fieldName == 'Keywords' ? 'gi' : 'g'),
 					findUserSearchKeyword = new RegExp('(^|[,;])\\s*' + preg_quote(text) + '\\s*([,;]|$)', 'gi');
 								
 				photos.each(function(photo) {
@@ -428,7 +429,16 @@ YUI.add('ss-smugmug-bulk-edit-tool', function(Y, NAME) {
 					switch (action) {
 						case 'add':
 							if (fieldName == 'Keywords') {
-								if (!value.match(findUserSearchKeyword)) {
+								//Adding into empty string
+								if (value.match(/^\s*$/)) {
+									//If we're adding a multi-word keyword that isn't quoted:
+									if (text.match(/\S\s+\S/) && text.indexOf('"') == -1) {
+										//Do what SM will do upon save and quote it:
+										value = '"' + text + '"';
+									} else {
+										value = text;
+									}
+								} else if (!value.match(findUserSearchKeyword)) {
 									if (matches = value.match(keywordsEndInSeparator)) {
 										if (matches[2].length) {
 											value = value + text;

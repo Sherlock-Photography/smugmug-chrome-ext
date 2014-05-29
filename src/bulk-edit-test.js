@@ -1,6 +1,6 @@
 var tests = [
 	{
-		name: 'Basic, single word replacement: Keywords',
+		name: 'Basic replacement: Keywords',
 		
     	Keywords: "hello",
     	
@@ -13,7 +13,7 @@ var tests = [
 	},
 	
 	{
-		name: 'Basic, single word replacement: Title',
+		name: 'Basic replacement: Title',
 		
     	Title: "hello",
     	
@@ -26,7 +26,7 @@ var tests = [
 	},
 	
 	{
-		name: 'Basic, single word replacement: Caption',
+		name: 'Basic replacement: Caption',
 		
     	Caption: "hello",
     	
@@ -39,7 +39,7 @@ var tests = [
 	},	
 	
 	{
-		name: 'Case insensitivity: Keywords',
+		name: 'Replace case insensitivity: Keywords',
 		
     	Keywords: "hello",
     	
@@ -52,7 +52,7 @@ var tests = [
 	},	
 
 	{
-		name: 'Case sensitivity: Title',
+		name: 'Replace case sensitivity: Title',
 		
     	Title: "hello",
     	
@@ -65,7 +65,7 @@ var tests = [
 	},	
 	
 	{
-		name: 'Case sensitivity: Caption',
+		name: 'Replace case sensitivity: Caption',
 		
     	Title: "hello",
     	
@@ -77,7 +77,6 @@ var tests = [
     	expected: "hello"
 	},	
 		
-	
 	{
     	Keywords: "hello world",
     	
@@ -90,6 +89,8 @@ var tests = [
 	},
 	
 	{
+		name: "Replace multiple fragments in the same keyword",
+		
     	Keywords: "world world",
     	
     	target: "Keywords",
@@ -134,6 +135,8 @@ var tests = [
 	},
 	
 	{
+		name: "Add keyword",
+		
     	Keywords: "one",
     	
     	target: "Keywords",
@@ -142,6 +145,42 @@ var tests = [
     	
     	expected: "one; two"
 	},
+	
+	{
+		name: "Add keyword that already exists",
+		
+    	Keywords: "one; two three; four",
+    	
+    	target: "Keywords",
+    	action: "add",
+    	primary: "two three",
+    	
+    	expected: "one; two three; four"
+	},	
+	
+	{
+		name: "Add single-word keyword to empty field",
+		
+    	Keywords: "",
+    	
+    	target: "Keywords",
+    	action: "add",
+    	primary: "fifty",
+    	
+    	expected: "fifty"
+	},		
+	
+	{
+		name: "Add multi-word keyword to empty field",
+		
+    	Keywords: "",
+    	
+    	target: "Keywords",
+    	action: "add",
+    	primary: "fifty five",
+    	
+    	expected: "\"fifty five\""
+	},	
 	
 	{
     	Keywords: "one",
@@ -219,6 +258,89 @@ var tests = [
     	primary: "one two",
     	
     	expected: "three; four"
+	},
+	
+	{
+		name: "Remove keyword fragment",
+		
+    	Keywords: "one two; three; four",
+    	
+    	target: "Keywords",
+    	action: "remove",
+    	primary: "two",
+    	
+    	expected: "one ; three; four"
+	},	
+	
+	{
+		name: "Set to",
+		
+    	Keywords: "one two; three; four",
+    	
+    	target: "Keywords",
+    	action: "set",
+    	primary: "hello world",
+    	
+    	expected: "hello world"
+	},
+	
+	{
+		name: "Erase",
+		
+    	Keywords: "one two; three; four",
+    	
+    	target: "Keywords",
+    	action: "erase",
+    	
+    	expected: ""
+	},
+	
+	{
+		name: "Add to: caption",
+		
+    	Caption: "This is a photo",
+    	
+    	target: "Caption",
+    	action: "add",
+    	primary: "lol",
+    	
+    	expected: "This is a photo lol"
+	},
+	
+	{
+		name: "Add to: title",
+		
+    	Title: "This is a photo",
+    	
+    	target: "Title",
+    	action: "add",
+    	primary: "lol",
+    	
+    	expected: "This is a photo lol"
+	},	
+	
+	{
+		name: "Add to: caption (trailing whitespace)",
+		
+    	Caption: "This is a photo ",
+    	
+    	target: "Caption",
+    	action: "add",
+    	primary: "lol",
+    	
+    	expected: "This is a photo lol"
+	},
+	
+	{
+		name: "Add to: title (trailing whitespace)",
+		
+    	Title: "This is a photo ",
+    	
+    	target: "Title",
+    	action: "add",
+    	primary: "lol",
+    	
+    	expected: "This is a photo lol"
 	},		
 ];
 
@@ -230,7 +352,9 @@ YUI().use(['node', 'json', 'querystring-parse-simple', 'ss-event-log-widget',
 		domready: function() {
 			var
 				bulkTool = Y.SherlockPhotography.SmugmugBulkEditTool,
-				outputList = Y.one("#output");
+				outputList = Y.one("#output"),
+				
+				failures = 0, successes = 0;
 			
 			Y.each(tests, function(test) {
 				var testNode = Y.Node.create(
@@ -240,7 +364,8 @@ YUI().use(['node', 'json', 'querystring-parse-simple', 'ss-event-log-widget',
 							'<dt>' + Y.Escape.html(test.target) + '</dt>' +
 							'<dd><input type="text" value="' + Y.Escape.html(test[test.target]) + '"/></dd>' +
 							'<dt>Action</dt>' +
-							'<dd>' + Y.Escape.html(test.action) + ' <code>' + Y.Escape.html(test.primary) + '</code> ' + (test.replace ? "with <code>" + Y.Escape.html(test.replace) + '</code>' : '') + '</dd>' +
+							'<dd>' + Y.Escape.html(test.action) + 
+								(test.primary ? ' <code>' + Y.Escape.html(test.primary) + '</code> ' + (test.replace ? "with <code>" + Y.Escape.html(test.replace) + '</code>' : '') + '</dd>' : "") +
 							'<dt>Result</dt>' +
 							'<dd><input type="text" value="' + Y.Escape.html(test[test.target]) + '" class="photo-' + Y.Escape.html(test.target) + '" /></dd>' +
 						'</dl>' +
@@ -250,14 +375,22 @@ YUI().use(['node', 'json', 'querystring-parse-simple', 'ss-event-log-widget',
 				
 				if (testNode.one('.photo-' + test.target).get('value') == test.expected) {
 					testNode.addClass('pass');
+					successes++;
 				} else {
 					testNode.addClass('fail');
+					failures++;
 					
 					testNode.one('dl').append('<dt>Expected</dt><dd><input type="text" value="' + Y.Escape.html(test.expected) + '"/></dd>');
 				}
 				
 				outputList.append(testNode);
 			});
+			
+			if (failures == 0) {
+				alert("Success, " + successes + "/" + successes + " pass.");
+			} else {
+				alert("Some tests failed! Only " + successes + "/" + (failures + successes) + " passed!");
+			}
 		}
 	});
 });
