@@ -301,83 +301,15 @@ YUI.add('ss-smugmug-bulk-edit-tool', function(Y, NAME) {
 			 * photos: You can pass NodeLists of photos from getAllPhotos(), getSelectedPhotos(), or findPhotos(). Or pass null and all photos will be edited. 
 			 */
 			bulkEditPhotos: function(photos, fieldName, action, text, replace) {
-				var 
-					that = this,
-					changeCount = 0,
-					keywordsEndInSeparator = /([,;]|^)(\s*)$/,
-					endsInWhitespace = /(^|\s)$/,
-					
-					findUserSearchText = new RegExp(preg_quote(text), 'gi'),
-					findUserSearchKeyword = new RegExp('(^|[,;])\\s*' + preg_quote(text) + '\\s*([,;]|$)', 'gi');
-				
 				if (photos == null) {
 					photos = this.getAllPhotos();
 				}
-				
-				photos.each(function(photo) {
-					var 
-						targetNode = photo.one('.photo-' + fieldName),
-						originalValue = targetNode.get('value'),
-						value = targetNode.get('value'),
-						matches;
-					
-					switch (action) {
-						case 'add':
-							if (fieldName == 'Keywords') {
-								if (!value.match(findUserSearchKeyword)) {
-									if (matches = value.match(keywordsEndInSeparator)) {
-										if (matches[2].length) {
-											value = value + text;
-										} else {
-											value = value + ' ' + text;
-										}
-									} else {
-										value = value + '; ' + text;
-									}
-								}
-							} else if (value.match(endsInWhitespace)) {
-								value = value + text;
-							} else {
-								value = value + ' ' + text;
-							}
-						break;
-						case 'remove':
-							if (fieldName == 'Keywords') {
-								//If the removed text forms a complete keyword, remove it along with the trailing separator for the keyword:								
-								value = value.replace(findUserSearchKeyword, '$1');
-							}
-							
-							//Now remove any partial matches (since SM's old tool did this):
-							value = value.replace(findUserSearchText, '');
-						break;
-						case 'replace':
-							value = value.replace(findUserSearchText, replace);
-						break;
-						case 'set':
-							value = text;
-						break;
-						case 'erase':
-							value = '';
-						break;
-							
-						default:
-							throw "Bad photo action";
-					}
-					
-					originalValue = originalValue.trim();
-					value = value.trim();
-					
-					if (originalValue != value) {
-						targetNode.set('value', value);
-						changeCount++;
-					}
-				});
+
+				var changeCount = BulkEditTool._bulkEditPhotos(photos, fieldName, action, text, replace);
 				
 				if (changeCount > 0) {
-					that._set('unsavedChanges', true);					
+					this._set('unsavedChanges', true);					
 				}
-				
-				return changeCount;
 			},
 			
 			getAllPhotos:function() {
@@ -477,6 +409,77 @@ YUI.add('ss-smugmug-bulk-edit-tool', function(Y, NAME) {
 			}
 		},
 		{
+			_bulkEditPhotos: function(photos, fieldName, action, text, replace) {
+				var 
+					changeCount = 0,
+					keywordsEndInSeparator = /([,;]|^)(\s*)$/,
+					endsInWhitespace = /(^|\s)$/,
+					
+					findUserSearchText = new RegExp(preg_quote(text), 'gi'),
+					findUserSearchKeyword = new RegExp('(^|[,;])\\s*' + preg_quote(text) + '\\s*([,;]|$)', 'gi');
+								
+				photos.each(function(photo) {
+					var 
+						targetNode = photo.one('.photo-' + fieldName),
+						originalValue = targetNode.get('value'),
+						value = targetNode.get('value'),
+						matches;
+					
+					switch (action) {
+						case 'add':
+							if (fieldName == 'Keywords') {
+								if (!value.match(findUserSearchKeyword)) {
+									if (matches = value.match(keywordsEndInSeparator)) {
+										if (matches[2].length) {
+											value = value + text;
+										} else {
+											value = value + ' ' + text;
+										}
+									} else {
+										value = value + '; ' + text;
+									}
+								}
+							} else if (value.match(endsInWhitespace)) {
+								value = value + text;
+							} else {
+								value = value + ' ' + text;
+							}
+						break;
+						case 'remove':
+							if (fieldName == 'Keywords') {
+								//If the removed text forms a complete keyword, remove it along with the trailing separator for the keyword:								
+								value = value.replace(findUserSearchKeyword, '$1');
+							}
+							
+							//Now remove any partial matches (since SM's old tool did this):
+							value = value.replace(findUserSearchText, '');
+						break;
+						case 'replace':
+							value = value.replace(findUserSearchText, replace);
+						break;
+						case 'set':
+							value = text;
+						break;
+						case 'erase':
+							value = '';
+						break;
+							
+						default:
+							throw "Bad photo action";
+					}
+					
+					originalValue = originalValue.trim();
+					value = value.trim();
+					
+					if (originalValue != value) {
+						targetNode.set('value', value);
+						changeCount++;
+					}
+				});
+								
+				return changeCount;
+			},
+			
 			ATTRS: {
 				images: {
 					value: null

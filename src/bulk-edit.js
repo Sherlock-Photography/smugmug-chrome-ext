@@ -29,7 +29,7 @@ YUI().use(['node', 'json', 'io', 'event-resize', 'querystring-parse-simple', 'ss
 		
 		STATUS_CHANGE_EYECATCH_DURATION = 0.33;
 
-	if (!/^[a-zA-Z0-9]+$/.test(albumID) || !/^[a-zA-Z0-9-]+$/.test(nickname)) {
+	if (!albumID || !/^[a-zA-Z0-9]+$/.test(albumID) || !nickname || !/^[a-zA-Z0-9-]+$/.test(nickname)) {
 		alert("Bad arguments, please close this page and try again.");
 		return;
 	}
