@@ -26,18 +26,18 @@ YUI.add('ss-smugmug-bulk-edit-tool', function(Y, NAME) {
 			_renderImageRow: function(image) {
 				//console.log(image);
 				var 
-					rendered = Y.Node.create('<tr class="smugmug-image"></tr>'),
+					rendered = Y.Node.create('<div class="smugmug-image"></div>'),
 					
-					imageCell = Y.Node.create('<td><div class="thumbnail">'
+					imageCell = Y.Node.create('<div class="field-cell smugmug-image-thumbnail"><div class="thumbnail">'
 							+ '<a href="#"><img src="' + Y.Escape.html(image.ThumbnailUrl) + '"/></a>'
 							+ '<div class="caption">' 
 							+ '<div class="filename">' + Y.Escape.html(image.FileName) + '</div>'
 							/*+ Y.Escape.html(image.get('OriginalWidth')) + "x" + Y.Escape.html(image.get('OriginalHeight'))*/
-							+ '</div></div></td>'),
+							+ '</div></div></div>'),
 					
-					title = Y.Node.create('<td><input type="text" class="form-control photo-Title" value="' + Y.Escape.html(image.Title) + '"></td>'),
-					caption = Y.Node.create('<td><textarea rows="9" class="form-control photo-Caption">' + Y.Escape.html(image.Caption) + '</textarea></td>'),
-					keywords = Y.Node.create('<td><textarea rows="9" class="form-control photo-Keywords">' + Y.Escape.html(image.Keywords) + '</textarea></td>');
+					title = Y.Node.create('<div class="field-cell smugmug-image-title"><input type="text" class="form-control photo-Title" value="' + Y.Escape.html(image.Title) + '"></div>'),
+					caption = Y.Node.create('<div class="field-cell smugmug-image-caption"><textarea rows="9" class="form-control photo-Caption">' + Y.Escape.html(image.Caption) + '</textarea></div>'),
+					keywords = Y.Node.create('<div class="field-cell smugmug-image-keywords"><textarea rows="9" class="form-control photo-Keywords">' + Y.Escape.html(image.Keywords) + '</textarea></div>');
 
 				rendered.append(imageCell);
 				rendered.append(title);
@@ -58,7 +58,14 @@ YUI.add('ss-smugmug-bulk-edit-tool', function(Y, NAME) {
 					failures = 0;
 				
 				imageListContainer.get('childNodes').remove();
-				imageListContainer.append('<tr><th>&nbsp;</th><th width="30%">Title</th><th width="40%">Caption</th><th width="25%">Keywords <small>(separate with semicolons)</small></th></tr>');
+				imageListContainer.append(
+					'<header>' + 
+						'<div class="field-cell"><span>&nbsp;</span></div>' + 
+						'<div class="field-cell"><span>Title</span></div>' +
+						'<div class="field-cell"><span>Caption</span></div>' +
+						'<div class="field-cell"><span>Keywords <small>(separate with semicolons)</small></span></div>' +
+					'</header>'
+				);
 				
 				imageListSpinner.setStyle("display", "block");
 				
@@ -386,7 +393,7 @@ YUI.add('ss-smugmug-bulk-edit-tool', function(Y, NAME) {
 						e.preventDefault();
 						e.stopPropagation();
 					}
-				}, 'a, tr, td');
+				}, 'a, .smugmug-image');
 
 				this.get('imageListContainer').delegate('valuechange', function() {
 					that._set('unsavedChanges', true);

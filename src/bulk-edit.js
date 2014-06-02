@@ -289,6 +289,7 @@ YUI().use(['node', 'json', 'io', 'event-resize', 'querystring-parse-simple', 'ss
 			Y.all('.thumbnail-size-controls button').on('click',function(e) {
 				e.currentTarget.siblings().removeClass('active');
 				e.currentTarget.addClass('active');
+				Y.all(".smugmug-images textarea").removeAttribute('style');
 			});
 			Y.one('.thumbnail-size-compact').on('click', function() {
 				Y.one("#image-selector").addClass('smugmug-images-compact');
