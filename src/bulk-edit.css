@@ -1,3 +1,5 @@
+@charset "utf-8";
+
 h1 {
 	margin-bottom:0.5em;
 }
@@ -68,6 +70,16 @@ h1 {
 
 .smugmug-image.selected {
 	background-color:#eee;
+}
+.smugmug-image.unsaved .thumbnail .filename:after {
+	content:"";
+	margin-left:0.5em;
+	display:inline-block;
+	width:1em;
+	height:1em;
+	border-radius:50%;
+	background-color: #428bca;
+	vertical-align: middle;
 }
 
 p {

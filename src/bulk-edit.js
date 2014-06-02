@@ -213,6 +213,7 @@ YUI().use(['node', 'json', 'io', 'event-resize', 'querystring-parse-simple', 'ss
 							} else {
 								that._applyButton.removeAttribute('disabled');
 							}
+							that.fire('userBumped');
 						}
 					});
 					

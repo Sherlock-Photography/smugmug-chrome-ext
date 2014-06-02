@@ -15,6 +15,8 @@ function preg_quote( str ) {
 }
 
 YUI.add('ss-smugmug-bulk-edit-tool', function(Y, NAME) {
+	var STATUS_CHANGE_EYECATCH_DURATION = 0.33;
+	
 	var BulkEditTool = Y.Base.create(
 		NAME,
 		Y.Base,
@@ -159,7 +161,8 @@ YUI.add('ss-smugmug-bulk-edit-tool', function(Y, NAME) {
 						delayBetweenRequests: 0 //We will let the browser's per-domain name limits do the rate-limiting for us
 					}),
 					errorCount = 0,
-					that = this;
+					that = this,
+					failedNodes = [];
 				
 				for (var index in changes) {
 					var 
@@ -189,6 +192,14 @@ YUI.add('ss-smugmug-bulk-edit-tool', function(Y, NAME) {
 				
 				queue.on({
 					complete: function() {
+						that.getAllPhotos().removeClass('unsaved');
+						
+						if (failedNodes.length) {
+							Y.each(failedNodes, function(node) {
+								node.addClass('unsaved');
+							});
+						}
+						
 						if (errorCount > 0) {
 							logProgress.destroy(true);
 							
@@ -222,6 +233,7 @@ YUI.add('ss-smugmug-bulk-edit-tool', function(Y, NAME) {
 					},
 					requestFail: function(e) {
 						errorCount++;
+						failedNodes.push(e.request.context.node);
 					},
 					progress: function(progress) {
 						logProgress.set('progress', progress);
@@ -277,6 +289,19 @@ YUI.add('ss-smugmug-bulk-edit-tool', function(Y, NAME) {
 				});
 						
 				return changes;
+			},
+			
+			/**
+			 * Mark the given image as having saved/unsaved changes attached
+			 */
+			_markSavedChanges: function(node, saved) {
+				if (node) {
+					if (saved) {
+						node.removeClass('unsaved');
+					} else {
+						node.addClass('unsaved');
+					}
+				}
 			},
 			
 			selectAll: function() {
@@ -395,8 +420,10 @@ YUI.add('ss-smugmug-bulk-edit-tool', function(Y, NAME) {
 					}
 				}, 'a, .smugmug-image');
 
-				this.get('imageListContainer').delegate('valuechange', function() {
+				this.get('imageListContainer').delegate('valuechange', function(e) {
 					that._set('unsavedChanges', true);
+					
+					that._markSavedChanges(this.ancestor('.smugmug-image'));
 				}, 'input, textarea');
 				
 				this.after('selectedCountChange', function(e) {
@@ -519,6 +546,7 @@ YUI.add('ss-smugmug-bulk-edit-tool', function(Y, NAME) {
 					value = value.trim();
 					
 					if (originalValue != value) {
+						photo.addClass('unsaved');
 						targetNode.set('value', value);
 						changeCount++;
 					}
