@@ -19,8 +19,8 @@ YUI.add('event-hoverintent', function(Y) {
 	        return (isFunction(args[i])) ? args.splice(i,1)[0] : noop;
 	    },
 	
-	    on: function (node, sub, notifier, filter) {
-	        var args = (sub.args) ? sub.args.slice() : [];
+	    on: function (node, subscription, notifier, filter) {
+	        var args = (subscription.args) ? subscription.args.slice() : [];
 	
 	        args.unshift(null);
 	        
@@ -35,13 +35,14 @@ YUI.add('event-hoverintent', function(Y) {
 	        // pX, pY = previous X and Y position of mouse, set by mouseover and polling interval
 	        var cX, cY, pX, pY;
 	        	
-	        var updateMousePosition = function(ev) {
-	            cX = ev.pageX;
-	            cY = ev.pageY;
+	        var updateMousePosition = function(e) {
+	            cX = e.pageX;
+	            cY = e.pageY;
 	        };
 	
-	        var checkMousePosition = function(ev, subscription) {
-	            subscription.hoverIntent_t = clearTimeout(subscription.hoverIntent_t);
+	        var checkMousePosition = function(e) {
+	            subscription.hoverIntent_timer = clearTimeout(subscription.hoverIntent_timer);
+	            
 	            // compare mouse positions to see if they've crossed the threshold
 	            if ((Math.abs(pX-cX) + Math.abs(pY-cY) ) < cfg.sensitivity) {
 	                if (subscription._mouseMoveHandle) {
@@ -49,61 +50,70 @@ YUI.add('event-hoverintent', function(Y) {
 	                	delete subscription._mouseMoveHandle;
 	                }
 	                
-	                // set hoverIntent state to true (so mouseOut can be called)
-	                subscription.hoverIntent_s = 1;
-	                ev.phase = 'over';
-	                return notifier.fire(ev);
+	                // remember that we're hovering (so mouseOut can be called)
+	                subscription.hoverIntent_over = true;
+	                
+	                e.phase = 'over';
+	                return notifier.fire(e);
 	            } else {
 	                // set previous coordinates for next time
 	                pX = cX; pY = cY;
+	                
 	                // use self-calling timeout, guarantees intervals are spaced out properly (avoids JavaScript timer bugs)
-	                subscription.hoverIntent_t = setTimeout(function() {
-	                	checkMousePosition(ev, subscription);
+	                subscription.hoverIntent_timer = setTimeout(function() {
+	                	checkMousePosition(e);
                 	}, cfg.interval);
 	            }
 	        };
 	
-	        sub._detach = node[(filter) ? "delegate" : "on"]({
+	        subscription._detach = node[(filter) ? "delegate" : "on"]({
 	            mouseenter: function (e) {
-	                // cancel hoverIntent timer if it exists
-	                if (sub.hoverIntent_t) { sub.hoverIntent_t = clearTimeout(sub.hoverIntent_t); }
+	                // cancel hoverIntent timer
+	                if (subscription.hoverIntent_timer) { 
+	                	subscription.hoverIntent_timer = clearTimeout(subscription.hoverIntent_timer); 
+                	}
 	
 	                // set "previous" X and Y position based on initial entry point
 	                pX = e.pageX; pY = e.pageY;
 	                
-	                sub._mouseMoveHandle = this.on("mousemove", updateMousePosition);
+	                subscription._mouseMoveHandle = this.on("mousemove", updateMousePosition);
 	                
 	                // start polling interval (self-calling timeout) to compare mouse coordinates over time
-	                if (sub.hoverIntent_s != 1) { 
-	                	sub.hoverIntent_t = setTimeout(function() {
-	                		checkMousePosition(e, sub);
+	                if (!subscription.hoverIntent_over) { 
+	                	subscription.hoverIntent_timer = setTimeout(function() {
+	                		checkMousePosition(e);
                 		}, cfg.interval);
                 	}
 	            },
+	            
 	            mouseleave: function (e) {
-	                // cancel hoverIntent timer if it exists
-	                if (sub.hoverIntent_t) { sub.hoverIntent_t = clearTimeout(sub.hoverIntent_t); }
+	                // cancel hoverIntent timer
+	                if (subscription.hoverIntent_timer) { 
+	                	subscription.hoverIntent_timer = clearTimeout(subscription.hoverIntent_timer); 
+                	}
 	
 	                // unbind expensive mousemove event
-	                if (sub._mouseMoveHandle) {
-	                	sub._mouseMoveHandle.detach();
-	                	delete sub._mouseMoveHandle;
+	                if (subscription._mouseMoveHandle) {
+	                	subscription._mouseMoveHandle.detach();
+	                	delete subscription._mouseMoveHandle;
 	                }
 	
-	                // if hoverIntent state is true, then call the mouseOut function after the specified delay
-	                if (sub.hoverIntent_s == 1) { sub.hoverIntent_t = setTimeout(function(){
-        	            sub.hoverIntent_t = clearTimeout(sub.hoverIntent_t);
-        	            sub.hoverIntent_s = 0;
-        	            e.phase = 'out';
-        	            notifier.fire(e);
-	                } , cfg.timeout );}
+	                // if we were hovering, then call the mouseOut function after the specified delay
+	                if (subscription.hoverIntent_over) { 
+	                	subscription.hoverIntent_timer = setTimeout(function() {
+	        	            subscription.hoverIntent_timer = clearTimeout(subscription.hoverIntent_timer);
+	        	            subscription.hoverIntent_over = false;
+	        	            e.phase = 'out';
+	        	            notifier.fire(e);
+		                }, cfg.timeout);
+                	}
 	            }
 	        }, filter);
 	    },
 	
-	    detach: function (node, sub, notifier) {
-	        sub._detach.detach();
-	        sub._mouseMoveHandle.detach();
+	    detach: function (node, subscription, notifier) {
+	        subscription._detach.detach();
+	        subscription._mouseMoveHandle.detach();
 	    }
 	};
 	
