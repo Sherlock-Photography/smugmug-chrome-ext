@@ -48,13 +48,11 @@ h1 {
 }
 
 .smugmug-images textarea {
-	height:14em;
 	margin:0 !important;
 	resize:vertical;
 }
 
 .smugmug-images .field-cell {
-	vertical-align: top;
 	padding:1em 0.5em;
 }
 .smugmug-images .field-cell:first-child {
@@ -65,6 +63,16 @@ h1 {
 .smugmug-images .field-cell:last-child,
 .thumbnail-size-bar {
 	padding-right:1em;
+}
+
+.smugmug-images .smugmug-image .field-cell {
+	display:flex;
+	flex-direction:row;
+	align-self:stretch;
+}
+.smugmug-images .smugmug-image .smugmug-image-thumbnail.field-cell {
+	align-self:flex-start;
+	display:block;
 }
 
 .smugmug-images header .field-cell {
@@ -290,13 +298,6 @@ p {
 }
 .smugmug-images-tiny .thumbnail-image {
 	max-height:50px;
-}
-
-.smugmug-images-compact textarea {
-	height:8.8em;
-}
-.smugmug-images-tiny textarea {
-	height:5.2em;
 }
 
 .thumbnail-size-bar label {

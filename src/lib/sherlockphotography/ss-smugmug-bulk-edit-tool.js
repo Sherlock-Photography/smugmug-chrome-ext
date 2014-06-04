@@ -39,8 +39,8 @@ YUI.add('ss-smugmug-bulk-edit-tool', function(Y, NAME) {
 							+ '</div></div></div>'),
 					
 					title = Y.Node.create('<div class="field-cell smugmug-image-title"><input type="text" class="form-control photo-Title" value="' + Y.Escape.html(image.Title) + '"></div>'),
-					caption = Y.Node.create('<div class="field-cell smugmug-image-caption"><textarea rows="9" class="form-control photo-Caption">' + Y.Escape.html(image.Caption) + '</textarea></div>'),
-					keywords = Y.Node.create('<div class="field-cell smugmug-image-keywords"><textarea rows="9" class="form-control photo-Keywords">' + Y.Escape.html(image.Keywords) + '</textarea></div>');
+					caption = Y.Node.create('<div class="field-cell smugmug-image-caption"><textarea rows="2" class="form-control photo-Caption">' + Y.Escape.html(image.Caption) + '</textarea></div>'),
+					keywords = Y.Node.create('<div class="field-cell smugmug-image-keywords"><textarea rows="2" class="form-control photo-Keywords">' + Y.Escape.html(image.Keywords) + '</textarea></div>');
 
 				rendered.append(imageCell);
 				rendered.append(title);
