@@ -64,9 +64,9 @@ YUI.add('ss-smugmug-bulk-edit-tool', function(Y, NAME) {
 				imageListContainer.append(
 					'<header>' + 
 						'<div class="field-cell"><span>&nbsp;</span></div>' + 
-						'<div class="field-cell"><span>Title</span></div>' +
-						'<div class="field-cell"><span>Caption</span></div>' +
-						'<div class="field-cell"><span>Keywords <small>(separate with semicolons)</small></span></div>' +
+						'<div class="field-cell"><span>Title</span><input tabindex="-1" type="text" class="form-control photo-Title dummy" value=""></div>' +
+						'<div class="field-cell"><span>Caption</span><textarea tabindex="-1" class="form-control photo-Caption dummy"></textarea></div>' +
+						'<div class="field-cell"><span>Keywords <small>Separate with semicolons</small></span><textarea tabindex="-1" class="form-control photo-Caption dummy"></textarea></div>' +
 					'</header>'
 				);
 				

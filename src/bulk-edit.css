@@ -16,9 +16,19 @@ h1 {
 	font-weight:bold;
 	text-align:left;
 }
-.smugmug-images header span {
+.smugmug-images header span,
+.smugmug-images header small {
 	display:block;
 }
+.smugmug-images header .dummy {
+	height:0;
+	visibility:hidden;
+	padding-top:0;
+	padding-bottom:0;
+	margin-top:0;
+	margin-bottom:0;
+}
+
 .smugmug-images .smugmug-image, 
 .smugmug-images header {
     margin-bottom:2px;
@@ -65,7 +75,7 @@ h1 {
 	text-align:center;
 }
 .smugmug-images .thumbnail-image {
-	max-width:150px;
+	max-height:150px;
 }
 
 .smugmug-image.selected {
@@ -276,10 +286,10 @@ p {
 }
 
 .smugmug-images-compact .thumbnail-image {
-	max-width:100px;
+	max-height:100px;
 }
 .smugmug-images-tiny .thumbnail-image {
-	max-width:50px;
+	max-height:50px;
 }
 
 .smugmug-images-compact textarea {
