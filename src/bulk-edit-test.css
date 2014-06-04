@@ -21,3 +21,7 @@ p {
 .test dd, .test dt {
 	margin-bottom:0.5em;
 }
+
+code {
+	white-space: pre-wrap;
+}

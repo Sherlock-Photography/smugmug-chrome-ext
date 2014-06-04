@@ -28,7 +28,6 @@ YUI.add('ss-smugmug-bulk-edit-tool', function(Y, NAME) {
 			_applyEventLog: null,
 			
 			_renderImageRow: function(image) {
-				//console.log(image);
 				var 
 					rendered = Y.Node.create('<div class="smugmug-image"></div>'),
 					
@@ -444,7 +443,7 @@ YUI.add('ss-smugmug-bulk-edit-tool', function(Y, NAME) {
 					} else {
 						$(this.getDOMNode()).popover('destroy');
 					}
-				}, '.thumbnail img');				
+				}, '.thumbnail-image');				
 
 				this.get('imageListContainer').delegate('valuechange', function(e) {
 					that._set('unsavedChanges', true);
@@ -479,7 +478,9 @@ YUI.add('ss-smugmug-bulk-edit-tool', function(Y, NAME) {
 					
 					// Keywords are case insensitive, everything else is case sensitive
 					findUserSearchText = new RegExp(preg_quote(text), fieldName == 'Keywords' ? 'gi' : 'g'),
-					findUserSearchKeyword = new RegExp('(^|[,;])\\s*' + preg_quote(text) + '\\s*([,;]|$)', 'gi');
+					findUserSearchKeyword = new RegExp('(^|[,;])\\s*' + preg_quote(text) + '\\s*([,;]|$)', 'gi'),
+					
+					findUserTextAndSurroundingWhitespace = new RegExp('(\\s*)' + preg_quote(text) + '(\\s*)([,;]|$)?', 'gi');
 								
 				photos.each(function(photo) {
 					var 
@@ -521,10 +522,25 @@ YUI.add('ss-smugmug-bulk-edit-tool', function(Y, NAME) {
 							if (fieldName == 'Keywords') {
 								//If the removed text forms a complete keyword, remove it along with the trailing separator for the keyword:								
 								value = value.replace(findUserSearchKeyword, '$1');
+
+								//Now remove any partial matches (since SM's old tool did this):
+								value = value.replace(findUserTextAndSurroundingWhitespace, function(whole, leadingWhitespace, trailingWhitespace, trailingSep) {
+									if (trailingSep) {
+										//This was the final text of the keyword, so we can trim all the whitespace
+										return trailingSep;
+									}
+									if (leadingWhitespace.length > 0 && trailingWhitespace.length > 0) {
+										//We don't need the whitespace on both sides of the removed word, so just keep one
+										return leadingWhitespace;
+									}
+									//Otherwise if we remove any whitespace, we would be joining words that were previously unjoined, which is not a good idea
+									
+									return leadingWhitespace + trailingWhitespace;
+								});
+							} else {
+								//Now remove any partial matches (since SM's old tool did this):
+								value = value.replace(findUserSearchText, '');								
 							}
-							
-							//Now remove any partial matches (since SM's old tool did this):
-							value = value.replace(findUserSearchText, '');
 						break;
 						case 'replace':
 							value = value.replace(findUserSearchText, replace);

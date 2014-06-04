@@ -309,7 +309,7 @@ var tests = [
 	},
 	
 	{
-		name: "Remove keyword fragment",
+		name: "Remove keyword fragment (final word)",
 		
     	Keywords: "one two; three; four",
     	
@@ -317,8 +317,92 @@ var tests = [
     	action: "remove",
     	primary: "two",
     	
-    	expected: "one ; three; four"
+    	expected: "one; three; four"
+	},
+	
+	{
+		name: "Remove keyword fragment (first word)",
+		
+    	Keywords: "one two; three; four",
+    	
+    	target: "Keywords",
+    	action: "remove",
+    	primary: "one",
+    	
+    	expected: "two; three; four"
+	},
+	
+	{
+		name: "Remove keyword fragment (inner word)",
+		
+    	Keywords: "one two three; four",
+    	
+    	target: "Keywords",
+    	action: "remove",
+    	primary: "two",
+    	
+    	expected: "one three; four"
+	},			
+	
+	{
+		name: "Remove keyword fragment (trailing word fragment)",
+		
+    	Keywords: "hello onetwo there;",
+    	
+    	target: "Keywords",
+    	action: "remove",
+    	primary: "two",
+    	
+    	expected: "hello one there;"
+	},
+	
+	{
+		name: "Remove keyword fragment (leading word fragment)",
+		
+    	Keywords: "hello onetwo there;",
+    	
+    	target: "Keywords",
+    	action: "remove",
+    	primary: "one",
+    	
+    	expected: "hello two there;"
 	},	
+	
+	{
+		name: "Remove keyword fragment (inner word fragment)",
+		
+    	Keywords: "hello onetwo there;",
+    	
+    	target: "Keywords",
+    	action: "remove",
+    	primary: "etw",
+    	
+    	expected: "hello ono there;"
+	},
+	
+	{
+		name: "Remove keyword fragment (user supplies explicit trailing space)",
+		
+    	Keywords: "one two three;",
+    	
+    	target: "Keywords",
+    	action: "remove",
+    	primary: "two ",
+    	
+    	expected: "one three;"
+	},
+	
+	{
+		name: "Remove keyword fragment (user supplies explicit surrounding space)",
+		
+    	Keywords: "one two three;",
+    	
+    	target: "Keywords",
+    	action: "remove",
+    	primary: " two ",
+    	
+    	expected: "onethree;"
+	},				
 	
 	{
 		name: "Set to",
