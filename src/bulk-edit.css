@@ -282,3 +282,7 @@ p {
 	text-align:right;
 	margin-bottom:1em;
 }
+
+.popover {
+	max-width:none;
+}
