@@ -294,15 +294,15 @@ YUI().use(['node', 'json', 'io', 'event-resize', 'querystring-parse-simple', 'ss
 			});
 			Y.one('.thumbnail-size-compact').on('click', function() {
 				Y.one("#image-selector").addClass('smugmug-images-compact');
-				//Y.one("#image-selector").removeClass('smugmug-images-jumbo');
+				Y.one("#image-selector").removeClass('smugmug-images-tiny');
 			});
-			/*Y.one('.thumbnail-size-jumbo').on('change', function() {
-				Y.one("#image-selector").addClass('smugmug-images-jumbo');
+			Y.one('.thumbnail-size-tiny').on('click', function() {
+				Y.one("#image-selector").addClass('smugmug-images-tiny');
 				Y.one("#image-selector").removeClass('smugmug-images-compact');
-			});*/
+			});
 			Y.one('.thumbnail-size-normal').on('click', function() {
 				Y.one("#image-selector").removeClass('smugmug-images-compact');
-				//Y.one("#image-selector").removeClass('smugmug-images-jumbo');
+				Y.one("#image-selector").removeClass('smugmug-images-tiny');
 			});
 			
 			Y.all(".smugmug-gallery-name").set('text', albumName);

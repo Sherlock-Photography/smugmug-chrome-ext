@@ -33,7 +33,7 @@ YUI.add('ss-smugmug-bulk-edit-tool', function(Y, NAME) {
 					rendered = Y.Node.create('<div class="smugmug-image"></div>'),
 					
 					imageCell = Y.Node.create('<div class="field-cell smugmug-image-thumbnail"><div class="thumbnail">'
-							+ '<a href="#"><img src="' + Y.Escape.html(image.ThumbnailUrl) + '"/></a>'
+							+ '<a href="#"><img class="thumbnail-image" src="' + Y.Escape.html(image.ThumbnailUrl) + '"/></a>'
 							+ '<div class="caption">' 
 							+ '<div class="filename">' + Y.Escape.html(image.FileName) + '</div>'
 							/*+ Y.Escape.html(image.get('OriginalWidth')) + "x" + Y.Escape.html(image.get('OriginalHeight'))*/
@@ -444,7 +444,7 @@ YUI.add('ss-smugmug-bulk-edit-tool', function(Y, NAME) {
 					} else {
 						$(this.getDOMNode()).popover('destroy');
 					}
-				}, '.thumbnail');				
+				}, '.thumbnail img');				
 
 				this.get('imageListContainer').delegate('valuechange', function(e) {
 					that._set('unsavedChanges', true);
