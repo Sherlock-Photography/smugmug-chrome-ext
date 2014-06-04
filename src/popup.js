@@ -92,13 +92,15 @@ function show_popup(tab, hasPermission, domainName) {
 					}
 					
 					function open_crop_thumbnail_tool(imageID, imageKey) {
-						chrome.tabs.create({
+						chrome.tabs.update({
 							url: 'http://' + domainName[1] + '/photos/tools/crop.mg?' +
 								'ImageID=' + encodeURIComponent(imageID) +
 								'&ImageKey=' + encodeURIComponent(imageKey) +
 								'&tool=newthumb' +
 								'&url=' + encodeURIComponent('http://' + domainName[1] + match_gallery_url + '#!i=' + imageID + '&k=' + imageKey)
 						});
+						
+						window.close();
 					}					
 
 					//Clear error message
