@@ -7,32 +7,43 @@
 <link href="lib/bootstrap/css/bootstrap.min.css" rel="stylesheet" media="screen">
 
 <style>
-body {
-	min-width: 450px;
-	overflow-x: hidden;
-}
-.list-group {
-	margin-bottom:0;
-}
-h2 {
-	font-size: 16px;
-	margin-top: 5px;
-	margin-bottom: 0;
-	font-weight: inherit;
-	line-height: inherit;
-	padding: 5px 15px;
-}
-p {
-	padding: 5px 15px;
-}
-#has-permission,
-#hasnt-permission,
-#please-log-in,
-#please-refresh,
-#tab-loading {
-	display:none;
-}
+	body {
+		min-width: 450px;
+		overflow-x: hidden;
+	}
+	.list-group {
+		margin-bottom:0;
+	}
+	h2 {
+		font-size: 16px;
+		margin-top: 5px;
+		margin-bottom: 0;
+		font-weight: inherit;
+		line-height: inherit;
+		padding: 5px 15px;
+	}
+	p {
+		padding: 5px 15px;
+	}
+	#has-permission,
+	#hasnt-permission,
+	#please-log-in,
+	#please-refresh,
+	#tab-loading {
+		display:none;
+	}
+	
+	.alert:empty {
+		display:none;
+	}
 </style>
+
+<script type="text/javascript" src="lib/yui/yui1.js"></script>
+<script type="text/javascript" src="lib/yui/yui2.js"></script>
+<script type="text/javascript" src="lib/yui/yui3.js"></script>
+<script type="text/javascript" src="lib/yui/yui4.js"></script>
+<script type="text/javascript" src="lib/yui/yui5.js"></script>
+
 </head>
 <body>
 
@@ -47,6 +58,10 @@ p {
 			<li><a href="#" id="paypal-buynow">Edit PayPal buttons</a></li>
 			<li><a href="#" id="bulk-edit">Bulk-edit photo details (SmugMug version)</a></li>
 			<li><a href="#" id="bulk-edit-beta">Bulk-edit photo details (my beta version)</a></li>
+			<li>
+				<a href="#" id="edit-thumbnails">Edit thumbnails (for SmugMug-style galleries)</a>
+				<div id="edit-thumbnails-error" class="alert alert-danger"></div>
+			</li>
 		</ul>
 	</div>
 	
