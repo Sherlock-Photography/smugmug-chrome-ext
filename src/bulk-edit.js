@@ -314,8 +314,6 @@ YUI().use(['node', 'json', 'io', 'event-resize', 'querystring-parse-simple', 'ss
 					alert("Failed to connect to your SmugMug site! Please press refresh to try again.");
 				}
 			});
-			
-			$("#dlg-about-beta").modal();
 		}
 	});
 });
