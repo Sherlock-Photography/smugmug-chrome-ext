@@ -15,7 +15,9 @@ function preg_quote( str ) {
 }
 
 YUI.add('ss-smugmug-bulk-edit-tool', function(Y, NAME) {
-	var STATUS_CHANGE_EYECATCH_DURATION = 0.33;
+	var 
+		STATUS_CHANGE_EYECATCH_DURATION = 0.33,
+		HIGH_DENSITY_DISPLAY = window.devicePixelRatio >= 1.5 ;
 	
 	var BulkEditTool = Y.Base.create(
 		NAME,
@@ -24,6 +26,8 @@ YUI.add('ss-smugmug-bulk-edit-tool', function(Y, NAME) {
 		{
 			_eventLog: null,
 			_applyEventLog: null,
+			
+			_popovers:[],
 			
 			_renderImageRow: function(image) {
 				//console.log(image);
@@ -84,6 +88,14 @@ YUI.add('ss-smugmug-bulk-edit-tool', function(Y, NAME) {
 									continue;
 								
 								images.push(image);
+							
+								if (data.Expansions && data.Expansions[image.Uris.ImageSizeDetails]) {
+									image.ImagePreview = data.Expansions[image.Uris.ImageSizeDetails].ImageSizeDetails.ImageSizeMedium;
+									
+									if (HIGH_DENSITY_DISPLAY) {
+										image.ImagePreview.Url = data.Expansions[image.Uris.ImageSizeDetails].ImageSizeDetails.ImageSizeLarge.Url;
+									}
+								}
 								
 								imageListContainer.append(that._renderImageRow(image));
 							}
@@ -103,7 +115,7 @@ YUI.add('ss-smugmug-bulk-edit-tool', function(Y, NAME) {
 				});
 				
 				queue.enqueueRequest({
-					url: 'http://' + this.get('smugDomain') + '/api/v2/album/' + this.get('albumID') + '!images?_filter=Uri,ThumbnailUrl,Caption,Keywords,Title,FileName,WebUri&_shorturis=',
+					url: 'http://' + this.get('smugDomain') + '/api/v2/album/' + this.get('albumID') + '!images?_filter=Uri,ThumbnailUrl,Caption,Keywords,Title,FileName,WebUri&_expand=ImageSizeDetails&_shorturis=',
 					data: {
 						count: 100 /* Page size */
 					},
@@ -419,6 +431,27 @@ YUI.add('ss-smugmug-bulk-edit-tool', function(Y, NAME) {
 						e.stopPropagation();
 					}
 				}, 'a, .smugmug-image');
+				
+				this.get('imageListContainer').delegate('hoverintent', function(e) {
+					for (var index in this._popovers) {
+						this._popovers[index].popover('destroy');
+					}
+					this._popovers = [];
+					
+					if (e.phase == 'over') {
+						var image = this.ancestor('.smugmug-image').getData('image');
+
+						this._popovers.push(
+							$(this.getDOMNode())
+								.popover({
+									html: true,
+									content: '<img src="' + Y.Escape.html(image.ImagePreview.Url) + '" width="' +image.ImagePreview.Width + '" height="' +image.ImagePreview.Height + '" />',
+									trigger: 'manual'
+								})
+								.popover('show')
+						);
+					}
+				}, '.thumbnail');				
 
 				this.get('imageListContainer').delegate('valuechange', function(e) {
 					that._set('unsavedChanges', true);
@@ -605,5 +638,5 @@ YUI.add('ss-smugmug-bulk-edit-tool', function(Y, NAME) {
 
 	Y.namespace("SherlockPhotography").SmugmugBulkEditTool = BulkEditTool;
 }, '0.0.1', {
-	requires: ['json', 'io', 'node', 'ss-event-log-widget', 'ss-api-smartqueue', 'ss-csrf-manager']
+	requires: ['json', 'io', 'node', 'ss-event-log-widget', 'ss-api-smartqueue', 'ss-csrf-manager', 'event-hoverintent']
 });	
