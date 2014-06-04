@@ -27,8 +27,6 @@ YUI.add('ss-smugmug-bulk-edit-tool', function(Y, NAME) {
 			_eventLog: null,
 			_applyEventLog: null,
 			
-			_popovers:[],
-			
 			_renderImageRow: function(image) {
 				//console.log(image);
 				var 
@@ -431,25 +429,20 @@ YUI.add('ss-smugmug-bulk-edit-tool', function(Y, NAME) {
 						e.stopPropagation();
 					}
 				}, 'a, .smugmug-image');
-				
+
 				this.get('imageListContainer').delegate('hoverintent', function(e) {
-					for (var index in this._popovers) {
-						this._popovers[index].popover('destroy');
-					}
-					this._popovers = [];
-					
 					if (e.phase == 'over') {
 						var image = this.ancestor('.smugmug-image').getData('image');
 
-						this._popovers.push(
-							$(this.getDOMNode())
-								.popover({
-									html: true,
-									content: '<img src="' + Y.Escape.html(image.ImagePreview.Url) + '" width="' +image.ImagePreview.Width + '" height="' +image.ImagePreview.Height + '" />',
-									trigger: 'manual'
-								})
-								.popover('show')
-						);
+						$(this.getDOMNode())
+							.popover({
+								html: true,
+								content: '<img src="' + Y.Escape.html(image.ImagePreview.Url) + '" width="' +image.ImagePreview.Width + '" height="' +image.ImagePreview.Height + '" />',
+								trigger: 'manual'
+							})
+							.popover('show');
+					} else {
+						$(this.getDOMNode()).popover('destroy');
 					}
 				}, '.thumbnail');				
 

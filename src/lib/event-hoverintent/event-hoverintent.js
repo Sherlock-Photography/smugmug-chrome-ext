@@ -235,12 +235,17 @@ YUI.add('event-hoverintent', function(Y) {
 		
 		                // if we were hovering, then call the mouseOut function after the specified delay
 		                if (subscription.hoverIntent_over) { 
-		                	subscription.hoverIntent_timer = setTimeout(function() {
+	        	            subscription.hoverIntent_over = false;
+	        	            e.phase = 'out';
+	        	            notifier.fire(e);
+		                	
+		                	/* Using the timeout introduces a race condition with a new mouseenter event for a different element:
+		                	    subscription.hoverIntent_timer = setTimeout(function() {
 		        	            subscription.hoverIntent_timer = clearTimeout(subscription.hoverIntent_timer);
 		        	            subscription.hoverIntent_over = false;
 		        	            e.phase = 'out';
 		        	            notifier.fire(e);
-			                }, cfg.timeout);
+			                }, cfg.timeout);*/
 	                	}
 		            }
 		        }, filter);
