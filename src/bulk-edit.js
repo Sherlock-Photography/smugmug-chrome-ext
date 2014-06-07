@@ -253,6 +253,9 @@ YUI().use(['node', 'json', 'io', 'event-resize', 'querystring-parse-simple', 'ss
 	
 	Y.on({
 		domready: function() {
+			//Bootstrap's data JS API is sloooow as heck
+			$(document).off('.data-api');
+			
 			var
 				bulkEditTool = new Y.SherlockPhotography.SmugmugBulkEditTool({
 					smugDomain: smugDomain,
