@@ -56,14 +56,12 @@ YUI.add('ss-smugmug-bulk-edit-tool', function(Y, NAME) {
 					var 
 						data = image.getData('image'),
 						thumbnailImage =  data[sourceName],
-						thumbnailImageNode = image.one('.thumbnail-image');
+						thumbnailImageNode = image.one('.thumbnail-image').getDOMNode();
 										
-					thumbnailImageNode.setAttrs({
-						width: thumbnailImage.Width,
-						height: thumbnailImage.Height,
-						src: thumbnailImage.Url
-					});
-				});				
+					thumbnailImageNode.width = thumbnailImage.Width;
+					thumbnailImageNode.height = thumbnailImage.Height;
+					thumbnailImageNode.src = thumbnailImage.Url;
+				});
 			},
 			
 			_adjustThumbnails: function() {
