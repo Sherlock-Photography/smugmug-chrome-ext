@@ -80,7 +80,7 @@ YUI.add('ss-smugmug-bulk-edit-tool', function(Y, NAME) {
 		        		data = node.ancestor('.smugmug-image').getData('image'),
 		        		thumbnailImage = data[sourceName];
 
-		            node.getDOMNode().style.backgroundImage = 'url("' + thumbnailImage.Url + '")';
+		            node.getDOMNode().style.backgroundImage = 'url("' + thumbnailImage + '")';
 		            node.removeClass('load-me');
 		            
 		            if (thumbsAreLarge) {
@@ -156,8 +156,9 @@ YUI.add('ss-smugmug-bulk-edit-tool', function(Y, NAME) {
 										image.ImagePreview.Url = data.Expansions[image.Uris.ImageSizeDetails].ImageSizeDetails.ImageSizeLarge.Url;
 									}
 									
-									image.ImageSizeTiny = data.Expansions[image.Uris.ImageSizeDetails].ImageSizeDetails.ImageSizeTiny;
-									image.ImageSizeThumb = data.Expansions[image.Uris.ImageSizeDetails].ImageSizeDetails.ImageSizeThumb;
+									//Only need the URL (not the dimensions) of the thumbnails
+									image.ImageSizeTiny = data.Expansions[image.Uris.ImageSizeDetails].ImageSizeDetails.ImageSizeTiny.Url;
+									image.ImageSizeThumb = data.Expansions[image.Uris.ImageSizeDetails].ImageSizeDetails.ImageSizeThumb.Url;
 								}
 								
 								imageListContainer.append(that._renderImageRow(image));
