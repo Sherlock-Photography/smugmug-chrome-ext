@@ -84,9 +84,15 @@ h1 {
 	-webkit-transition:none;
 	transition:none;
 }
-.smugmug-images .thumbnail-image {
-	max-height:150px;
-	width:auto;
+.smugmug-images .thumbnail-link {
+	display:block;
+	height:150px;
+	width:150px;
+	margin-left:auto;
+	margin-right:auto;
+	background-size:contain;
+	background-repeat:no-repeat;
+	background-position:center center;
 }
 
 .smugmug-image.selected {
@@ -298,11 +304,13 @@ p {
 	max-width:200px
 }
 
-.smugmug-images-normal .thumbnail-image {
-	max-height:100px;
+.smugmug-images-normal .thumbnail-link {
+	height:100px;
+	width:100px;
 }
-.smugmug-images-small .thumbnail-image {
-	max-height:50px;
+.smugmug-images-small .thumbnail-link {
+	height:50px;
+	width:50px;
 }
 
 .thumbnail-size-bar label {

@@ -203,7 +203,7 @@ YUI().use(['node', 'json', 'io', 'event-resize', 'querystring-parse-simple', 'ss
 							that.fire('userBumped');
 						},
 					
-						ready: function() {
+						readyChange: function() {
 							that._applyButton.removeAttribute('disabled');
 						},
 						

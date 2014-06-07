@@ -27,6 +27,8 @@ YUI.add('ss-smugmug-bulk-edit-tool', function(Y, NAME) {
 			_eventLog: null,
 			_applyEventLog: null,
 			
+			_loadedLargeThumbs: false,
+			
 			_applyThumbnailSizeClass: function() {
 				var container = this.get('imageListContainer');
 				
@@ -50,18 +52,10 @@ YUI.add('ss-smugmug-bulk-edit-tool', function(Y, NAME) {
 			},
 			
 			_adjustThumbnailSourceSize:function() {
-				var sourceName = 'ImageSize' + this.get('thumbnailSourceSize');
+				//No need to refetch small or large thumbs for thumbnails that already use the large size
+				this.get('imageListContainer').all('.thumbnail-link:not(.large-thumb)').addClass('load-me');
 				
-				this.getAllPhotos().each(function(image) {
-					var 
-						data = image.getData('image'),
-						thumbnailImage =  data[sourceName],
-						thumbnailImageNode = image.one('.thumbnail-image').getDOMNode();
-										
-					thumbnailImageNode.width = thumbnailImage.Width;
-					thumbnailImageNode.height = thumbnailImage.Height;
-					thumbnailImageNode.src = thumbnailImage.Url;
-				});
+				this._renderOnscreenThumbs();
 			},
 			
 			_adjustThumbnails: function() {
@@ -74,16 +68,33 @@ YUI.add('ss-smugmug-bulk-edit-tool', function(Y, NAME) {
 				container.all("textarea").removeAttribute('style');				
 				
 				this._applyThumbnailSizeClass();
-			},			
+			},
+			
+			_renderOnscreenThumbs: function() {
+				var 
+					sourceName = 'ImageSize' + this.get('thumbnailSourceSize'),
+					thumbsAreLarge = this.get('thumbnailSourceSize') == 'Thumb';
+				
+		        Y.one('body').scrollInfo.getOnscreenNodes('.load-me').each(function(node) {
+		        	var 
+		        		data = node.ancestor('.smugmug-image').getData('image'),
+		        		thumbnailImage = data[sourceName];
+
+		            node.getDOMNode().style.backgroundImage = 'url("' + thumbnailImage.Url + '")';
+		            node.removeClass('load-me');
+		            
+		            if (thumbsAreLarge) {
+		            	node.addClass('large-thumb');
+		            }
+		        });
+			},
 			
 			_renderImageRow: function(image) {
 				var 
 					rendered = Y.Node.create('<div class="smugmug-image"></div>'),
-					
-					thumbnailImage = this.get('thumbnailSize') == 'large' ? image.ImageSizeThumb : image.ImageSizeTiny,
-					
+										
 					imageCell = Y.Node.create('<div class="field-cell smugmug-image-thumbnail"><div class="thumbnail">'
-							+ '<a href="#"><img class="thumbnail-image" src="' + Y.Escape.html(thumbnailImage.Url) + '" width="' + (+thumbnailImage.Width) + '" height="' + (+thumbnailImage.Height) + '" /></a>'
+							+ '<a href="#" class="thumbnail-link load-me"></a>'
 							+ '<div class="caption">' 
 							+ '<div class="filename">' + Y.Escape.html(image.FileName) + '</div>'
 							+ '</div></div></div>'),
@@ -91,7 +102,7 @@ YUI.add('ss-smugmug-bulk-edit-tool', function(Y, NAME) {
 					title = Y.Node.create('<div class="field-cell smugmug-image-title"><input type="text" class="form-control photo-Title" value="' + Y.Escape.html(image.Title) + '"></div>'),
 					caption = Y.Node.create('<div class="field-cell smugmug-image-caption"><textarea rows="2" class="form-control photo-Caption">' + Y.Escape.html(image.Caption) + '</textarea></div>'),
 					keywords = Y.Node.create('<div class="field-cell smugmug-image-keywords"><textarea rows="2" class="form-control photo-Keywords">' + Y.Escape.html(image.Keywords) + '</textarea></div>');
-
+				
 				rendered.append(imageCell);
 				rendered.append(title);
 				rendered.append(caption);
@@ -122,6 +133,8 @@ YUI.add('ss-smugmug-bulk-edit-tool', function(Y, NAME) {
 				
 				imageListSpinner.setStyle("display", "block");
 				
+				this.set('images', images);
+				
 				var queue = new Y.SherlockPhotography.APISmartQueue({
 					processResponse: function(request, data) {
 						if (data.Code == 200 && data.Response) {
@@ -150,6 +163,8 @@ YUI.add('ss-smugmug-bulk-edit-tool', function(Y, NAME) {
 								imageListContainer.append(that._renderImageRow(image));
 							}
 
+							that.fire('imagesAdded');
+							
 							if (response.Pages && response.Pages.NextPage) {
 								queue.enqueueRequest({
 									url: 'http://' + that.get('smugDomain') + response.Pages.NextPage,
@@ -185,11 +200,8 @@ YUI.add('ss-smugmug-bulk-edit-tool', function(Y, NAME) {
 						}
 
 						imageListSpinner.setStyle("display", "none");
-						
-						that.set('images', images);
-						that._set('selectedCount', 0);
-						
-						that.fire('ready');
+												
+						that._set('ready', true);
 					},
 					requestFail: function(e) {
 						failures++;
@@ -209,6 +221,7 @@ YUI.add('ss-smugmug-bulk-edit-tool', function(Y, NAME) {
 					logProgress = this._applyEventLog.appendLog('info', "Saving to SmugMug..."),
 					
 					lastFailStatus = 0,
+					successNodes = [],
 					
 					queue = new Y.SherlockPhotography.APISmartQueue({
 						processResponse: function(request, data) {
@@ -222,17 +235,18 @@ YUI.add('ss-smugmug-bulk-edit-tool', function(Y, NAME) {
 										request.context.node.one(".photo-" + fieldName).set('value', ackedImage[fieldName]);
 									}
 								}
+								
+								successNodes.push(request.context.node);
 							}
 							
 							return true;
 						},
 						responseType: 'json',
 						retryPosts: true, //Since our requests are idempotent				
-						delayBetweenRequests: 0 //We will let the browser's per-domain name limits do the rate-limiting for us
+						delayBetweenRequests: 100, // That's 1000 saves in 1:40
+						maxRetries: 1 //Not too many! The user can just hit save again
 					}),
-					errorCount = 0,
-					that = this,
-					failedNodes = [];
+					that = this;
 				
 				for (var index in changes) {
 					var 
@@ -262,18 +276,14 @@ YUI.add('ss-smugmug-bulk-edit-tool', function(Y, NAME) {
 				
 				queue.on({
 					complete: function() {
-						that.getAllPhotos().removeClass('unsaved');
+						Y.each(successNodes, function(node) {
+							node.removeClass('unsaved');
+						});
 						
-						if (failedNodes.length) {
-							Y.each(failedNodes, function(node) {
-								node.addClass('unsaved');
-							});
-						}
-						
-						if (errorCount > 0) {
+						if (successNodes.length < changes.length) {
 							logProgress.destroy(true);
 														
-							that._applyEventLog.appendLog('error', errorCount + "/" + changes.length + " failed to save\nPlease try again");
+							that._applyEventLog.appendLog('error', (changes.length - successNodes.length) + "/" + changes.length + " failed to save\nPlease try again");
 							
 							if (lastFailStatus == 405 /* Method not allowed*/) {
 								alert("It looks like you may not be logged on to SmugMug. Please log on to SmugMug in another tab and then come back here to try again.");
@@ -307,10 +317,17 @@ YUI.add('ss-smugmug-bulk-edit-tool', function(Y, NAME) {
 						
 						that._set('saving', false);						
 					},
-					requestFail: function(e) {
-						errorCount++;
-						lastFailStatus = e.status;
-						failedNodes.push(e.request.context.node);
+					
+					//Early error handler so we can abort the queue on certain conditions:
+					requestError: function(e) {						
+						//We don't expect to recover from these error codes by retrying, so kill all further requests:
+						if (e.status == 405 || e.status == 401 || e.status == 503) {
+							queue.abort();
+						}
+						
+						if (e.status != 0) {
+							lastFailStatus = e.status;
+						}
 					},
 					progress: function(progress) {
 						logProgress.set('progress', progress);
@@ -321,7 +338,7 @@ YUI.add('ss-smugmug-bulk-edit-tool', function(Y, NAME) {
 			},
 			
 			_updateSaveButtonState: function() {
-				if (this.get('saving') || !this.get('unsavedChanges')) { 
+				if (!this.get('ready') || this.get('saving') || !this.get('unsavedChanges')) { 
 					this.get('saveButton').setAttribute("disabled", "disabled");
 				} else {
 					this.get('saveButton').removeAttribute("disabled");
@@ -478,25 +495,22 @@ YUI.add('ss-smugmug-bulk-edit-tool', function(Y, NAME) {
 			initializer: function(cfg) {
 				var that = this;
 				
-				this.after(['unsavedChangesChange', 'savingChange'], Y.bind(this._updateSaveButtonState, this));
+				this.after(['unsavedChangesChange', 'savingChange', 'readyChange'], this._updateSaveButtonState, this);
 				
 				this.get('imageListContainer').delegate('click', function(e) {
-					//Don't allow selection to change during loading
-					if (that.get('images')) {
-						if (!(e.target.get('tagName') in {INPUT:0, TEXTAREA:0})) {
-							var image = this.hasClass('smugmug-image') ? this : this.ancestor('.smugmug-image');
-							
-							if (image.hasClass('selected')) {
-								image.removeClass('selected');
-								that._set('selectedCount', that.get('selectedCount') - 1);
-							} else {
-								image.addClass('selected');
-								that._set('selectedCount', that.get('selectedCount') + 1);
-							}
-							
-							e.preventDefault();
-							e.stopPropagation();
+					if (!(e.target.get('tagName') in {INPUT:0, TEXTAREA:0})) {
+						var image = this.hasClass('smugmug-image') ? this : this.ancestor('.smugmug-image');
+						
+						if (image.hasClass('selected')) {
+							image.removeClass('selected');
+							that._set('selectedCount', that.get('selectedCount') - 1);
+						} else {
+							image.addClass('selected');
+							that._set('selectedCount', that.get('selectedCount') + 1);
 						}
+						
+						e.preventDefault();
+						e.stopPropagation();
 					}
 				}, 'a, .smugmug-image');
 
@@ -514,7 +528,7 @@ YUI.add('ss-smugmug-bulk-edit-tool', function(Y, NAME) {
 					} else {
 						$(this.getDOMNode()).popover('destroy');
 					}
-				}, '.thumbnail-image');				
+				}, '.thumbnail-link');				
 
 				this.get('imageListContainer').delegate('valuechange', function(e) {
 					that._set('unsavedChanges', true);
@@ -522,11 +536,11 @@ YUI.add('ss-smugmug-bulk-edit-tool', function(Y, NAME) {
 					that._markSavedChanges(this.ancestor('.smugmug-image'));
 				}, 'input, textarea');
 				
-				this.after('selectedCountChange', function(e) {
+				this.after(['selectedCountChange', 'imagesAdded'], function(e) {
 					var images = that.get('images');
 					
 					if (images) {
-						Y.one(".photo-select-count").set('text', e.newVal + " of " + images.length + " are selected");
+						Y.one(".photo-select-count").set('text', this.get('selectedCount') + " of " + images.length + " are selected");
 						Y.one(".photo-select-count").setStyle('visibility', 'visible');
 					}
 				});
@@ -537,8 +551,16 @@ YUI.add('ss-smugmug-bulk-edit-tool', function(Y, NAME) {
 					e.preventDefault();
 				});				
 				
-				this.after('thumbnailSizeChange', Y.bind(this._adjustThumbnails, this));
-				this.after('thumbnailSourceSizeChange', Y.bind(this._adjustThumbnailSourceSize, this));
+				this.after('thumbnailSizeChange', this._adjustThumbnails, this);
+				this.after('thumbnailSourceSizeChange', this._adjustThumbnailSourceSize, this);
+
+				this.after('imagesAdded', this._renderOnscreenThumbs, this);
+				
+				Y.one('body').plug(Y.Plugin.ScrollInfo, {
+					scrollDelay: 100,
+					scrollMargin: 100
+		        });
+				Y.one('body').scrollInfo.on('scroll', this._renderOnscreenThumbs, this);
 				
 				this._eventLog = new Y.SherlockPhotography.EventLogWidget(),
 				this._applyEventLog = new Y.SherlockPhotography.EventLogWidget();
@@ -690,14 +712,10 @@ YUI.add('ss-smugmug-bulk-edit-tool', function(Y, NAME) {
 					writeOnce: "initOnly"
 				},
 				selectedCount: {
-					value: null,
+					value: 0,
 					readOnly: true
 				},
 				unsavedChanges: {
-					value: false,
-					readOnly: true
-				},
-				saving: {
 					value: false,
 					readOnly: true
 				},
@@ -721,6 +739,7 @@ YUI.add('ss-smugmug-bulk-edit-tool', function(Y, NAME) {
 					value: null,
 					setter: Y.one
 				},
+				
 				/**
 				 * The SmugMug name for the source size to be used for thumbnails (either Tiny or Thumb)
 				 */
@@ -730,12 +749,24 @@ YUI.add('ss-smugmug-bulk-edit-tool', function(Y, NAME) {
 				thumbnailSize: {
 					// small, normal or large
 					value: "normal"
-				}
+				},
+				
+				/**
+				 * Current states
+				 */
+				saving: {
+					value: false,
+					readOnly: true
+				},
+				ready: {
+					value: false,
+					readOnly: true
+				}	
 			}
 		}
 	);
 
 	Y.namespace("SherlockPhotography").SmugmugBulkEditTool = BulkEditTool;
 }, '0.0.1', {
-	requires: ['json', 'io', 'node', 'ss-event-log-widget', 'ss-api-smartqueue', 'ss-csrf-manager', 'event-hoverintent']
+	requires: ['json', 'io', 'node', 'ss-event-log-widget', 'ss-api-smartqueue', 'ss-csrf-manager', 'event-hoverintent', 'node-scroll-info']
 });	
