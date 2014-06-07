@@ -150,6 +150,11 @@ YUI.add('ss-smugmug-bulk-edit-tool', function(Y, NAME) {
 							if (response.Pages && response.Pages.NextPage) {
 								queue.enqueueRequest({
 									url: 'http://' + that.get('smugDomain') + response.Pages.NextPage,
+									//Pages URL doesn't include _expand for us for some reason
+									data: {
+										_expand: 'ImageSizeDetails',
+										count: 100 /* Page size */
+									},
 									headers: {'Accept': 'application/json'},
 								});
 								queue.run();
@@ -162,8 +167,9 @@ YUI.add('ss-smugmug-bulk-edit-tool', function(Y, NAME) {
 				});
 				
 				queue.enqueueRequest({
-					url: 'http://' + this.get('smugDomain') + '/api/v2/album/' + this.get('albumID') + '!images?_filter=Uri,Caption,Keywords,Title,FileName,WebUri&_expand=ImageSizeDetails&_shorturis=',
+					url: 'http://' + this.get('smugDomain') + '/api/v2/album/' + this.get('albumID') + '!images?_filteruri=Image,ImageSizeDetails&_filter=Uri,Caption,Keywords,Title,FileName,WebUri&_shorturis=',
 					data: {
+						_expand: 'ImageSizeDetails',
 						count: 100 /* Page size */
 					},
 					headers: {'Accept': 'application/json'}
@@ -472,19 +478,22 @@ YUI.add('ss-smugmug-bulk-edit-tool', function(Y, NAME) {
 				this.after(['unsavedChangesChange', 'savingChange'], Y.bind(this._updateSaveButtonState, this));
 				
 				this.get('imageListContainer').delegate('click', function(e) {
-					if (!(e.target.get('tagName') in {INPUT:0, TEXTAREA:0})) {
-						var image = this.hasClass('smugmug-image') ? this : this.ancestor('.smugmug-image');
-						
-						if (image.hasClass('selected')) {
-							image.removeClass('selected');
-							that._set('selectedCount', that.get('selectedCount') - 1);
-						} else {
-							image.addClass('selected');
-							that._set('selectedCount', that.get('selectedCount') + 1);
+					//Don't allow selection to change during loading
+					if (that.get('images')) {
+						if (!(e.target.get('tagName') in {INPUT:0, TEXTAREA:0})) {
+							var image = this.hasClass('smugmug-image') ? this : this.ancestor('.smugmug-image');
+							
+							if (image.hasClass('selected')) {
+								image.removeClass('selected');
+								that._set('selectedCount', that.get('selectedCount') - 1);
+							} else {
+								image.addClass('selected');
+								that._set('selectedCount', that.get('selectedCount') + 1);
+							}
+							
+							e.preventDefault();
+							e.stopPropagation();
 						}
-						
-						e.preventDefault();
-						e.stopPropagation();
 					}
 				}, 'a, .smugmug-image');
 
@@ -511,8 +520,12 @@ YUI.add('ss-smugmug-bulk-edit-tool', function(Y, NAME) {
 				}, 'input, textarea');
 				
 				this.after('selectedCountChange', function(e) {
-					Y.one(".photo-select-count").set('text', e.newVal + " of " + that.get('images').length + " are selected");
-					Y.one(".photo-select-count").setStyle('visibility', 'visible');
+					var images = that.get('images');
+					
+					if (images) {
+						Y.one(".photo-select-count").set('text', e.newVal + " of " + images.length + " are selected");
+						Y.one(".photo-select-count").setStyle('visibility', 'visible');
+					}
 				});
 				
 				this.get('saveButton').on('click', function(e) {
