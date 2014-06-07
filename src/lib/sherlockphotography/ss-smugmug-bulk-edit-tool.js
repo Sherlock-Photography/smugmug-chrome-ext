@@ -151,8 +151,6 @@ YUI.add('ss-smugmug-bulk-edit-tool', function(Y, NAME) {
 					
 					lastFailStatus = 0,
 					
-					_token = Y.SherlockPhotography.CSRFManager.get('token'),
-					
 					queue = new Y.SherlockPhotography.APISmartQueue({
 						processResponse: function(request, data) {
 							if (data.Response && data.Response.Image) {
@@ -181,7 +179,7 @@ YUI.add('ss-smugmug-bulk-edit-tool', function(Y, NAME) {
 					var 
 						change = changes[index],
 						data = {
-							_token: _token
+							_token: Y.SherlockPhotography.CSRFManager.get('token')
 						};
 					
 					// Don't try to send the image object to the server, just the field changes we requested
