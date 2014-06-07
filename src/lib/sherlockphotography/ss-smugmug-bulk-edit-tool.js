@@ -291,10 +291,11 @@ YUI.add('ss-smugmug-bulk-edit-tool', function(Y, NAME) {
 								Y.SherlockPhotography.CSRFManager.refreshToken();
 							}
 						} else {
-							if (changes.length == 0)
+							if (changes.length == 0) {
 								logProgress.set('message', "Saved photos");
-							else
+							} else {
 								logProgress.set('message', "Saved " + changes.length + (changes.length == 1 ? " photo" : " photos"));
+							}
 							
 							logProgress.set('progress', null);
 							
@@ -346,7 +347,9 @@ YUI.add('ss-smugmug-bulk-edit-tool', function(Y, NAME) {
 			},
 			
 			_collectImageChanges:function() {
-				var changes = [];
+				var 
+					changes = [],
+					that = this;
 				
 				Y.all(".smugmug-image").each(function() {
 					var
@@ -377,8 +380,10 @@ YUI.add('ss-smugmug-bulk-edit-tool', function(Y, NAME) {
 						hasChanges = true;
 					}
 					
-					if (hasChanges) {				
+					if (hasChanges) {
 						changes.push(change);
+					} else {
+						that._markSavedChanges(this, true);
 					}
 				});
 						
