@@ -81,6 +81,8 @@ h1 {
 
 .smugmug-images .thumbnail {
 	text-align:center;
+	-webkit-transition:none;
+	transition:none;
 }
 .smugmug-images .thumbnail-image {
 	max-height:150px;
