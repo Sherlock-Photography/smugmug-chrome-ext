@@ -596,8 +596,8 @@ YUI.add('ss-smugmug-bulk-edit-tool', function(Y, NAME) {
 							if (fieldName == 'Keywords') {
 								//Adding into empty string
 								if (value.match(/^\s*$/)) {
-									//If we're adding a multi-word keyword that isn't quoted:
-									if (text.match(/\S\s+\S/) && text.indexOf('"') == -1) {
+									//If we're adding a single multi-word keyword that isn't quoted:
+									if (text.match(/\S\s+\S/) && !text.match(/[",;]/)) {
 										//Do what SM will do upon save and quote it:
 										value = '"' + text + '"';
 									} else {

@@ -180,7 +180,19 @@ var tests = [
     	primary: "fifty five",
     	
     	expected: "\"fifty five\""
-	},	
+	},
+	
+	{
+		name: "Add multiple keywords to empty field",
+		
+    	Keywords: "",
+    	
+    	target: "Keywords",
+    	action: "add",
+    	primary: "one, two; three",
+    	
+    	expected: "one, two; three"
+	},		
 	
 	{
     	Keywords: "one",
