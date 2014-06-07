@@ -503,7 +503,44 @@ var tests = [
 		action: "remove-numeric",
 		
 		expected: "In AD 2101 war was beginning"
-	}		
+	},
+	
+	{
+		name: "Add nothing: Keywords",
+		
+		Keywords: "test; this",
+		
+		target: "Keywords",
+		action: "add",
+		primary: "",
+		
+		expected: "test; this"
+	},
+	
+	{
+		name: "Replace nothing: Keywords",
+		
+		Keywords: "test; this",
+		
+		target: "Keywords",
+		action: "add",
+		primary: "",
+		replace: "lol",
+		
+		expected: "test; this"
+	},	
+
+	{
+		name: "Remove nothing: Keywords",
+		
+		Keywords: "test; ;; this",
+		
+		target: "Keywords",
+		action: "remove",
+		primary: "",
+		
+		expected: "test; ;; this"
+	},		
 ];
 
 YUI().use(['node', 'ss-smugmug-bulk-edit-tool'], function(Y) {

@@ -598,6 +598,9 @@ YUI.add('ss-smugmug-bulk-edit-tool', function(Y, NAME) {
 					
 					switch (action) {
 						case 'add':
+							if (text.length == 0)
+								break; //no-op
+							
 							if (fieldName == 'Keywords') {
 								//Adding into empty string
 								if (value.match(/^\s*$/)) {
@@ -626,6 +629,9 @@ YUI.add('ss-smugmug-bulk-edit-tool', function(Y, NAME) {
 							}
 						break;
 						case 'remove':
+							if (text.length == 0)
+								break; //no-op							
+							
 							if (fieldName == 'Keywords') {
 								//If the removed text forms a complete keyword, remove it along with the trailing separator for the keyword:								
 								value = value.replace(findUserSearchKeyword, '$1');
@@ -650,6 +656,9 @@ YUI.add('ss-smugmug-bulk-edit-tool', function(Y, NAME) {
 							}
 						break;
 						case 'replace':
+							if (text.length == 0)
+								break; //no-op							
+							
 							value = value.replace(findUserSearchText, replace);
 						break;
 						case 'set':
