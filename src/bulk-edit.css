@@ -129,7 +129,7 @@ p {
 #page-body {
 	margin-right:18em;
 	padding:1em;
-	padding-bottom:8em;
+	padding-bottom:200px;
 }
 
 #page-sidebar .btn-lg {
@@ -270,7 +270,6 @@ p {
 .smugmug-images-tiny .smugmug-image {
     margin-bottom:1px;
 }
-.smugmug-images-compact .thumbnail,
 .smugmug-images-tiny .thumbnail {
 	padding:1px;
 }

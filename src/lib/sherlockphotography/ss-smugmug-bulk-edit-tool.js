@@ -31,8 +31,10 @@ YUI.add('ss-smugmug-bulk-edit-tool', function(Y, NAME) {
 				var 
 					rendered = Y.Node.create('<div class="smugmug-image"></div>'),
 					
+					thumbnailImage = image.ImageSizeTiny,
+					
 					imageCell = Y.Node.create('<div class="field-cell smugmug-image-thumbnail"><div class="thumbnail">'
-							+ '<a href="#"><img class="thumbnail-image" src="' + Y.Escape.html(image.ThumbnailUrl) + '"/></a>'
+							+ '<a href="#"><img class="thumbnail-image" src="' + Y.Escape.html(thumbnailImage.Url) + '" width="' + (+thumbnailImage.width) + '" height="' + (+thumbnailImage.height) + '" /></a>'
 							+ '<div class="caption">' 
 							+ '<div class="filename">' + Y.Escape.html(image.FileName) + '</div>'
 							/*+ Y.Escape.html(image.get('OriginalWidth')) + "x" + Y.Escape.html(image.get('OriginalHeight'))*/
@@ -81,7 +83,7 @@ YUI.add('ss-smugmug-bulk-edit-tool', function(Y, NAME) {
 								var image = response.AlbumImage[index];
 								
 								//Sanity checks:
-								if (!image.ThumbnailUrl || !image.WebUri || image.Caption === undefined)
+								if (!image.WebUri || image.Caption === undefined)
 									continue;
 								
 								images.push(image);
@@ -92,6 +94,9 @@ YUI.add('ss-smugmug-bulk-edit-tool', function(Y, NAME) {
 									if (HIGH_DENSITY_DISPLAY) {
 										image.ImagePreview.Url = data.Expansions[image.Uris.ImageSizeDetails].ImageSizeDetails.ImageSizeLarge.Url;
 									}
+									
+									image.ImageSizeTiny = data.Expansions[image.Uris.ImageSizeDetails].ImageSizeDetails.ImageSizeTiny;
+									image.ImageSizeThumb = data.Expansions[image.Uris.ImageSizeDetails].ImageSizeDetails.ImageSizeThumb;
 								}
 								
 								imageListContainer.append(that._renderImageRow(image));
@@ -112,7 +117,7 @@ YUI.add('ss-smugmug-bulk-edit-tool', function(Y, NAME) {
 				});
 				
 				queue.enqueueRequest({
-					url: 'http://' + this.get('smugDomain') + '/api/v2/album/' + this.get('albumID') + '!images?_filter=Uri,ThumbnailUrl,Caption,Keywords,Title,FileName,WebUri&_expand=ImageSizeDetails&_shorturis=',
+					url: 'http://' + this.get('smugDomain') + '/api/v2/album/' + this.get('albumID') + '!images?_filter=Uri,Caption,Keywords,Title,FileName,WebUri&_expand=ImageSizeDetails&_shorturis=',
 					data: {
 						count: 100 /* Page size */
 					},
