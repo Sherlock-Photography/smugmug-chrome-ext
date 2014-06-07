@@ -41,18 +41,6 @@ function show_popup(tab, hasPermission, domainName) {
 					return false;
 				};
 				
-				var bulkEdit = document.getElementById("bulk-edit");
-								
-				bulkEdit.onclick = function(e) {
-					chrome.tabs.create({
-						url: 'http://' + domainName[1] + '/photos/tools.mg?pageType=Album&tool=bulkcaption&AlbumID=' + encodeURIComponent(siteDetail.pageDetails.userNode.RemoteID)
-							+ '&AlbumKey=' + encodeURIComponent(siteDetail.pageDetails.userNode.RemoteKey)
-							+ '&url='+ encodeURIComponent(tab.url)
-					});
-					
-					return false;
-				};
-				
 				var bulkEditBeta = document.getElementById("bulk-edit-beta");
 				
 				bulkEditBeta.onclick = function(e) {
