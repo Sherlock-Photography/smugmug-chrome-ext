@@ -89,15 +89,18 @@ h1 {
 .smugmug-image.selected {
 	background-color:#eee;
 }
-.smugmug-image.unsaved .thumbnail .filename:after {
-	content:"";
-	margin-left:0.5em;
-	display:inline-block;
-	width:1em;
-	height:1em;
-	border-radius:50%;
+.smugmug-images .thumbnail .caption {
+	padding:9px 4px;
+}
+.smugmug-image.unsaved .thumbnail .caption:before {
+	content: "";
+	margin-left: 0.5em;
+	float: right;
+	width: 14px;
+	height: 14px;
+	border-radius: 50%;
 	background-color: #428bca;
-	vertical-align: middle;
+	margin-top: 3px;
 }
 
 p {
