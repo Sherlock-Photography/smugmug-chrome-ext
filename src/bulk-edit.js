@@ -287,23 +287,11 @@ YUI().use(['node', 'json', 'io', 'event-resize', 'querystring-parse-simple', 'ss
 				e.preventDefault();
 			});
 			
-			Y.all('.thumbnail-size-controls button').on('click',function(e) {
+			Y.one('.thumbnail-size-controls').delegate('click', function(e) {
 				e.currentTarget.siblings().removeClass('active');
 				e.currentTarget.addClass('active');
-				Y.all(".smugmug-images textarea").removeAttribute('style');
-			});
-			Y.one('.thumbnail-size-compact').on('click', function() {
-				Y.one("#image-selector").addClass('smugmug-images-compact');
-				Y.one("#image-selector").removeClass('smugmug-images-tiny');
-			});
-			Y.one('.thumbnail-size-tiny').on('click', function() {
-				Y.one("#image-selector").addClass('smugmug-images-tiny');
-				Y.one("#image-selector").removeClass('smugmug-images-compact');
-			});
-			Y.one('.thumbnail-size-normal').on('click', function() {
-				Y.one("#image-selector").removeClass('smugmug-images-compact');
-				Y.one("#image-selector").removeClass('smugmug-images-tiny');
-			});
+				bulkEditTool.set('thumbnailSize', e.currentTarget.getAttribute('data-thumbnail-size'));
+			}, 'button');
 			
 			Y.all(".smugmug-gallery-name").set('text', albumName);
 			

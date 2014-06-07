@@ -27,17 +27,62 @@ YUI.add('ss-smugmug-bulk-edit-tool', function(Y, NAME) {
 			_eventLog: null,
 			_applyEventLog: null,
 			
+			_applyThumbnailSizeClass: function() {
+				var container = this.get('imageListContainer');
+				
+				switch (this.get('thumbnailSize')) {
+					case 'small':
+						container.removeClass('smugmug-images-normal');
+						container.removeClass('smugmug-images-large');
+						container.addClass('smugmug-images-small');
+					break;
+					case 'normal':
+						container.removeClass('smugmug-images-small');
+						container.removeClass('smugmug-images-large');
+						container.addClass('smugmug-images-normal');
+					break;
+					case 'large':
+						container.removeClass('smugmug-images-small');
+						container.removeClass('smugmug-images-normal');
+						container.addClass('smugmug-images-large');
+					break;
+				}
+			},
+			
+			_adjustThumbnails: function() {
+				var 
+					container = this.get('imageListContainer'),
+					large = this.get('thumbnailSize') == 'large';
+				
+				this.getAllPhotos().each(function(image) {
+					var 
+						data = image.getData('image'),
+						thumbnailImage =  large ? data.ImageSizeThumb : data.ImageSizeTiny,
+						thumbnailImageNode = image.one('.thumbnail-image');
+					
+					thumbnailImageNode.setAttrs({
+						width: thumbnailImage.Width,
+						height: thumbnailImage.Height,
+						src: thumbnailImage.Url
+					});
+				});
+				
+				//Remove user's manual size tweaks (with Chrome's resizing textareas)
+				container.all("textarea").removeAttribute('style');				
+				
+				this._applyThumbnailSizeClass();
+			},			
+			
 			_renderImageRow: function(image) {
 				var 
 					rendered = Y.Node.create('<div class="smugmug-image"></div>'),
 					
-					thumbnailImage = image.ImageSizeTiny,
+					thumbnailImage = this.get('thumbnailSize') == 'large' ? image.ImageSizeThumb : image.ImageSizeTiny,
 					
 					imageCell = Y.Node.create('<div class="field-cell smugmug-image-thumbnail"><div class="thumbnail">'
-							+ '<a href="#"><img class="thumbnail-image" src="' + Y.Escape.html(thumbnailImage.Url) + '" width="' + (+thumbnailImage.width) + '" height="' + (+thumbnailImage.height) + '" /></a>'
+							+ '<a href="#"><img class="thumbnail-image" src="' + Y.Escape.html(thumbnailImage.Url) + '" width="' + (+thumbnailImage.Width) + '" height="' + (+thumbnailImage.Height) + '" /></a>'
 							+ '<div class="caption">' 
 							+ '<div class="filename">' + Y.Escape.html(image.FileName) + '</div>'
-							/*+ Y.Escape.html(image.get('OriginalWidth')) + "x" + Y.Escape.html(image.get('OriginalHeight'))*/
 							+ '</div></div></div>'),
 					
 					title = Y.Node.create('<div class="field-cell smugmug-image-title"><input type="text" class="form-control photo-Title" value="' + Y.Escape.html(image.Title) + '"></div>'),
@@ -476,11 +521,15 @@ YUI.add('ss-smugmug-bulk-edit-tool', function(Y, NAME) {
 					e.preventDefault();
 				});				
 				
+				this.after('thumbnailSizeChange', Y.bind(this._adjustThumbnails, this));
+				
 				this._eventLog = new Y.SherlockPhotography.EventLogWidget(),
 				this._applyEventLog = new Y.SherlockPhotography.EventLogWidget();
 
 				this._eventLog.render('#eventLog');
-				this._applyEventLog.render('#applyEventLog');				
+				this._applyEventLog.render('#applyEventLog');
+				
+				this._applyThumbnailSizeClass();
 			}
 		},
 		{
@@ -654,6 +703,10 @@ YUI.add('ss-smugmug-bulk-edit-tool', function(Y, NAME) {
 				imageListSpinner: {
 					value: null,
 					setter: Y.one
+				},
+				thumbnailSize: {
+					// small, normal or large
+					value: "normal"
 				}
 			}
 		}
