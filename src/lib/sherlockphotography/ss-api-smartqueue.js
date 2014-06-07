@@ -5,6 +5,10 @@ YUI.add('ss-api-smartqueue', function(Y, NAME) {
 		[],
 		{
 			_queue: null,
+			_aborted: false,
+			
+			/* Requests which have been sent to Y.io and we haven't heard back from */
+			_numTrueOutstandingRequests: 0,
 
 			/* Default implementation that you may override */
 			_doProcessResponse: function(request, response) {
@@ -22,9 +26,25 @@ YUI.add('ss-api-smartqueue', function(Y, NAME) {
 			
 			_reportProgress: function() {
 				var progress = {
-					completed: this.get('numCompletedRequests'),
-					total: this.get('numTotalRequests'),
+					// Counts for requests that have completed
+					failed: this.get('numFailedRequests'),
+					successful: this.get('numSuccessfulRequests'),
+					
+					// The total number of requests the user queued up
+					total: this.get('numTotalRequests')
 				};
+				
+				progress.completed = progress.failed + progress.successful;
+				
+				// If we've aborted the queue, and all of the requests we issued have now completed...
+				if (this._aborted && this._numTrueOutstandingRequests == 0) {
+					// Then fail the requests that we never issued (and will now never issue) so we can finish up
+					this.set('numFailedRequests', progress.total - progress.successful);
+					
+					// And recalc the progress report to match:
+					progress.failed = this.get('numFailedRequests');
+					progress.completed = progress.total;
+				}
 				
 				this.fire('progress', progress);
 				
@@ -44,7 +64,7 @@ YUI.add('ss-api-smartqueue', function(Y, NAME) {
 				 * been reached, false is returned instead.
 				 */
 				var attemptRetry = function() {
-					if (retryable && retryCount < self.get('maxRetries')) {
+					if (retryable && retryCount < self.get('maxRetries') && !self._aborted) {
 						//Retry this request later
 						self._enqueueCallback(request, retryCount + 1);					
 						self._queue.run();
@@ -83,6 +103,8 @@ YUI.add('ss-api-smartqueue', function(Y, NAME) {
 				 * If asked to simulate failures, and we decide this request is failed, don't even make the request to the server.
 				 */ 
 				if (this.get('simulateFail') && Math.random() < this.get('simulateFail')) {
+					this.fire('requestError', {request: request, status: 500, statusText: "Fake error message"});
+					
 					if (!attemptRetry()) {
 						this.fire('requestFail', {request: request, status: 500, statusText: "Fake error message"});
 					}
@@ -96,9 +118,14 @@ YUI.add('ss-api-smartqueue', function(Y, NAME) {
 						handleSuccessData.call(this, responseText);
 					}
 				} else {
+					this._numTrueOutstandingRequests++;
+
 					Y.io(request.url, {
 						data: request.data || {},
 						on: {
+							complete: function() {
+								self._numTrueOutstandingRequests--;
+							},
 							success: function(transactionid, response, arguments) {
 								var responseData;
 								
@@ -126,6 +153,12 @@ YUI.add('ss-api-smartqueue', function(Y, NAME) {
 								}
 							},
 							failure: function(transactionid, response, arguments) {
+								/* 
+								 * Give the caller an early chance to deal with this error, which we're not yet sure if we'll be able to retry.
+								 * (i.e. by calling .abort() on us)
+								 */
+								this.fire('requestError', {request: request, status: response.status, statusText: response.statusText, responseText: response.responseText});
+								
 								if (!attemptRetry()) {
 									this.fire('requestFail', {request: request, status: response.status, statusText: response.statusText, responseText: response.responseText});
 								}
@@ -135,6 +168,16 @@ YUI.add('ss-api-smartqueue', function(Y, NAME) {
 						method: request.method,
 						context: this
 					});
+				}
+			},
+			
+			/**
+			 * Cancel execution of the remainer of the queue (failure callbacks are not called for these items).
+			 */
+			abort: function() {
+				if (!this._aborted) {
+					this._aborted = true;
+					this._queue.stop();
 				}
 			},
 			
@@ -235,7 +278,7 @@ YUI.add('ss-api-smartqueue', function(Y, NAME) {
 
 				numTotalRequests: {
 					value: 0
-				}				
+				}
 			}
 		}
 	);
