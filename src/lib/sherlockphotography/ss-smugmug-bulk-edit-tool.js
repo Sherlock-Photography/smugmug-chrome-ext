@@ -144,7 +144,7 @@ YUI.add('ss-smugmug-bulk-edit-tool', function(Y, NAME) {
 								var image = response.AlbumImage[index];
 								
 								//Sanity checks:
-								if (!image.WebUri || image.Caption === undefined)
+								if (image.Caption === undefined)
 									continue;
 								
 								images.push(image);
@@ -185,7 +185,7 @@ YUI.add('ss-smugmug-bulk-edit-tool', function(Y, NAME) {
 				});
 				
 				queue.enqueueRequest({
-					url: 'http://' + this.get('smugDomain') + '/api/v2/album/' + this.get('albumID') + '!images?_filteruri=Image,ImageSizeDetails&_filter=Uri,Caption,Keywords,Title,FileName,WebUri&_shorturis=',
+					url: 'http://' + this.get('smugDomain') + '/api/v2/album/' + this.get('albumID') + '!images?_filteruri=Image,ImageSizeDetails&_filter=Caption,Keywords,Title,FileName&_shorturis=',
 					data: {
 						_expand: 'ImageSizeDetails',
 						count: 100 /* Page size */
