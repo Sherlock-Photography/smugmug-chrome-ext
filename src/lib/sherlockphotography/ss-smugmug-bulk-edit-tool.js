@@ -149,6 +149,10 @@ YUI.add('ss-smugmug-bulk-edit-tool', function(Y, NAME) {
 				var 
 					logProgress = this._applyEventLog.appendLog('info', "Saving to SmugMug..."),
 					
+					lastFailStatus = 0,
+					
+					_token = Y.SherlockPhotography.CSRFManager.get('token'),
+					
 					queue = new Y.SherlockPhotography.APISmartQueue({
 						processResponse: function(request, data) {
 							if (data.Response && data.Response.Image) {
@@ -177,7 +181,7 @@ YUI.add('ss-smugmug-bulk-edit-tool', function(Y, NAME) {
 					var 
 						change = changes[index],
 						data = {
-							_token: Y.SherlockPhotography.CSRFManager.get('token')
+							_token: _token
 						};
 					
 					// Don't try to send the image object to the server, just the field changes we requested
@@ -211,8 +215,14 @@ YUI.add('ss-smugmug-bulk-edit-tool', function(Y, NAME) {
 						
 						if (errorCount > 0) {
 							logProgress.destroy(true);
-							
+														
 							that._applyEventLog.appendLog('error', errorCount + "/" + changes.length + " failed to save\nPlease try again");
+							
+							if (lastFailStatus == 405 /* Method not allowed*/) {
+								alert("It looks like you may not be logged on to SmugMug. Please log on to SmugMug in another tab and then come back here to try again.");
+							} else if (lastFailStatus == 401 /* Unauthorized */) {
+								Y.SherlockPhotography.CSRFManager.refreshToken();
+							}
 						} else {
 							if (changes.length == 0)
 								logProgress.set('message', "Saved photos");
@@ -242,6 +252,7 @@ YUI.add('ss-smugmug-bulk-edit-tool', function(Y, NAME) {
 					},
 					requestFail: function(e) {
 						errorCount++;
+						lastFailStatus = e.status;
 						failedNodes.push(e.request.context.node);
 					},
 					progress: function(progress) {
