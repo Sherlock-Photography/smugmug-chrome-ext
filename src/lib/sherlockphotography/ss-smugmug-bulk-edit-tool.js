@@ -49,23 +49,28 @@ YUI.add('ss-smugmug-bulk-edit-tool', function(Y, NAME) {
 				}
 			},
 			
-			_adjustThumbnails: function() {
-				var 
-					container = this.get('imageListContainer'),
-					large = this.get('thumbnailSize') == 'large';
+			_adjustThumbnailSourceSize:function() {
+				var sourceName = 'ImageSize' + this.get('thumbnailSourceSize');
 				
 				this.getAllPhotos().each(function(image) {
 					var 
 						data = image.getData('image'),
-						thumbnailImage =  large ? data.ImageSizeThumb : data.ImageSizeTiny,
+						thumbnailImage =  data[sourceName],
 						thumbnailImageNode = image.one('.thumbnail-image');
-					
+										
 					thumbnailImageNode.setAttrs({
 						width: thumbnailImage.Width,
 						height: thumbnailImage.Height,
 						src: thumbnailImage.Url
 					});
-				});
+				});				
+			},
+			
+			_adjustThumbnails: function() {
+				var 
+					container = this.get('imageListContainer');
+				
+				this.set('thumbnailSourceSize', this.get('thumbnailSize') == 'large' ? 'Thumb' : 'Tiny');
 				
 				//Remove user's manual size tweaks (with Chrome's resizing textareas)
 				container.all("textarea").removeAttribute('style');				
@@ -535,6 +540,7 @@ YUI.add('ss-smugmug-bulk-edit-tool', function(Y, NAME) {
 				});				
 				
 				this.after('thumbnailSizeChange', Y.bind(this._adjustThumbnails, this));
+				this.after('thumbnailSourceSizeChange', Y.bind(this._adjustThumbnailSourceSize, this));
 				
 				this._eventLog = new Y.SherlockPhotography.EventLogWidget(),
 				this._applyEventLog = new Y.SherlockPhotography.EventLogWidget();
@@ -716,6 +722,12 @@ YUI.add('ss-smugmug-bulk-edit-tool', function(Y, NAME) {
 				imageListSpinner: {
 					value: null,
 					setter: Y.one
+				},
+				/**
+				 * The SmugMug name for the source size to be used for thumbnails (either Tiny or Thumb)
+				 */
+				thumbnailSourceSize: {
+					value: "Tiny"
 				},
 				thumbnailSize: {
 					// small, normal or large
