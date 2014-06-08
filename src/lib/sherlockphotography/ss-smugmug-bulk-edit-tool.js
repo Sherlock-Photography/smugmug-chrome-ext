@@ -123,7 +123,7 @@ YUI.add('ss-smugmug-bulk-edit-tool', function(Y, NAME) {
 				
 				imageListContainer.get('childNodes').remove();
 				imageListContainer.append(
-					'<header>' + 
+					'<header style="display:none">' + 
 						'<div class="field-cell"><span>&nbsp;</span></div>' + 
 						'<div class="field-cell"><span>Title</span><input tabindex="-1" type="text" class="form-control photo-Title dummy" value=""></div>' +
 						'<div class="field-cell"><span>Caption</span><textarea tabindex="-1" class="form-control photo-Caption dummy"></textarea></div>' +
@@ -163,8 +163,10 @@ YUI.add('ss-smugmug-bulk-edit-tool', function(Y, NAME) {
 								
 								imageListContainer.append(that._renderImageRow(image));
 							}
-
-							that.fire('imagesAdded');
+							
+							if (images.length > 0) {
+								that.fire('imagesAdded');
+							}
 							
 							if (response.Pages && response.Pages.NextPage) {
 								queue.enqueueRequest({
@@ -546,6 +548,10 @@ YUI.add('ss-smugmug-bulk-edit-tool', function(Y, NAME) {
 					
 					that._markSavedChanges(this.ancestor('.smugmug-image'));
 				}, 'input, textarea');
+				
+				this.after('imagesAdded', function(e) {
+					this.get('imageListContainer').one('header').setStyle('display', 'flex');
+				});
 				
 				this.after(['selectedCountChange', 'imagesAdded'], function(e) {
 					var images = that.get('images');

@@ -75,9 +75,6 @@ h1 {
 	display:block;
 }
 
-.smugmug-images header:first-child:last-child {
-	display:none;
-}
 .smugmug-images header .field-cell {
 	padding:0 0.5em;
 }
@@ -263,6 +260,10 @@ p {
 .yui3-ss-event-log-widget li {
 	margin-top:1em;
 	padding-top:0;
+}
+
+#eventLog .yui3-ss-event-log-widget ul:not(:empty) {
+	margin-bottom:1em;
 }
 
 #applyEventLog {
