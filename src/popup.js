@@ -44,11 +44,19 @@ function show_popup(tab, hasPermission, domainName) {
 				var bulkEditBeta = document.getElementById("bulk-edit-beta");
 				
 				bulkEditBeta.onclick = function(e) {
-					chrome.tabs.create({
-						url: 'bulk-edit.html?nickname=' + encodeURIComponent(siteDetail.nickname)
-							+ '&albumKey=' + encodeURIComponent(siteDetail.pageDetails.userNode.RemoteKey)
-							+ '&albumName=' + encodeURIComponent(siteDetail.pageDetails.userNode.Name)
-					});
+					if (e.shiftKey) {
+						chrome.tabs.create({
+							url: 'http://' + domainName[1] + '/photos/tools.mg?pageType=Album&tool=bulkcaption&AlbumID=' + encodeURIComponent(siteDetail.pageDetails.userNode.RemoteID)
+								+ '&AlbumKey=' + encodeURIComponent(siteDetail.pageDetails.userNode.RemoteKey)
+								+ '&url='+ encodeURIComponent(tab.url)
+						});
+					} else {
+						chrome.tabs.create({
+							url: 'bulk-edit.html?nickname=' + encodeURIComponent(siteDetail.nickname)
+								+ '&albumKey=' + encodeURIComponent(siteDetail.pageDetails.userNode.RemoteKey)
+								+ '&albumName=' + encodeURIComponent(siteDetail.pageDetails.userNode.Name)
+						});
+					}
 					
 					return false;
 				};
