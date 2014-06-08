@@ -27,8 +27,6 @@ YUI.add('ss-smugmug-bulk-edit-tool', function(Y, NAME) {
 			_eventLog: null,
 			_applyEventLog: null,
 			
-			_loadedLargeThumbs: false,
-			
 			_applyThumbnailSizeClass: function() {
 				var container = this.get('imageListContainer');
 				
