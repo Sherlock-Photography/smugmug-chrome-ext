@@ -144,7 +144,7 @@ YUI.add('ss-smugmug-bulk-edit-tool', function(Y, NAME) {
 								var image = response.AlbumImage[index];
 								
 								//Sanity checks:
-								if (image.Caption === undefined)
+								if (image.Caption === undefined || !image.CanEdit)
 									continue;
 								
 								images.push(image);
@@ -186,7 +186,7 @@ YUI.add('ss-smugmug-bulk-edit-tool', function(Y, NAME) {
 				});
 				
 				queue.enqueueRequest({
-					url: 'http://' + this.get('smugDomain') + '/api/v2/album/' + this.get('albumID') + '!images?_filteruri=Image,ImageSizeDetails&_filter=Caption,Keywords,Title,FileName&_shorturis=',
+					url: 'http://' + this.get('smugDomain') + '/api/v2/album/' + this.get('albumID') + '!images?_filteruri=Image,ImageSizeDetails&_filter=CanEdit,Caption,Keywords,Title,FileName&_shorturis=',
 					data: {
 						_expand: 'ImageSizeDetails',
 						count: 100 /* Page size */
@@ -201,7 +201,12 @@ YUI.add('ss-smugmug-bulk-edit-tool', function(Y, NAME) {
 						}
 
 						imageListSpinner.setStyle("display", "none");
-												
+
+						if (images.length == 0) {
+							imageListContainer.get('childNodes').remove();
+							imageListContainer.append('<div class="alert alert-danger"><strong>This gallery appears to be empty.</strong> Please make sure that you are still logged on to SmugMug.</div>');
+						}
+						
 						that._set('ready', true);
 					},
 					requestFail: function(e) {
@@ -563,7 +568,7 @@ YUI.add('ss-smugmug-bulk-edit-tool', function(Y, NAME) {
 				this.after('imagesAdded', this._renderOnscreenThumbs, this);
 				
 				Y.one('body').plug(Y.Plugin.ScrollInfo, {
-					scrollDelay: 100,
+					scrollDelay: 75,
 					scrollMargin: 100
 		        });
 				Y.one('body').scrollInfo.on('scroll', this._renderOnscreenThumbs, this);
