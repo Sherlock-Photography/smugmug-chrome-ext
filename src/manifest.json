@@ -1,7 +1,7 @@
 {
 	"manifest_version" : 2,
 
-	"name" : "Unofficial SmugMug for Chrome",
+	"name" : "Unofficial SmugMug extension for Chrome",
 	"description" : "Extra features for SmugMug site owners",
 	"version" : "0.4.0.7",
 	"author" : "Nicholas Sherlock of Sherlock Photography",
