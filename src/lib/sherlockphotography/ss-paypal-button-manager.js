@@ -1,6 +1,6 @@
 YUI.add('ss-paypal-button-manager', function(Y, NAME) {
 	var 
-		_regFindInstalledPayPalCode = /<div class="ss-paypal-button">[\s\S]+?<\/div><div class="ss-paypal-button-end" style="[^"]*">\.?<\/div>/,
+		_regFindInstalledPayPalCode = /<div class="ss-paypal-button">[\s\S]+?<\/div><div class="ss-paypal-button-end"(?: style="[^"]*")?>\.?<\/div>/,
 		_regFindInstalledPayPalCodeGlobal = new RegExp(_regFindInstalledPayPalCode.source, "g");
 
 	/* Not to be used for security-critical purposes (not a sanitiser!) */
@@ -344,7 +344,7 @@ YUI.add('ss-paypal-button-manager', function(Y, NAME) {
 				result = 
 					'<div class="ss-paypal-button">' 
 						+ renderedHTML
-					+ '</div><div class="ss-paypal-button-end" style="display:none">';
+					+ '</div><div class="ss-paypal-button-end">';
 				
 			/* 
 			 * A current bug in SmugMug means that a caption which has no text in it after HTML-removal does not get displayed 
