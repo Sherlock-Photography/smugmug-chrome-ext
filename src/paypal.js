@@ -1,12 +1,11 @@
 YUI().use(['node', 'json', 'io', 'event-resize', 'querystring-parse-simple', 'ss-event-log-widget', 'ss-paypal-button-manager',
-           'ss-progress-bar', 'ss-api-smartqueue', 'model', 'event-valuechange'], function(Y) {
+           'ss-progress-bar', 'ss-api-smartqueue', 'model', 'event-valuechange', 'ss-csrf-manager'], function(Y) {
 	var 
 		query = Y.QueryString.parse(location.search.slice(1)),
 		
 		nickname = query.nickname,
 		albumID = query.albumKey,
-		albumName = query.albumName,
-		token = query.token;
+		albumName = query.albumName;
 	
 	if (!/^[a-zA-Z0-9]+$/.test(albumID) || !/^[a-zA-Z0-9-]+$/.test(nickname)) {
 		alert("Bad arguments, please close this page and try again.");
@@ -215,7 +214,7 @@ YUI().use(['node', 'json', 'io', 'event-resize', 'querystring-parse-simple', 'ss
 						method: 'POST',				
 						data: JSON.stringify({
 							Caption: newCaption,
-							_token: token
+							_token: Y.SherlockPhotography.CSRFManager.get('token')
 						}),
 						headers: {
 							'Accept': 'application/json',
@@ -277,7 +276,7 @@ YUI().use(['node', 'json', 'io', 'event-resize', 'querystring-parse-simple', 'ss
 					method: 'POST',				
 					data: JSON.stringify({
 						Caption: newCaption,
-						_token: token
+						_token: Y.SherlockPhotography.CSRFManager.get('token')
 					}),
 					headers: {
 						'Accept': 'application/json',
@@ -442,7 +441,13 @@ YUI().use(['node', 'json', 'io', 'event-resize', 'querystring-parse-simple', 'ss
 				updateButtonPreview();
 			}
 			
-			fetchPhotos();
+			Y.SherlockPhotography.CSRFManager.start(smugDomain, function(token) {
+				if (token) {
+					fetchPhotos();
+				} else {
+					alert("Failed to connect to your SmugMug site! Please press refresh to try again.");
+				}
+			});
 		}
 	});
 });

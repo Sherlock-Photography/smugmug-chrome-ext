@@ -23,6 +23,12 @@
 						trigger: "sm-organizer"
 					}
 				}
+				/*,"ss-upload": {
+					path: "ss-upload.js",
+					condition: {
+						trigger: "sm-upload"
+					}
+				}*/
 			};
 		
 		if (!window.YUI_config) {
