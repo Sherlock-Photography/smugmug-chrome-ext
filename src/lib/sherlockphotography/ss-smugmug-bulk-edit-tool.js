@@ -148,12 +148,15 @@ YUI.add('ss-smugmug-bulk-edit-tool', function(Y, NAME) {
 								images.push(image);
 							
 								if (data.Expansions && data.Expansions[image.Uris.ImageSizeDetails]) {
-									image.ImagePreview = data.Expansions[image.Uris.ImageSizeDetails].ImageSizeDetails.ImageSizeMedium;
+									// Choose a medium preview image, with fallbacks if that size doesn't exist:
+									image.ImagePreview = data.Expansions[image.Uris.ImageSizeDetails].ImageSizeDetails.ImageSizeMedium 
+										|| data.Expansions[image.Uris.ImageSizeDetails].ImageSizeDetails.ImageSizeSmall
+										|| data.Expansions[image.Uris.ImageSizeDetails].ImageSizeDetails.ImageSizeOriginal;
 									
-									if (HIGH_DENSITY_DISPLAY) {
+									if (HIGH_DENSITY_DISPLAY && data.Expansions[image.Uris.ImageSizeDetails].ImageSizeDetails.ImageSizeLarge) {
 										image.ImagePreview.Url = data.Expansions[image.Uris.ImageSizeDetails].ImageSizeDetails.ImageSizeLarge.Url;
 									}
-									
+																		
 									//Only need the URL (not the dimensions) of the thumbnails
 									image.ImageSizeTiny = data.Expansions[image.Uris.ImageSizeDetails].ImageSizeDetails.ImageSizeTiny.Url;
 									image.ImageSizeThumb = data.Expansions[image.Uris.ImageSizeDetails].ImageSizeDetails.ImageSizeThumb.Url;
