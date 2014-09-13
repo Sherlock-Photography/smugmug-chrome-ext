@@ -28,19 +28,22 @@ YUI.add('ss-csrf-manager', function(Y, NAME) {
 				_fetchToken: function(callback) {
 					var that = this;
 					
-					Y.io('http://' + this._domainName + '/api/v2!token', {
-						method: 'POST',
-						headers: {
-							'Accept': 'application/json'
-						},
+					/* 
+					 * SmugMug is now blocking access to the /v2!token API endpoint based on the Origin header, 
+					 * so we'll have to scrape this from the page source instead:
+					 */
+					Y.io('http://' + this._domainName + '/', {
+						method: 'GET',
 						on: {
 							success: function(transactionid, response, arguments) {
-								var newToken = null, data;
+								var newToken = null, matches, pageDetails;
 								
 								try {
-									data = JSON.parse(response.responseText);
-									
-									newToken = data.Response.Token.Token;
+									if ((matches = response.responseText.match(/^\s*Y\.SM\.Page\.init\(([^\n]+)\);$/m))) {
+										pageDetails = JSON.parse(matches[1]);
+										
+										newToken = pageDetails.csrfToken;
+									}									
 								} catch (e) {
 								}
 								
