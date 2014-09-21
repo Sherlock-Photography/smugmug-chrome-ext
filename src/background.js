@@ -21,3 +21,32 @@ chrome.tabs.onUpdated.addListener(function(tabId, changeInfo, tab) {
 		}
 	}
 });
+
+/* 
+ * SmugMug have implemented CORS-like security which checks that the Origin header on requests isn't something nasty, probably
+ * because they plan to enable cross-domain requests against their API.
+ * 
+ * Use the webRequest framework to forge the Origin header by removing it from our requests.
+ */
+
+var
+	requestFilter = {
+		urls : [ "http://*/*" ] /* We'll only actually get to see requests for domains we have permissions for (*.smugmug.com etc) */
+	},
+	extraInfoSpec = [ 'requestHeaders', 'blocking' ],
+	
+	requestHandler = function(details) {
+		var headers = details.requestHeaders, blockingResponse = {};
+	
+		for (var i = 0; i < headers.length; ++i) {
+			if (headers[i].name == 'Origin' && headers[i].value.match(/^chrome-extension:\/\/inekemnikegedobloechehpckmjemoic/)) {
+				headers.splice(i, 1);
+				break;
+			}
+		}
+
+		blockingResponse.requestHeaders = headers;
+		return blockingResponse;
+	};
+
+chrome.webRequest.onBeforeSendHeaders.addListener(requestHandler, requestFilter, extraInfoSpec);

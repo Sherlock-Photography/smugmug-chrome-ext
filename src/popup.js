@@ -51,7 +51,7 @@ function show_popup(tab, hasPermission, domainName) {
 						});
 					} else {
 						chrome.tabs.create({
-							url: 'bulk-edit.html?nickname=' + encodeURIComponent(siteDetail.nickname)
+							url: 'bulk-edit.html?domain=' + encodeURIComponent(domainName[1])
 								+ '&albumKey=' + encodeURIComponent(siteDetail.pageDetails.userNode.RemoteKey)
 								+ '&albumName=' + encodeURIComponent(siteDetail.pageDetails.userNode.Name)
 						});

@@ -26,48 +26,57 @@ YUI.add('ss-csrf-manager', function(Y, NAME) {
 				},
 				
 				_fetchToken: function(callback) {
-					var that = this;
+					var 
+						that = this,
+						done = false;
 					
 					/* 
-					 * SmugMug is now blocking access to the /v2!token API endpoint based on the Origin header, 
-					 * so we'll have to scrape this from the page source instead:
-					 */
-					Y.io('http://' + this._domainName + '/', {
-						method: 'GET',
-						on: {
-							success: function(transactionid, response, arguments) {
-								var newToken = null, matches, pageDetails;
-								
-								try {
-									if ((matches = response.responseText.match(/^\s*Y\.SM\.Page\.init\(([^\n]+)\);$/m))) {
-										pageDetails = JSON.parse(matches[1]);
-										
-										newToken = pageDetails.csrfToken;
-									}									
-								} catch (e) {
+					 * SmugMug is performing CORS authentication on requests made to /api/v2!token, and requests
+					 * with an Origin pointing to our Chrome extension will never be authorised. So pass the request
+					 * on to any SmugMug tabs we have open and have them execute the request for us instead. That'll
+					 * cause the Origin to be correct and pass CORS inspection.
+					 */ 
+					chrome.tabs.query({}, function(tabs) {
+						var i;
+						
+						for (i = 0; i < tabs.length; i++) {
+							chrome.tabs.sendMessage(tabs[i].id, {
+								method: "getToken",
+								domain: that._domainName
+							}, function(response) {
+								if (response && !done) {
+									done = true;
+									
+									var newToken = null;
+									
+									try {
+										newToken = response.Response.Token.Token;
+									} catch(e) {
+									}
+									
+									if (newToken) {
+										done = true;
+										that._set('token', newToken);
+
+										if (callback) {
+											callback(newToken);
+										}
+									}
 								}
-								
-								if (newToken) {
-									that._set('token', newToken);
-								} else {
-									//Don't update the token attribute, just hope that the previous token is still valid.
-									newToken = null;
-								}
-								
-								if (callback) {
-									callback(newToken);
-								}
-							},
-							failure: function() {
-								if (callback) {
-									callback(null);
-								}
-							},
-							end: function() {
-								that._startTimer();								
-							}
+							});
 						}
 					});
+					
+					// Give the requests some time to complete before declaring failure.
+					setTimeout(function() {
+						if (!done && callback) {
+							done = true;
+							callback(null);
+						}
+						
+						//Whether we succeeded or not, schedule the next token fetch  
+						that._startTimer();
+					}, 5000);
 				},
 
 				refreshToken: function() {

@@ -21,15 +21,13 @@ YUI().use(['node', 'json', 'io', 'event-resize', 'querystring-parse-simple', 'ss
 	var 
 		query = Y.QueryString.parse(location.search.slice(1)),
 		
-		nickname = query.nickname,
+		smugDomain = query.domain,
 		albumID = query.albumKey,
 		albumName = query.albumName,
 		
-		smugDomain = nickname + ".smugmug.com",
-		
 		STATUS_CHANGE_EYECATCH_DURATION = 0.33;
 
-	if (!albumID || !/^[a-zA-Z0-9]+$/.test(albumID) || !nickname || !/^[a-zA-Z0-9-]+$/.test(nickname)) {
+	if (!albumID || !/^[a-zA-Z0-9]+$/.test(albumID) || !smugDomain || !/^[.a-zA-Z0-9-]+$/.test(smugDomain)) {
 		alert("Bad arguments, please close this page and try again.");
 		return;
 	}

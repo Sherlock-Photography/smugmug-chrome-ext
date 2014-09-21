@@ -2,18 +2,20 @@
 if (!window.ssSmugmugForChromeAtIdle) {
 	window.ssSmugmugForChromeAtIdle = true;
 	
+	var siteDetailMessage;
+	
 	//Only enable the extension menu if we're the site owner (we'll also use this as a not-a-smugmug-site test)
 	if (document.body.className.indexOf('sm-user-owner') > -1) {
-		var 
-			siteDetailMessage = {
-				nickname: false,
-				loggedIn: true,
-				loggedInUser: false,
-				pageOwner: false,
-				pageDetails: false
-			},
-			scriptTags = document.getElementsByTagName('script');
+		var scriptTags = document.getElementsByTagName('script');
 		
+		siteDetailMessage = {
+			nickname: false,
+			loggedIn: true,
+			loggedInUser: false,
+			pageOwner: false,
+			pageDetails: false
+		};
+	
 		for (var i in scriptTags) {
 			var 
 				script = scriptTags[i],
@@ -46,17 +48,36 @@ if (!window.ssSmugmugForChromeAtIdle) {
 				}
 			}
 		}
-		
-		chrome.extension.onMessage.addListener(function(message, sender, sendResponse) {
-			if (message.method == 'getSiteDetail') {  
-				sendResponse(siteDetailMessage);
-			}
-		});
 	} else {
-		chrome.extension.onMessage.addListener(function(message, sender, sendResponse) {
-			if (message.method == 'getSiteDetail') {  
-				sendResponse({loggedIn: false});
-			}
-		});
+		siteDetailMessage = { 
+			loggedIn: false
+		};
 	}
+	
+	chrome.extension.onMessage.addListener(function(message, sender, sendResponse) {
+		switch (message.method) {
+			case 'getSiteDetail':  
+				sendResponse(siteDetailMessage);
+			break;
+			case 'getToken':
+				if (message.domain == window.location.host) {
+					var req = new XMLHttpRequest();
+					
+					req.onload = function(data) {
+						if (this.status == 200) {
+							sendResponse(JSON.parse(this.responseText));
+						}
+					};
+					
+					req.open("post", "/api/v2!token", true);
+					req.setRequestHeader("Accept", "application/json");
+					req.send();
+					
+					return true; // We will send our response asynchronously
+				}
+			break;
+		}
+	});
+	
+
 }
