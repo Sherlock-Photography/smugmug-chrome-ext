@@ -26,57 +26,45 @@ YUI.add('ss-csrf-manager', function(Y, NAME) {
 				},
 				
 				_fetchToken: function(callback) {
-					var 
-						that = this,
-						done = false;
+					var that = this;
 					
-					/* 
-					 * SmugMug is performing CORS authentication on requests made to /api/v2!token, and requests
-					 * with an Origin pointing to our Chrome extension will never be authorised. So pass the request
-					 * on to any SmugMug tabs we have open and have them execute the request for us instead. That'll
-					 * cause the Origin to be correct and pass CORS inspection.
-					 */ 
-					chrome.tabs.query({}, function(tabs) {
-						var i;
-						
-						for (i = 0; i < tabs.length; i++) {
-							chrome.tabs.sendMessage(tabs[i].id, {
-								method: "getToken",
-								domain: that._domainName
-							}, function(response) {
-								if (response && !done) {
-									done = true;
+					Y.io('http://' + this._domainName + '/api/v2!token', {
+						method: 'POST',
+						headers: {
+							'Accept': 'application/json'
+						},
+						on: {
+							success: function(transactionid, response, arguments) {
+								var newToken = null, data;
+								
+								try {
+									data = JSON.parse(response.responseText);
 									
-									var newToken = null;
-									
-									try {
-										newToken = response.Response.Token.Token;
-									} catch(e) {
-									}
-									
-									if (newToken) {
-										done = true;
-										that._set('token', newToken);
-
-										if (callback) {
-											callback(newToken);
-										}
-									}
+									newToken = data.Response.Token.Token;
+								} catch (e) {
 								}
-							});
+								
+								if (newToken) {
+									that._set('token', newToken);
+								} else {
+									//Don't update the token attribute, just hope that the previous token is still valid.
+									newToken = null;
+								}
+								
+								if (callback) {
+									callback(newToken);
+								}
+							},
+							failure: function() {
+								if (callback) {
+									callback(null);
+								}
+							},
+							end: function() {
+								that._startTimer();								
+							}
 						}
 					});
-					
-					// Give the requests some time to complete before declaring failure.
-					setTimeout(function() {
-						if (!done && callback) {
-							done = true;
-							callback(null);
-						}
-						
-						//Whether we succeeded or not, schedule the next token fetch  
-						that._startTimer();
-					}, 5000);
 				},
 
 				refreshToken: function() {

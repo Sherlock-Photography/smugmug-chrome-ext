@@ -3,7 +3,7 @@
  * adding the "tabs" permission, we rely on permissions exceptions being thrown instead!).
  */
 function swallowErrors() {
-	
+	chrome.runtime.lastError; // If we don't read lastError, Chrome squawks in the console
 }
 
 chrome.tabs.onUpdated.addListener(function(tabId, changeInfo, tab) {
@@ -38,13 +38,18 @@ var
 	requestHandler = function(details) {
 		var headers = details.requestHeaders, blockingResponse = {};
 	
-		for (var i = 0; i < headers.length; ++i) {
-			if (headers[i].name == 'Origin' && headers[i].value.match(/^chrome-extension:\/\/inekemnikegedobloechehpckmjemoic/)) {
-				headers.splice(i, 1);
-				break;
+		// The Origin header is only checked on POST/PATCH requests
+		if (details.method == 'POST' || details.method == 'PATCH') {
+			for (var i = 0; i < headers.length; ++i) {
+				if (headers[i].name == 'Origin' && headers[i].value.match(/^chrome-extension:\/\/inekemnikegedobloechehpckmjemoic/) ||
+						headers[i].value.match(/^chrome-extension:\/\/ifabodhdkjnhjbcdkdfjkboidifjneia/) ||
+						headers[i].value.match(/^chrome-extension:\/\/acobflahofemoblocddilbgnokclnphd/)) {
+					headers.splice(i, 1);
+					break;
+				}
 			}
 		}
-
+		
 		blockingResponse.requestHeaders = headers;
 		return blockingResponse;
 	};

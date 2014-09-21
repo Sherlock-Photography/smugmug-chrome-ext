@@ -59,23 +59,6 @@ if (!window.ssSmugmugForChromeAtIdle) {
 			case 'getSiteDetail':  
 				sendResponse(siteDetailMessage);
 			break;
-			case 'getToken':
-				if (message.domain == window.location.host) {
-					var req = new XMLHttpRequest();
-					
-					req.onload = function(data) {
-						if (this.status == 200) {
-							sendResponse(JSON.parse(this.responseText));
-						}
-					};
-					
-					req.open("post", "/api/v2!token", true);
-					req.setRequestHeader("Accept", "application/json");
-					req.send();
-					
-					return true; // We will send our response asynchronously
-				}
-			break;
 		}
 	});
 	
