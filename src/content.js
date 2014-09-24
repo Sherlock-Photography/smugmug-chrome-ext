@@ -19,27 +19,21 @@ if (!window.ssSmugmugForChromeAtIdle) {
 		for (var i in scriptTags) {
 			var 
 				script = scriptTags[i],
-				matches,
-				code;
+				matches, code, SM;
 			
 			if (!script.src && (code = script.innerHTML)) {
-				//Super rough, but should work:
-				if (!siteDetailMessage.loggedInUser && (matches = code.match(/SM\.env\.loggedInUser\s*=\s*({[^\n}]+});/))) {
+				if ((matches = code.match(/^\s*var (SM\s*=\s*\{[^\n]+\};)$/m))) {
 					try {
-						siteDetailMessage.loggedInUser = JSON.parse(matches[1]);
-					} catch (e) {
-						//Not critical that we have this information
-					}
-				}
-				if (!siteDetailMessage.pageOwner && (matches = code.match(/SM\.env\.pageOwner\s*=\s*({[^\n}]+});/))) {
-					try {
-						siteDetailMessage.pageOwner = JSON.parse(matches[1]);
-						siteDetailMessage.nickname = siteDetailMessage.pageOwner.nickName; 
+						eval(matches[0]); //Since it isn't JSON due to missing quotes, we can't use that cleanly
 					} catch (e) {
 					}
-				}
-			
-				if ((matches = code.match(/^\s*Y\.SM\.Page\.init\(([^\n]+)\);$/m))) {
+					
+					if (SM) {
+						siteDetailMessage.loggedInUser = SM.env.loggedInUser;
+						siteDetailMessage.pageOwner = SM.env.pageOwner;
+						siteDetailMessage.nickname = siteDetailMessage.pageOwner.nickName;
+					}
+				} else if ((matches = code.match(/^\s*Y\.SM\.Page\.init\(([^\n]+)\);$/m))) {
 					try {
 						siteDetailMessage.pageDetails = JSON.parse(matches[1]);
 					} catch (e) {
