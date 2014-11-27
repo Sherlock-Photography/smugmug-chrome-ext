@@ -171,6 +171,7 @@ YUI.add('ss-paypal-button-manager', function(Y, NAME) {
 					urlData = Y.merge(button.hidden, {
 						item_name : (item_name || "").slice(0, 127), /* PayPal only supports 127 characters for these fields */
 						item_number : (item_number || "").slice(0, 127),
+						charset: "utf-8",
 						submit : ""
 					}),
 					/*uniqueID = Y.Crypto.MD5(Y.JSON.stringify(urlData)).slice(0, 6), */
