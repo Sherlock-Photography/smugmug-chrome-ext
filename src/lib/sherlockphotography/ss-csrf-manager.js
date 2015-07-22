@@ -31,7 +31,8 @@ YUI.add('ss-csrf-manager', function(Y, NAME) {
 					Y.io('http://' + this._domainName + '/api/v2!token', {
 						method: 'POST',
 						headers: {
-							'Accept': 'application/json'
+							'Accept': 'application/json',
+							'x-requested-with': null
 						},
 						on: {
 							success: function(transactionid, response, arguments) {
@@ -61,7 +62,7 @@ YUI.add('ss-csrf-manager', function(Y, NAME) {
 								}
 							},
 							end: function() {
-								that._startTimer();								
+								that._startTimer();
 							}
 						}
 					});

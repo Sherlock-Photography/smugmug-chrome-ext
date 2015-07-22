@@ -1,7 +1,9 @@
+"use strict";
+
 function show_popup(tab, hasPermission, domainName) {
 	if (!hasPermission) {
-		document.getElementById("hasnt-permission").style.display = "block";					
-		document.getElementById("custom-domain-name").textContent = domainName[1]; 
+		document.getElementById("hasnt-permission").style.display = "block";
+		document.getElementById("custom-domain-name").textContent = domainName[1];
 	}
 	
 	chrome.tabs.sendMessage(tab.id, {method:"getSiteDetail"}, function(siteDetail) {
@@ -19,8 +21,15 @@ function show_popup(tab, hasPermission, domainName) {
 			};
 			
 			document.getElementById("list-galleries").onclick = function() {
+				var
+					customDomain = false;
+				
+				if (siteDetail.loggedInUser && siteDetail.loggedInUser.homepage) {
+					customDomain = siteDetail.loggedInUser.homepage.replace("http://", "").replace("https://", "");
+				}
+				
 				chrome.tabs.create({
-					url: 'list-galleries.html?nickname=' + encodeURIComponent(siteDetail.nickname) + (siteDetail.loggedInUser && siteDetail.loggedInUser.homepage ? "&customDomain=" + encodeURIComponent(siteDetail.loggedInUser.homepage.replace("http://", "")) : "")
+					url: 'list-galleries.html?nickname=' + encodeURIComponent(siteDetail.nickname) + "&customDomain=" + encodeURIComponent(customDomain)
 				});
 				
 				return false;
@@ -67,7 +76,7 @@ function show_popup(tab, hasPermission, domainName) {
 					//Attempt to parse the key of the currently selected photo out of the URL, so we can crop that photo
 					
 					var 
-						matches = tab.url.match(/^http:\/\/[^\/]+(\/.*?)(?:\/i-([a-zA-Z0-9]+))?(?:\/(A|S|M|L|XL|X2|X3|320|640|960|1280|1920|O|Buy))?(\?[^#]*)?(#.*)?$/),
+						matches = tab.url.match(/^https?:\/\/[^\/]+(\/.*?)(?:\/i-([a-zA-Z0-9]+))?(?:\/(A|S|M|L|XL|X2|X3|320|640|960|1280|1920|O|Buy))?(\?[^#]*)?(#.*)?$/),
 						
 						match_gallery_url = matches[1],
 						match_image_key = matches[2],
@@ -96,7 +105,7 @@ function show_popup(tab, hasPermission, domainName) {
 						});
 						
 						window.close();
-					}					
+					}
 
 					//Clear error message
 					report_crop_thumbnail_tool_error("");
@@ -114,14 +123,14 @@ function show_popup(tab, hasPermission, domainName) {
 									imagekey: match_image_key
 								},
 								on: {
-									success: function(transactionid, response, arguments) {
+									success: function(transactionid, response, args) {
 										try {
 											var data = JSON.parse(response.responseText);
 											
 											open_crop_thumbnail_tool(data.Response.Image.UploadKey, match_image_key);
 										} catch (e) {
 											report_crop_thumbnail_tool_error();
-										}									
+										}
 									},
 									failure: function() {
 										report_crop_thumbnail_tool_error();
@@ -137,7 +146,7 @@ function show_popup(tab, hasPermission, domainName) {
 									'Accept': 'application/json'
 								},
 								on: {
-									success: function(transactionid, response, arguments) {
+									success: function(transactionid, response, args) {
 										try {
 											var data = JSON.parse(response.responseText);
 											
@@ -182,13 +191,13 @@ function show_popup(tab, hasPermission, domainName) {
 						if (granted) {
 							location.reload();
 						}
-					});				
+					});
 	
 					e.preventDefault();
 	
 					return false;
 				};
-			}						
+			}
 		}
 	});
 }
@@ -203,11 +212,11 @@ function connectWithPage() {
 				document.getElementById("tab-loading").style.display = "none";
 				
 				var 
-					domainName = tab.url.match(/^http:\/\/([^/]+)\//);
+					domainName = tab.url.match(/^https?:\/\/([^/]+)\//);
 	
 				if (domainName) {
 					//We always have permission for *.smugmug.com domains
-					if (tab.url.match(/^http:\/\/(?:www\.)?([^.]+)\.smugmug\.com\//)) {
+					if (tab.url.match(/^https?:\/\/(?:www\.)?([^.]+)\.smugmug\.com\//)) {
 						show_popup(tab, true, domainName);
 					} else {
 						//Assume we're on a custom domain name, so check that we have permission for it

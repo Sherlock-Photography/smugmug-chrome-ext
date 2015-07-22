@@ -31,7 +31,7 @@ chrome.tabs.onUpdated.addListener(function(tabId, changeInfo, tab) {
 
 var
 	requestFilter = {
-		urls : [ "http://*/*" ] /* We'll only actually get to see requests for domains we have permissions for (*.smugmug.com etc) */
+		urls : [ "http://*/*", "https://*/*" ] /* We'll only actually get to see requests for domains we have permissions for (*.smugmug.com etc) */
 	},
 	extraInfoSpec = [ 'requestHeaders', 'blocking' ],
 	
@@ -41,7 +41,7 @@ var
 		// The Origin header is only checked on POST/PATCH requests
 		if (details.method == 'POST' || details.method == 'PATCH') {
 			for (var i = 0; i < headers.length; ++i) {
-				if (headers[i].name == 'Origin' && headers[i].value.match(/^chrome-extension:\/\/inekemnikegedobloechehpckmjemoic/) ||
+				if (headers[i].name == 'Origin' && headers[i].value.match(/^chrome-extension:\/\/ninadcapimgifcnahdjbdaolfcnnlcjk/) ||
 						headers[i].value.match(/^chrome-extension:\/\/ifabodhdkjnhjbcdkdfjkboidifjneia/) ||
 						headers[i].value.match(/^chrome-extension:\/\/acobflahofemoblocddilbgnokclnphd/)) {
 					headers.splice(i, 1);

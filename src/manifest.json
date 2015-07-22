@@ -3,14 +3,14 @@
 
 	"name" : "Unofficial SmugMug extension for Chrome",
 	"description" : "Extra features for SmugMug site owners",
-	"version" : "0.4.0.14",
+	"version" : "0.4.1",
 	"author" : "Nicholas Sherlock of Sherlock Photography",
 
 	"content_security_policy" : "script-src 'self' 'unsafe-eval'; object-src 'self'",
 
-	"permissions" : [ "http://*.smugmug.com/", "activeTab", "storage", "webRequest", "webRequestBlocking" ],
+	"permissions" : [ "https://*.smugmug.com/", "http://*.smugmug.com/", "activeTab", "storage", "webRequest", "webRequestBlocking" ],
 	
-	"optional_permissions": [ "http://*/"],
+	"optional_permissions": [ "http://*/", "https://*/" ],
 
 	"background" : {
 		"scripts" : [ "background.js" ]

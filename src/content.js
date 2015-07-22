@@ -50,7 +50,7 @@ if (!window.ssSmugmugForChromeAtIdle) {
 	
 	chrome.extension.onMessage.addListener(function(message, sender, sendResponse) {
 		switch (message.method) {
-			case 'getSiteDetail':  
+			case 'getSiteDetail':
 				sendResponse(siteDetailMessage);
 			break;
 		}
