@@ -74,6 +74,17 @@ YUI().use(['node', 'json', 'io', 'event-resize', 'querystring-parse-simple', 'ss
 					mode: 'text/css',
 					readOnly: false,
 					lineWrapping: false
+				}),
+				
+				cmCSV = CodeMirror(outputCSV.getDOMNode(), {
+					mode: 'text/plain',
+					readOnly: false,
+					lineWrapping: false
+				}),
+				cmHTML = CodeMirror(outputHTML.getDOMNode(), {
+					mode: 'text/html',
+					readOnly: false,
+					lineWrapping: false
 				});
 
 			Y.one('#btn-list-save').on('click', function(e) {
@@ -82,22 +93,9 @@ YUI().use(['node', 'json', 'io', 'event-resize', 'querystring-parse-simple', 'ss
 
 				selectedNodes = galleryListView.get('selectedNodes');
 
-				outputCSV.get('childNodes').remove();
-				outputHTML.get('childNodes').remove();
+				cmCSV.setValue(Y.SherlockPhotography.SmugmugGalleryList.renderAsCSV(selectedNodes, selectedColumns));
+				cmHTML.setValue(Y.SherlockPhotography.SmugmugGalleryList.renderAsHTML(selectedNodes, window.localStorage["galleryList.htmlUsePermalinks"] == "1"));
 				
-				cmCSV = CodeMirror(outputCSV.getDOMNode(), {
-					value: Y.SherlockPhotography.SmugmugGalleryList.renderAsCSV(selectedNodes, selectedColumns),
-					mode: 'text/plain',
-					readOnly: false,
-					lineWrapping: false
-				}),
-				cmHTML = CodeMirror(outputHTML.getDOMNode(), {
-					value: Y.SherlockPhotography.SmugmugGalleryList.renderAsHTML(selectedNodes, window.localStorage["galleryList.htmlUsePermalinks"] == "1"),
-					mode: 'text/html',
-					readOnly: false,
-					lineWrapping: false
-				});
-								
 				if (Y.SherlockPhotography.SmugmugGalleryList.nodelistContainsUnlistedOrPrivatePages(selectedNodes)) {
 					Y.one('#tab-html-private-warning').setStyle('display', 'block');
 				} else {
@@ -122,14 +120,14 @@ YUI().use(['node', 'json', 'io', 'event-resize', 'querystring-parse-simple', 'ss
 			});
 			
 			Y.one('#btn-save-csv').on('click', function(e) {
-				var blob = new Blob([outputCSV.get('text')], {type: "text/csv;charset=utf-8"});
+				var blob = new Blob([cmCSV.getValue()], {type: "text/csv;charset=utf-8"});
 				saveAs(blob, 'Gallery list ' + nickname + ' ' + Y.Date.format(new Date(), {format:"%Y-%m-%d %H%M%S"}) + ".csv");
 				
 				e.preventDefault();
 			});
 			
 			Y.one('#btn-save-html').on('click', function(e) {
-				var blob = new Blob([outputHTML.get('text')], {type: "text/html;charset=utf-8"});
+				var blob = new Blob([cmHTML.getValue()], {type: "text/html;charset=utf-8"});
 				saveAs(blob, 'Gallery list ' + nickname + ' ' + Y.Date.format(new Date(), {format:"%Y-%m-%d %H%M%S"}) + ".html");
 				
 				e.preventDefault();
