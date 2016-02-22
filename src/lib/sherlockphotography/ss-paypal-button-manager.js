@@ -12,6 +12,10 @@ YUI.add('ss-paypal-button-manager', function(Y, NAME) {
 		return text.replace(/(\r\n|\n|\r)/gm, " ");
 	}
 	
+	function escapeRegExp(str) {
+		return str.replace(/[\-\[\]\/\{\}\(\)\*\+\?\.\\\^\$\|]/g, "\\$&");
+	}
+	
 	var PayPalButtonManager = Y.Base.create(NAME, Y.Base, [], {}, {
 		_parsePayPalForm: function(form) {
 			var button = {
@@ -67,9 +71,30 @@ YUI.add('ss-paypal-button-manager', function(Y, NAME) {
 			form.setAttribute('data-button', Y.JSON.stringify(button));
 		},
 		
-		_substituteVariablesInText: function(text, map, urlencode) {
+		_substituteVariablesInText: function(text, map) {
 			for (var key in map) {
-				text = text.replace("$" + key, urlencode ? encodeURIComponent(map[key]) : map[key]);
+				text = text.replace("$" + key, map[key]);
+			}
+			
+			return text;
+		},
+		
+		/**
+		 * For replacing variable placeholders in a URL string (e.g. <a> href).
+		 *
+		 * Replacement text will be URL-encoded, unless the replacement text starts with a protocol, and the placeholder
+		 * appears at the beginning of "text" (to allow absolute URLs to be supplied using a placeholder)
+		 */
+		_substituteVariablesInURL: function(text, replacements) {
+			for (var varName in replacements) {
+				var
+					replacement = replacements[varName];
+				
+				if (/^https?:\/\//i.test(replacement)) {
+					text = text.replace(new RegExp("^" + escapeRegExp("$" + varName)), replacement);
+				}
+				
+				text = text.replace("$" + varName, encodeURIComponent(replacement));
 			}
 			
 			return text;
@@ -88,10 +113,10 @@ YUI.add('ss-paypal-button-manager', function(Y, NAME) {
 						//Element
 						switch (child.get("tagName").toUpperCase()) {
 							case "A":
-								child.setAttribute("href", that._substituteVariablesInText(child.getAttribute("href"), map, true));
+								child.setAttribute("href", that._substituteVariablesInURL(child.getAttribute("href"), map));
 								break;
 							case "FORM":
-								child.setAttribute("action", that._substituteVariablesInText(child.getAttribute("action"), map, true));
+								child.setAttribute("action", that._substituteVariablesInText(child.getAttribute("action"), map));
 								break;
 							case "INPUT":
 								child.setAttribute("value", that._substituteVariablesInText(child.getAttribute("value"), map));
