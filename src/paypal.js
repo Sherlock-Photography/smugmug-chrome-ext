@@ -159,8 +159,12 @@ YUI().use(['node', 'json', 'io', 'event-resize', 'querystring-parse-simple', 'ss
 				statusDisplay.set('text', 'You must click the link "remove code protection" that appears in the final stage of creating your button.');
 			} else {
 				payPalCode = Y.Node.create(code);
-				Y.SherlockPhotography.PayPalButtonManager.parsePayPalCode(payPalCode);
-				payPalCodeIsValid = true;					
+				
+				if (payPalCode) {
+					Y.SherlockPhotography.PayPalButtonManager.parsePayPalCode(payPalCode);
+					
+					payPalCodeIsValid = true;
+				}
 			}
 			
 			if (payPalCodeIsValid) {
