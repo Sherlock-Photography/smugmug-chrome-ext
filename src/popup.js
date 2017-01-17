@@ -70,6 +70,107 @@ function show_popup(tab, hasPermission, domainName) {
 				};
 				
 				document.getElementById("just-this-page").style.display = "block";
+				
+				document.getElementById("edit-thumbnails").onclick = function(e) {
+
+					//Attempt to parse the key of the currently selected photo out of the URL, so we can crop that photo
+					
+					var 
+						matches = tab.url.match(/^https?:\/\/[^\/]+(\/.*?)(?:\/i-([a-zA-Z0-9]+))?(?:\/(A|S|M|L|XL|X2|X3|320|640|960|1280|1920|O|Buy))?(\?[^#]*)?(#.*)?$/),
+						
+						match_gallery_url = matches[1],
+						match_image_key = matches[2],
+						match_lightbox_size = matches[3];
+					
+					// Ensure gallery URL ends in a slash
+					if (match_gallery_url && !match_gallery_url.match(/\/$/)) {
+						match_gallery_url += '/';
+					}
+					
+					function report_crop_thumbnail_tool_error(message) {
+						if (message === undefined) {
+							message = "Failed to look up details about that photo in order to crop it, please try again.";
+						}
+						
+						document.getElementById("edit-thumbnails-error").innerText = message;
+					}
+					
+					function open_crop_thumbnail_tool(imageID, imageKey) {
+						chrome.tabs.update({
+							url: 'http://' + domainName[1] + '/photos/tools/crop.mg?' +
+								'ImageID=' + encodeURIComponent(imageID) +
+								'&ImageKey=' + encodeURIComponent(imageKey) +
+								'&tool=newthumb' +
+								'&url=' + encodeURIComponent('http://' + domainName[1] + match_gallery_url + '#!i=' + imageID + '&k=' + imageKey)
+						});
+						
+						window.close();
+					}
+
+					//Clear error message
+					report_crop_thumbnail_tool_error("");
+					
+					YUI().use(['io'], function(Y) {
+						if (match_image_key) {
+							//Identify the image ID to go with the key of the selected image we identified
+							
+							Y.io('http://' + domainName[1] + '/api/v2/image!imagekeylookup?_filter=UploadKey&_shorturis=', {
+								method: 'GET',
+								headers: {
+									'Accept': 'application/json'
+								},
+								data: {
+									imagekey: match_image_key
+								},
+								on: {
+									success: function(transactionid, response, args) {
+										try {
+											var data = JSON.parse(response.responseText);
+											
+											open_crop_thumbnail_tool(data.Response.Image.UploadKey, match_image_key);
+										} catch (e) {
+											report_crop_thumbnail_tool_error();
+										}
+									},
+									failure: function() {
+										report_crop_thumbnail_tool_error();
+									}
+								}
+							});
+						} else {
+							//We don't have a photo open, so just crop the first photo in the album
+							
+							Y.io('http://' + domainName[1] + '/api/v2/album/' + siteDetail.pageDetails.userNode.RemoteKey + '!images?count=1&_filter=UploadKey,Uri&_shorturis=', {
+								method: 'GET',
+								headers: {
+									'Accept': 'application/json'
+								},
+								on: {
+									success: function(transactionid, response, args) {
+										try {
+											var data = JSON.parse(response.responseText);
+											
+											if (data.Response.AlbumImage) {
+												open_crop_thumbnail_tool(data.Response.AlbumImage[0].UploadKey, data.Response.AlbumImage[0].Uri.match(/\/([a-zA-Z0-9]+)(-\d+)?$/)[1]);
+											} else {
+												report_crop_thumbnail_tool_error("This gallery seems to be empty, no thumbnails found to crop.");												
+											}
+										} catch (e) {
+											report_crop_thumbnail_tool_error();
+										}									
+									},
+									failure: function() {
+										report_crop_thumbnail_tool_error();
+									}
+								}
+							});						
+						}
+					});
+
+					e.preventDefault();
+					
+					return false;
+				};
 			}
 
 			if (hasPermission) {
