@@ -1,13 +1,3 @@
-/* ss-lightbox-view-collected */
-
-.ss-lightbox-image-collection-info { 
-	position:absolute; 
-	right:0px; 
-	padding:10px 15px; 
-	bottom:50px; 
-	z-index:4;
-}
-
 /* ss-tile-base-view-collected */
 
 .ss-tile-collected .sm-tile-status,
