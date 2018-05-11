@@ -93,7 +93,7 @@ YUI.add('ss-smugmug-site-backup', function(Y, NAME) {
 				
 				for (var siteDesignID in siteDesigns) {
 					queue.enqueueRequest({
-						url: 'http://' + this.get('smugmugDomain') + '/services/api/json/1.4.0/',
+						url: 'https://' + this.get('smugmugDomain') + '/services/api/json/1.4.0/',
 						data: {
 							SiteDesignID: siteDesignID,
 							method:'rpc.sitedesign.get'	
@@ -123,7 +123,7 @@ YUI.add('ss-smugmug-site-backup', function(Y, NAME) {
 				var 
 					logProgress = this.get('eventLog').appendLog('info', "Fetching all customised page designs..."),
 					that = this,
-					apiEndpoint = 'http://' + this.get('smugmugDomain') + '/services/api/json/1.4.0/',
+					apiEndpoint = 'https://' + this.get('smugmugDomain') + '/services/api/json/1.4.0/',
 					pageDesigns = this._backup.pageDesigns;
 				
 				var queue = new Y.SherlockPhotography.APISmartQueue({
@@ -213,7 +213,7 @@ YUI.add('ss-smugmug-site-backup', function(Y, NAME) {
 				
 				for (var siteDesignID in siteDesigns) {
 					queue.enqueueRequest({
-						url: 'http://' + this.get('smugmugDomain') + '/services/api/json/1.4.0/',
+						url: 'https://' + this.get('smugmugDomain') + '/services/api/json/1.4.0/',
 						data: {
 							SiteDesignID: siteDesignID,
 							method:'rpc.sitepagedesigns.getforsitedesign'	
@@ -294,7 +294,7 @@ YUI.add('ss-smugmug-site-backup', function(Y, NAME) {
 					responseType: 'html'
 				});
 				
-				var newURLPrefix = 'http://' + that.get('smugmugDomain');
+				var newURLPrefix = 'https://' + that.get('smugmugDomain');
 				
 				for (var nodeID in nodes) {
 					var node = nodes[nodeID];
@@ -368,7 +368,7 @@ YUI.add('ss-smugmug-site-backup', function(Y, NAME) {
 					responseType: 'html'
 				});
 				
-				var urlPrefix = 'http://' + this.get('smugmugDomain');
+				var urlPrefix = 'https://' + this.get('smugmugDomain');
 				
 				for (var index in systemURLs) {
 					queue.enqueueRequest({

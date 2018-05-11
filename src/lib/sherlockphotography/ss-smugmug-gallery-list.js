@@ -51,7 +51,7 @@ YUI.add('ss-smugmug-gallery-list', function(Y, NAME) {
 					
 					//Switch the gallery URL to our custom domain name if we can
 					if (customDomain) {
-						treeRoot.nodeData.Url = treeRoot.nodeData.Url.replace(new RegExp("^http://" + escapeRegExp(nickName) + "\.smugmug\.com"), 'http://' + customDomain);
+						treeRoot.nodeData.Url = treeRoot.nodeData.Url.replace(new RegExp("^https?://" + escapeRegExp(nickName) + "\.smugmug\.com"), 'https://' + customDomain);
 					}
 					
 					treeRoot.nodeData.Permalink = Y.SherlockPhotography.SmugmugTools.createGalleryPermalink(treeRoot.nodeData);

@@ -17,7 +17,7 @@ YUI().use(['node', 'json', 'io', 'event-resize', 'querystring-parse-simple', 'ss
 		backupView = null;
 	
 	//Sorry, this is the best I can do on Chrome! (it doesn't allow User-Agent to be changed)
-	Y.io.header('X-User-Agent', 'Unofficial SmugMug extension for Chrome v0.1 / I\'m in ur server, exfiltrating ur data / n.sherlock@gmail.com');
+	Y.io.header('X-User-Agent', 'Unofficial SmugMug extension for Chrome v0.1 / n.sherlock@gmail.com');
 	
 	function adjustPaneSize() {
 		var 

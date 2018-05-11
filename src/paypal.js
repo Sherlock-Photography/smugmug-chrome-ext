@@ -20,7 +20,7 @@ YUI().use(['node', 'json', 'io', 'event-resize', 'querystring-parse-simple', 'ss
 		imageListSpinner = null,
 	
 		sampleImage = new Y.Model({
-			WebUri: 'http://www.example.com/Example-gallery/i-laJ82c',
+			WebUri: 'https://www.example.com/Example-gallery/i-laJ82c',
 			Title: 'Example title',
 			Caption: 'Example caption',
 			FileName: 'example.jpg',
@@ -103,7 +103,7 @@ YUI().use(['node', 'json', 'io', 'event-resize', 'querystring-parse-simple', 'ss
 
 					if (response.Pages && response.Pages.NextPage) {
 						queue.enqueueRequest({
-							url: 'http://' + smugDomain + response.Pages.NextPage,
+							url: 'https://' + smugDomain + response.Pages.NextPage,
 							headers: {'Accept': 'application/json'},
 						});
 						queue.run();
@@ -116,7 +116,7 @@ YUI().use(['node', 'json', 'io', 'event-resize', 'querystring-parse-simple', 'ss
 		});
 		
 		queue.enqueueRequest({
-			url: 'http://' + smugDomain + '/api/v2/album/' + albumID + '!images',
+			url: 'https://' + smugDomain + '/api/v2/album/' + albumID + '!images',
 			data: {
 				count: 100 /* Page size */
 			},
@@ -214,7 +214,7 @@ YUI().use(['node', 'json', 'io', 'event-resize', 'querystring-parse-simple', 'ss
 			if (newCaption != oldCaption) {
 				if (Y.SherlockPhotography.PayPalButtonManager.containsSSPayPalButton(newCaption)) {
 					queue.enqueueRequest({
-						url: 'http://' + smugDomain + image.get('Uris').Image.Uri + '?_method=PATCH',
+						url: 'https://' + smugDomain + image.get('Uris').Image.Uri + '?_method=PATCH',
 						method: 'POST',				
 						data: JSON.stringify({
 							Caption: newCaption,
@@ -276,7 +276,7 @@ YUI().use(['node', 'json', 'io', 'event-resize', 'querystring-parse-simple', 'ss
 				newCaption = Y.SherlockPhotography.PayPalButtonManager.removeSSPayPalButtons(oldCaption);
 			
 				queue.enqueueRequest({
-					url: 'http://' + smugDomain + image.get('Uris').Image.Uri + '?_method=PATCH',
+					url: 'https://' + smugDomain + image.get('Uris').Image.Uri + '?_method=PATCH',
 					method: 'POST',				
 					data: JSON.stringify({
 						Caption: newCaption,

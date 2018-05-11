@@ -54,7 +54,7 @@ function show_popup(tab, hasPermission, domainName) {
 				bulkEditBeta.onclick = function(e) {
 					if (e.shiftKey) {
 						chrome.tabs.create({
-							url: 'http://' + domainName[1] + '/photos/tools.mg?pageType=Album&tool=bulkcaption&AlbumID=' + encodeURIComponent(siteDetail.pageDetails.userNode.RemoteID)
+							url: 'https://' + domainName[1] + '/photos/tools.mg?pageType=Album&tool=bulkcaption&AlbumID=' + encodeURIComponent(siteDetail.pageDetails.userNode.RemoteID)
 								+ '&AlbumKey=' + encodeURIComponent(siteDetail.pageDetails.userNode.RemoteKey)
 								+ '&url='+ encodeURIComponent(tab.url)
 						});
@@ -97,11 +97,11 @@ function show_popup(tab, hasPermission, domainName) {
 					
 					function open_crop_thumbnail_tool(imageID, imageKey) {
 						chrome.tabs.update({
-							url: 'http://' + domainName[1] + '/photos/tools/crop.mg?' +
+							url: 'https://' + domainName[1] + '/photos/tools/crop.mg?' +
 								'ImageID=' + encodeURIComponent(imageID) +
 								'&ImageKey=' + encodeURIComponent(imageKey) +
 								'&tool=newthumb' +
-								'&url=' + encodeURIComponent('http://' + domainName[1] + match_gallery_url + '#!i=' + imageID + '&k=' + imageKey)
+								'&url=' + encodeURIComponent('https://' + domainName[1] + match_gallery_url + '#!i=' + imageID + '&k=' + imageKey)
 						});
 						
 						window.close();
@@ -114,7 +114,7 @@ function show_popup(tab, hasPermission, domainName) {
 						if (match_image_key) {
 							//Identify the image ID to go with the key of the selected image we identified
 							
-							Y.io('http://' + domainName[1] + '/api/v2/image!imagekeylookup?_filter=UploadKey&_shorturis=', {
+							Y.io('https://' + domainName[1] + '/api/v2/image!imagekeylookup?_filter=UploadKey&_shorturis=', {
 								method: 'GET',
 								headers: {
 									'Accept': 'application/json'
@@ -140,7 +140,7 @@ function show_popup(tab, hasPermission, domainName) {
 						} else {
 							//We don't have a photo open, so just crop the first photo in the album
 							
-							Y.io('http://' + domainName[1] + '/api/v2/album/' + siteDetail.pageDetails.userNode.RemoteKey + '!images?count=1&_filter=UploadKey,Uri&_shorturis=', {
+							Y.io('https://' + domainName[1] + '/api/v2/album/' + siteDetail.pageDetails.userNode.RemoteKey + '!images?count=1&_filter=UploadKey,Uri&_shorturis=', {
 								method: 'GET',
 								headers: {
 									'Accept': 'application/json'

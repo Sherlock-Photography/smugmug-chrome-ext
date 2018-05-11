@@ -545,7 +545,7 @@ YUI.add('ss-smugmug-backup-view', function(Y, NAME) {
 							for (var index in images) {
 								var 
 									image = images[index],
-									url = 'http://photos.smugmug.com/photos/' + image.replace('-', '_') + '-S.jpg';
+									url = 'https://photos.smugmug.com/photos/' + image.replace('-', '_') + '-S.jpg';
 								
 								valueRendered += '<li style="background-image:url(' + Y.Escape.html(url) + ')"></li>';
 							}
@@ -560,9 +560,9 @@ YUI.add('ss-smugmug-backup-view', function(Y, NAME) {
 						var url;
 						
 						if (!item.value.imageID) {
-							url = 'http://photos.smugmug.com/photos/' + item.value.replace('-', '_') + '-S.jpg';
+							url = 'https://photos.smugmug.com/photos/' + item.value.replace('-', '_') + '-S.jpg';
 						} else {
-							url = 'http://photos.smugmug.com/photos/' + item.value.imageID + '_' + item.value.imageKey + '-S.jpg';
+							url = 'https://photos.smugmug.com/photos/' + item.value.imageID + '_' + item.value.imageKey + '-S.jpg';
 						}
 						
 						valueRendered = '<img class="smugmug-image" src="' + Y.Escape.html(url) + '">';

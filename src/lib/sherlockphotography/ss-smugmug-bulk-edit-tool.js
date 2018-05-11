@@ -171,7 +171,7 @@ YUI.add('ss-smugmug-bulk-edit-tool', function(Y, NAME) {
 							
 							if (response.Pages && response.Pages.NextPage) {
 								queue.enqueueRequest({
-									url: 'http://' + that.get('smugDomain') + response.Pages.NextPage,
+									url: 'https://' + that.get('smugDomain') + response.Pages.NextPage,
 									//Pages URL doesn't include _expand for us for some reason
 									data: {
 										_expand: 'ImageSizeDetails',
@@ -189,7 +189,7 @@ YUI.add('ss-smugmug-bulk-edit-tool', function(Y, NAME) {
 				});
 				
 				queue.enqueueRequest({
-					url: 'http://' + this.get('smugDomain') + '/api/v2/album/' + this.get('albumID') + '!images?_filteruri=Image,ImageSizeDetails&_filter=CanEdit,Caption,Keywords,Title,FileName&_shorturis=',
+					url: 'https://' + this.get('smugDomain') + '/api/v2/album/' + this.get('albumID') + '!images?_filteruri=Image,ImageSizeDetails&_filter=CanEdit,Caption,Keywords,Title,FileName&_shorturis=',
 					data: {
 						_expand: 'ImageSizeDetails',
 						count: 100 /* Page size */
@@ -272,7 +272,7 @@ YUI.add('ss-smugmug-bulk-edit-tool', function(Y, NAME) {
 					}
 					
 					queue.enqueueRequest({
-						url: 'http://' + that.get('smugDomain') + change.image.Uris.Image + '?_method=PATCH',
+						url: 'https://' + that.get('smugDomain') + change.image.Uris.Image + '?_method=PATCH',
 						method: 'POST',				
 						data: JSON.stringify(data),
 						headers: {

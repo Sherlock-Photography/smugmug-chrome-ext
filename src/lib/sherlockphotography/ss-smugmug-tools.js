@@ -26,7 +26,7 @@ YUI.add('ss-smugmug-tools', function(Y) {
 			 * @param on
 			 */
 			getRootNode: function(nickname, params) {
-				Y.io('http://' + nickname + '.smugmug.com/services/api/json/1.4.0/', {
+				Y.io('https://' + nickname + '.smugmug.com/services/api/json/1.4.0/', {
 					data: {
 						disableAlbum:1,
 						disableEmpty:1,
@@ -169,7 +169,7 @@ YUI.add('ss-smugmug-tools', function(Y) {
 				
 				//Attempt to switch the link to use the user's custom domain
 				if (loggedInUser && loggedInUser.homepage && !loggedInUser.homepage.match(/\.smugmug\.com$/)) {
-					pl = pl.replace(new RegExp("^http://" + loggedInUser.nickName + "\.smugmug\.com"), loggedInUser.homepage);
+					pl = pl.replace(new RegExp("^https?://" + loggedInUser.nickName + "\.smugmug\.com"), loggedInUser.homepage);
 				}
 				
 				return pl;

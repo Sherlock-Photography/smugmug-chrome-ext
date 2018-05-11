@@ -14,7 +14,7 @@ YUI.add('ss-lightbox-view-collected', function(Y) {
 			url = url + "";
 			
 			if (SM.env.pageOwner && SM.env.pageOwner.homepage) {
-				url = url.replace(SM.env.pageOwner.homepage, "http://" + SM.env.pageOwner.nickName + ".smugmug.com");
+				url = url.replace(SM.env.pageOwner.homepage, "https://" + SM.env.pageOwner.nickName + ".smugmug.com");
 			}
 			
 			return url;

@@ -55,7 +55,7 @@ YUI.add('ss-smugmug-node-enumerator', function(Y, NAME) {
 		    
 		    _fetchPage: function(nodeID, maxDepth, pageNumber) {
 				this._queue.enqueueRequest({
-					url: 'http://' + this.get('domain') + '/services/api/json/1.4.0/',
+					url: 'https://' + this.get('domain') + '/services/api/json/1.4.0/',
 					data: {
 						NodeID: nodeID,
 						PageSize: 50,

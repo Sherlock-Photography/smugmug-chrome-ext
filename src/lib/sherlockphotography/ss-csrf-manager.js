@@ -28,7 +28,7 @@ YUI.add('ss-csrf-manager', function(Y, NAME) {
 				_fetchToken: function(callback) {
 					var that = this;
 					
-					Y.io('http://' + this._domainName + '/api/v2!token', {
+					Y.io('https://' + this._domainName + '/api/v2!token', {
 						method: 'POST',
 						headers: {
 							'Accept': 'application/json',
