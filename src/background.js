@@ -28,16 +28,6 @@ chrome.tabs.onUpdated.addListener(function(tabId, changeInfo, tab) {
  * 
  * Use the webRequest framework to forge the Origin header.
  */
-function getOriginFromUrl(inp) {
-	try {
-		var url = new URL(inp);
-		
-		return url.protocol + '//' + url.hostname + (url.port ? ':' + url.port : '');
-	} catch (e) {
-		return "";
-	}
-}
-
 var
 	requestFilter = {
 		urls : [ "http://*/*", "https://*/*" ] /* We'll only actually get to see requests for domains we have permissions for (*.smugmug.com etc) */
@@ -57,18 +47,13 @@ var
 		if (details.method == 'POST' || details.method == 'PATCH') {
 			for (var i = 0; i < headers.length; ++i) {
 				if (headers[i].name == 'Origin' && (
-					headers[i].value.match(/^chrome-extension:\/\/ninadcapimgifcnahdjbdaolfcnnlcjk\//)
-					|| headers[i].value.match(/^chrome-extension:\/\/ifabodhdkjnhjbcdkdfjkboidifjneia\//)
-					|| headers[i].value.match(/^chrome-extension:\/\/acobflahofemoblocddilbgnokclnphd\//))) {
+					headers[i].value.match(/^chrome-extension:\/\/ninadcapimgifcnahdjbdaolfcnnlcjk/)
+					|| headers[i].value.match(/^chrome-extension:\/\/ifabodhdkjnhjbcdkdfjkboidifjneia/)
+					|| headers[i].value.match(/^chrome-extension:\/\/acobflahofemoblocddilbgnokclnphd/))) {
 					headers.splice(i, 1);
 					break;
 				}
 			}
-			
-			headers.push({
-				'name': 'Origin',
-				'value': getOriginFromUrl(details.url)
-			});
 		}
 		
 		blockingResponse.requestHeaders = headers;
