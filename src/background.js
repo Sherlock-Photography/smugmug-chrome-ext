@@ -26,28 +26,49 @@ chrome.tabs.onUpdated.addListener(function(tabId, changeInfo, tab) {
  * SmugMug have implemented CORS-like security which checks that the Origin header on requests isn't something nasty, probably
  * because they plan to enable cross-domain requests against their API.
  * 
- * Use the webRequest framework to forge the Origin header by removing it from our requests.
+ * Use the webRequest framework to forge the Origin header.
  */
+function getOriginFromUrl(inp) {
+	try {
+		var url = new URL(inp);
+		
+		return url.protocol + '//' + url.hostname + (url.port ? ':' + url.port : '');
+	} catch (e) {
+		return "";
+	}
+}
 
 var
 	requestFilter = {
 		urls : [ "http://*/*", "https://*/*" ] /* We'll only actually get to see requests for domains we have permissions for (*.smugmug.com etc) */
 	},
-	extraInfoSpec = [ 'requestHeaders', 'blocking' ],
+	extraInfoSpec = [
+		'requestHeaders',
+		'blocking',
+		'extraHeaders' // Now required to edit the Origin due to https://bugs.chromium.org/p/chromium/issues/detail?id=966223
+	],
 	
 	requestHandler = function(details) {
-		var headers = details.requestHeaders, blockingResponse = {};
+		var
+			headers = details.requestHeaders,
+			blockingResponse = {};
 	
 		// The Origin header is only checked on POST/PATCH requests
 		if (details.method == 'POST' || details.method == 'PATCH') {
 			for (var i = 0; i < headers.length; ++i) {
-				if (headers[i].name == 'Origin' && headers[i].value.match(/^chrome-extension:\/\/ninadcapimgifcnahdjbdaolfcnnlcjk/) ||
-						headers[i].value.match(/^chrome-extension:\/\/ifabodhdkjnhjbcdkdfjkboidifjneia/) ||
-						headers[i].value.match(/^chrome-extension:\/\/acobflahofemoblocddilbgnokclnphd/)) {
+				if (headers[i].name == 'Origin' && (
+					headers[i].value.match(/^chrome-extension:\/\/ninadcapimgifcnahdjbdaolfcnnlcjk\//)
+					|| headers[i].value.match(/^chrome-extension:\/\/ifabodhdkjnhjbcdkdfjkboidifjneia\//)
+					|| headers[i].value.match(/^chrome-extension:\/\/acobflahofemoblocddilbgnokclnphd\//))) {
 					headers.splice(i, 1);
 					break;
 				}
 			}
+			
+			headers.push({
+				'name': 'Origin',
+				'value': getOriginFromUrl(details.url)
+			});
 		}
 		
 		blockingResponse.requestHeaders = headers;

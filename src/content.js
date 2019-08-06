@@ -32,6 +32,7 @@ if (!window.ssSmugmugForChromeAtIdle) {
 						siteDetailMessage.loggedInUser = SM.env.loggedInUser;
 						siteDetailMessage.pageOwner = SM.env.pageOwner;
 						siteDetailMessage.nickname = siteDetailMessage.pageOwner.nickName;
+						siteDetailMessage.apiKey = SM.env.apiKey;
 					}
 				} else if ((matches = code.match(/^\s*Y\.SM\.Page\.init\(([^\n]+)\);$/m))) {
 					try {

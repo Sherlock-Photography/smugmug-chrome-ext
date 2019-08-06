@@ -5,7 +5,8 @@ YUI().use(['node', 'json', 'io', 'event-resize', 'querystring-parse-simple', 'ss
 		
 		nickname = query.nickname,
 		albumID = query.albumKey,
-		albumName = query.albumName;
+		albumName = query.albumName,
+		apiKey = query.apiKey;
 	
 	if (!/^[a-zA-Z0-9]+$/.test(albumID) || !/^[a-zA-Z0-9-]+$/.test(nickname)) {
 		alert("Bad arguments, please close this page and try again.");
@@ -445,7 +446,7 @@ YUI().use(['node', 'json', 'io', 'event-resize', 'querystring-parse-simple', 'ss
 				updateButtonPreview();
 			}
 			
-			Y.SherlockPhotography.CSRFManager.start(smugDomain, function(token) {
+			Y.SherlockPhotography.CSRFManager.start(smugDomain, apiKey, function(token) {
 				if (token) {
 					fetchPhotos();
 				} else {

@@ -11,6 +11,7 @@ YUI.add('ss-csrf-manager', function(Y, NAME) {
 			{
 				_refreshTimer: null,
 				_domainName: null,
+				_apiKey: null,
 				
 				_startTimer: function() {
 					if (this._refreshTimer) {
@@ -28,11 +29,10 @@ YUI.add('ss-csrf-manager', function(Y, NAME) {
 				_fetchToken: function(callback) {
 					var that = this;
 					
-					Y.io('https://' + this._domainName + '/api/v2!token', {
+					Y.io('https://' + this._domainName + '/api/v2!token?APIKey=' + this._apiKey, {
 						method: 'POST',
 						headers: {
-							'Accept': 'application/json',
-							'x-requested-with': null
+							'Accept': 'application/json'
 						},
 						on: {
 							success: function(transactionid, response, arguments) {
@@ -73,23 +73,27 @@ YUI.add('ss-csrf-manager', function(Y, NAME) {
 					this._fetchToken(); 
 				},
 				
-				start: function(domainName, callback) {
-					if (!callback) {
-						throw "You must supply a callback in order to register for the initial token ready event.";
-					}
+				start: function(domainName, apiKey, callback) {
 					if (!domainName) {
 						throw "domainName is a required parameter";
 					}
+					if (!apiKey) {
+						throw "apiKey is a required parameter";
+					}
+					if (!callback) {
+						throw "You must supply a callback in order to register for the initial token ready event.";
+					}
 					
 					this._domainName = domainName;
+					this._apiKey = apiKey;
 					
 					this._fetchToken(callback);
-				},				
+				}
 			}, {
 				ATTRS: {
 					token: {
 						value: null,
-						readOnly: true,
+						readOnly: true
 					}
 				}
 			}

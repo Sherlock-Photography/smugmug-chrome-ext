@@ -22,6 +22,7 @@ YUI().use(['node', 'json', 'io', 'event-resize', 'querystring-parse-simple', 'ss
 		query = Y.QueryString.parse(location.search.slice(1)),
 		
 		smugDomain = query.domain,
+		apiKey = query.apiKey,
 		albumID = query.albumKey,
 		albumName = query.albumName,
 		
@@ -264,7 +265,7 @@ YUI().use(['node', 'json', 'io', 'event-resize', 'querystring-parse-simple', 'ss
 					saveButton: "#btn-save-changes",
 					
 					imageListContainer: "#image-selector",
-					imageListSpinner: "#image-selector-spinner",
+					imageListSpinner: "#image-selector-spinner"
 				}),
 				
 				bulkActionUI = new BulkActionUI({
@@ -296,7 +297,7 @@ YUI().use(['node', 'json', 'io', 'event-resize', 'querystring-parse-simple', 'ss
 			
 			Y.all(".smugmug-gallery-name").set('text', albumName);
 			
-			Y.SherlockPhotography.CSRFManager.start(smugDomain, function(token) {
+			Y.SherlockPhotography.CSRFManager.start(smugDomain, apiKey, function(token) {
 				if (token) {
 					bulkEditTool.fetchPhotos();	
 				} else {

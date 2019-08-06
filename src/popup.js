@@ -1,6 +1,6 @@
 "use strict";
 
-function show_popup(tab, hasPermission, domainName) {
+function showSMMenuPopup(tab, hasPermission, domainName) {
 	if (!hasPermission) {
 		document.getElementById("hasnt-permission").style.display = "block";
 		document.getElementById("custom-domain-name").textContent = domainName[1];
@@ -44,25 +44,28 @@ function show_popup(tab, hasPermission, domainName) {
 						url: 'paypal.html?nickname=' + encodeURIComponent(siteDetail.nickname)
 							+ '&albumKey=' + encodeURIComponent(siteDetail.pageDetails.userNode.RemoteKey)
 							+ '&albumName=' + encodeURIComponent(siteDetail.pageDetails.userNode.Name)
+						    + '&apiKey=' + encodeURIComponent(siteDetail.apiKey)
 					});
 					
 					return false;
 				};
 				
-				var bulkEditBeta = document.getElementById("bulk-edit-beta");
+				var bulkEditTool = document.getElementById("bulk-edit-beta");
 				
-				bulkEditBeta.onclick = function(e) {
+				bulkEditTool.onclick = function(e) {
 					if (e.shiftKey) {
 						chrome.tabs.create({
 							url: 'https://' + domainName[1] + '/photos/tools.mg?pageType=Album&tool=bulkcaption&AlbumID=' + encodeURIComponent(siteDetail.pageDetails.userNode.RemoteID)
 								+ '&AlbumKey=' + encodeURIComponent(siteDetail.pageDetails.userNode.RemoteKey)
 								+ '&url='+ encodeURIComponent(tab.url)
+								+ '&apiKey=' + encodeURIComponent(siteDetail.apiKey)
 						});
 					} else {
 						chrome.tabs.create({
 							url: 'bulk-edit.html?domain=' + encodeURIComponent(domainName[1])
 								+ '&albumKey=' + encodeURIComponent(siteDetail.pageDetails.userNode.RemoteKey)
 								+ '&albumName=' + encodeURIComponent(siteDetail.pageDetails.userNode.Name)
+								+ '&apiKey=' + encodeURIComponent(siteDetail.apiKey)
 						});
 					}
 					
@@ -87,7 +90,7 @@ function show_popup(tab, hasPermission, domainName) {
 						match_gallery_url += '/';
 					}
 					
-					function report_crop_thumbnail_tool_error(message) {
+					function reportCropThumbnailToolError(message) {
 						if (message === undefined) {
 							message = "Failed to look up details about that photo in order to crop it, please try again.";
 						}
@@ -95,7 +98,7 @@ function show_popup(tab, hasPermission, domainName) {
 						document.getElementById("edit-thumbnails-error").innerText = message;
 					}
 					
-					function open_crop_thumbnail_tool(imageID, imageKey) {
+					function openCropThumbnailTool(imageID, imageKey) {
 						chrome.tabs.update({
 							url: 'https://' + domainName[1] + '/photos/tools/crop.mg?' +
 								'ImageID=' + encodeURIComponent(imageID) +
@@ -108,7 +111,7 @@ function show_popup(tab, hasPermission, domainName) {
 					}
 
 					//Clear error message
-					report_crop_thumbnail_tool_error("");
+					reportCropThumbnailToolError("");
 					
 					YUI().use(['io'], function(Y) {
 						if (match_image_key) {
@@ -127,13 +130,13 @@ function show_popup(tab, hasPermission, domainName) {
 										try {
 											var data = JSON.parse(response.responseText);
 											
-											open_crop_thumbnail_tool(data.Response.Image.UploadKey, match_image_key);
+											openCropThumbnailTool(data.Response.Image.UploadKey, match_image_key);
 										} catch (e) {
-											report_crop_thumbnail_tool_error();
+											reportCropThumbnailToolError();
 										}
 									},
 									failure: function() {
-										report_crop_thumbnail_tool_error();
+										reportCropThumbnailToolError();
 									}
 								}
 							});
@@ -151,16 +154,16 @@ function show_popup(tab, hasPermission, domainName) {
 											var data = JSON.parse(response.responseText);
 											
 											if (data.Response.AlbumImage) {
-												open_crop_thumbnail_tool(data.Response.AlbumImage[0].UploadKey, data.Response.AlbumImage[0].Uri.match(/\/([a-zA-Z0-9]+)(-\d+)?$/)[1]);
+												openCropThumbnailTool(data.Response.AlbumImage[0].UploadKey, data.Response.AlbumImage[0].Uri.match(/\/([a-zA-Z0-9]+)(-\d+)?$/)[1]);
 											} else {
-												report_crop_thumbnail_tool_error("This gallery seems to be empty, no thumbnails found to crop.");												
+												reportCropThumbnailToolError("This gallery seems to be empty, no thumbnails found to crop.");
 											}
 										} catch (e) {
-											report_crop_thumbnail_tool_error();
+											reportCropThumbnailToolError();
 										}									
 									},
 									failure: function() {
-										report_crop_thumbnail_tool_error();
+										reportCropThumbnailToolError();
 									}
 								}
 							});						
@@ -217,7 +220,7 @@ function connectWithPage() {
 				if (domainName) {
 					//We always have permission for *.smugmug.com domains
 					if (tab.url.match(/^https?:\/\/(?:www\.)?([^.]+)\.smugmug\.com\//)) {
-						show_popup(tab, true, domainName);
+						showSMMenuPopup(tab, true, domainName);
 					} else {
 						//Assume we're on a custom domain name, so check that we have permission for it
 						
@@ -225,7 +228,7 @@ function connectWithPage() {
 							permissions: [],
 							origins: [domainName[0]]
 						}, function(result) {
-							show_popup(tab, result, domainName);
+							showSMMenuPopup(tab, result, domainName);
 						});
 					}
 				} else {
