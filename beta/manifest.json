@@ -3,7 +3,7 @@
 
 	"name" : "SmugMug for Chrome (beta version)",
 	"description" : "Extra features for SmugMug site owners",
-	"version" : "0.4.8",
+	"version" : "0.4.9",
 	"author" : "Nicholas Sherlock of Sherlock Photography",
 
 	"content_security_policy" : "script-src 'self' 'unsafe-eval'; object-src 'self'",

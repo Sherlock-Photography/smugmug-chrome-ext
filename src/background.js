@@ -60,4 +60,12 @@ var
 		return blockingResponse;
 	};
 
-chrome.webRequest.onBeforeSendHeaders.addListener(requestHandler, requestFilter, extraInfoSpec);
+try {
+	chrome.webRequest.onBeforeSendHeaders.addListener(requestHandler, requestFilter, extraInfoSpec);
+} catch (e) {
+	// Old Chrome versions did not support "extraHeaders" (and don't need it either)
+	chrome.webRequest.onBeforeSendHeaders.addListener(requestHandler, requestFilter, [
+		'requestHeaders',
+		'blocking'
+	]);
+}
